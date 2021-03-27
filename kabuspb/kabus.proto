@@ -40,15 +40,15 @@ message RegisterSymbol {
 
 // 市場
 enum Exchange {
-  UNSPECIFIED = 0; // 指定なし
+  EXCHANGE_UNSPECIFIED = 0; // 指定なし
 
   // 株式
-  TOUSHOU = 1; // 東証
-  MEISHOU = 3; // 名証
-  FUKUSHOU = 5; // 福証
-  SATSUSHOU = 6; // 札証
+  EXCHANGE_TOUSHOU = 1; // 東証
+  EXCHANGE_MEISHOU = 3; // 名証
+  EXCHANGE_FUKUSHOU = 5; // 福証
+  EXCHANGE_SATSUSHOU = 6; // 札証
 
-  ALL_SESSION = 2; // 日通し
-  DAY_SESSION = 23; // 日中場
-  NIGHT_SESSION = 24; // 夕場
+  EXCHANGE_ALL_SESSION = 2; // 日通し
+  EXCHANGE_DAY_SESSION = 23; // 日中場
+  EXCHANGE_NIGHT_SESSION = 24; // 夕場
 }
