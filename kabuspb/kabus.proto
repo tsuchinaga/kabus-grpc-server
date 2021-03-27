@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package kabuspb;
+
+option go_package = ".;kabuspb";
+
+service KabusService {
+  rpc GetRegisteredSymbols(GetRegisteredSymbolsRequest) returns (RegisteredSymbols); // 登録銘柄一覧 ※直前で実行されたRegister, Unregister, UnregisterAllの結果を保持しているだけ
+  rpc RegisterSymbols(RegisterSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録
+  rpc UnregisterSymbols(UnregisterSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録解除
+  rpc UnregisterAllSymbols(UnregisterAllSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録全解除
+}
+
+// 登録銘柄一覧リクエスト
+message GetRegisteredSymbolsRequest {}
+
+// 銘柄登録リクエスト
+message RegisterSymbolsRequest {
+  repeated RegisterSymbol symbols = 1; // 登録する銘柄のリスト
+}
+
+// 銘柄登録解除リクエスト
+message UnregisterSymbolsRequest {
+  repeated RegisterSymbol symbols = 1; // 登録解除する銘柄のリスト
+}
+
+// 銘柄登録全解除リクエスト
+message UnregisterAllSymbolsRequest {}
+
+// 銘柄登録
+message RegisteredSymbols {
+  repeated RegisterSymbol symbols = 1; // 現在登録されている銘柄のリスト
+}
+
+// 銘柄登録の詳細
+message RegisterSymbol {
+  string symbol = 1;
+  Exchange exchange = 2;
+}
+
+// 市場
+enum Exchange {
+  UNSPECIFIED = 0; // 指定なし
+
+  // 株式
+  TOUSHOU = 1; // 東証
+  MEISHOU = 3; // 名証
+  FUKUSHOU = 5; // 福証
+  SATSUSHOU = 6; // 札証
+
+  ALL_SESSION = 2; // 日通し
+  DAY_SESSION = 23; // 日中場
+  NIGHT_SESSION = 24; // 夕場
+}
