@@ -17,6 +17,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type KabusServiceClient interface {
+	GetFutureSymbolCodeInfo(ctx context.Context, in *GetFutureSymbolCodeInfoRequest, opts ...grpc.CallOption) (*SymbolCodeInfo, error)
+	GetOptionSymbolCodeInfo(ctx context.Context, in *GetOptionSymbolCodeInfoRequest, opts ...grpc.CallOption) (*SymbolCodeInfo, error)
 	GetRegisteredSymbols(ctx context.Context, in *GetRegisteredSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
 	RegisterSymbols(ctx context.Context, in *RegisterSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
 	UnregisterSymbols(ctx context.Context, in *UnregisterSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
@@ -29,6 +31,24 @@ type kabusServiceClient struct {
 
 func NewKabusServiceClient(cc grpc.ClientConnInterface) KabusServiceClient {
 	return &kabusServiceClient{cc}
+}
+
+func (c *kabusServiceClient) GetFutureSymbolCodeInfo(ctx context.Context, in *GetFutureSymbolCodeInfoRequest, opts ...grpc.CallOption) (*SymbolCodeInfo, error) {
+	out := new(SymbolCodeInfo)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetFutureSymbolCodeInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) GetOptionSymbolCodeInfo(ctx context.Context, in *GetOptionSymbolCodeInfoRequest, opts ...grpc.CallOption) (*SymbolCodeInfo, error) {
+	out := new(SymbolCodeInfo)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetOptionSymbolCodeInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *kabusServiceClient) GetRegisteredSymbols(ctx context.Context, in *GetRegisteredSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error) {
@@ -71,6 +91,8 @@ func (c *kabusServiceClient) UnregisterAllSymbols(ctx context.Context, in *Unreg
 // All implementations must embed UnimplementedKabusServiceServer
 // for forward compatibility
 type KabusServiceServer interface {
+	GetFutureSymbolCodeInfo(context.Context, *GetFutureSymbolCodeInfoRequest) (*SymbolCodeInfo, error)
+	GetOptionSymbolCodeInfo(context.Context, *GetOptionSymbolCodeInfoRequest) (*SymbolCodeInfo, error)
 	GetRegisteredSymbols(context.Context, *GetRegisteredSymbolsRequest) (*RegisteredSymbols, error)
 	RegisterSymbols(context.Context, *RegisterSymbolsRequest) (*RegisteredSymbols, error)
 	UnregisterSymbols(context.Context, *UnregisterSymbolsRequest) (*RegisteredSymbols, error)
@@ -82,6 +104,12 @@ type KabusServiceServer interface {
 type UnimplementedKabusServiceServer struct {
 }
 
+func (UnimplementedKabusServiceServer) GetFutureSymbolCodeInfo(context.Context, *GetFutureSymbolCodeInfoRequest) (*SymbolCodeInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFutureSymbolCodeInfo not implemented")
+}
+func (UnimplementedKabusServiceServer) GetOptionSymbolCodeInfo(context.Context, *GetOptionSymbolCodeInfoRequest) (*SymbolCodeInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOptionSymbolCodeInfo not implemented")
+}
 func (UnimplementedKabusServiceServer) GetRegisteredSymbols(context.Context, *GetRegisteredSymbolsRequest) (*RegisteredSymbols, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRegisteredSymbols not implemented")
 }
@@ -105,6 +133,42 @@ type UnsafeKabusServiceServer interface {
 
 func RegisterKabusServiceServer(s grpc.ServiceRegistrar, srv KabusServiceServer) {
 	s.RegisterService(&KabusService_ServiceDesc, srv)
+}
+
+func _KabusService_GetFutureSymbolCodeInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFutureSymbolCodeInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).GetFutureSymbolCodeInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/GetFutureSymbolCodeInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).GetFutureSymbolCodeInfo(ctx, req.(*GetFutureSymbolCodeInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_GetOptionSymbolCodeInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOptionSymbolCodeInfoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).GetOptionSymbolCodeInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/GetOptionSymbolCodeInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).GetOptionSymbolCodeInfo(ctx, req.(*GetOptionSymbolCodeInfoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _KabusService_GetRegisteredSymbols_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -186,6 +250,14 @@ var KabusService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "kabuspb.KabusService",
 	HandlerType: (*KabusServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetFutureSymbolCodeInfo",
+			Handler:    _KabusService_GetFutureSymbolCodeInfo_Handler,
+		},
+		{
+			MethodName: "GetOptionSymbolCodeInfo",
+			Handler:    _KabusService_GetOptionSymbolCodeInfo_Handler,
+		},
 		{
 			MethodName: "GetRegisteredSymbols",
 			Handler:    _KabusService_GetRegisteredSymbols_Handler,

@@ -17,6 +17,29 @@ type security struct {
 	restClient kabus.RESTClient
 }
 
+func (s *security) SymbolNameFuture(ctx context.Context, token string, req *kabuspb.GetFutureSymbolCodeInfoRequest) (*kabuspb.SymbolCodeInfo, error) {
+	res, err := s.restClient.SymbolNameFutureWithContext(ctx, token, kabus.SymbolNameFutureRequest{
+		FutureCode: toFutureCode(req.FutureCode),
+		DerivMonth: toYmNum(req.DerivativeMonth),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &kabuspb.SymbolCodeInfo{Code: res.Symbol, Name: res.SymbolName}, nil
+}
+
+func (s *security) SymbolNameOption(ctx context.Context, token string, req *kabuspb.GetOptionSymbolCodeInfoRequest) (*kabuspb.SymbolCodeInfo, error) {
+	res, err := s.restClient.SymbolNameOptionWithContext(ctx, token, kabus.SymbolNameOptionRequest{
+		DerivMonth:  toYmNum(req.DerivativeMonth),
+		PutOrCall:   toPutOrCall(req.CallOrPut),
+		StrikePrice: int(req.StrikePrice),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &kabuspb.SymbolCodeInfo{Code: res.Symbol, Name: res.SymbolName}, nil
+}
+
 func (s *security) Token(ctx context.Context, password string) (string, error) {
 	token, err := s.restClient.TokenWithContext(ctx, kabus.TokenRequest{APIPassword: password})
 	if err != nil {

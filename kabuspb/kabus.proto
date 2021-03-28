@@ -4,11 +4,41 @@ package kabuspb;
 
 option go_package = ".;kabuspb";
 
+import "google/protobuf/timestamp.proto";
+
 service KabusService {
+  rpc GetFutureSymbolCodeInfo(GetFutureSymbolCodeInfoRequest) returns (SymbolCodeInfo); // 先物銘柄コード取得
+  rpc GetOptionSymbolCodeInfo(GetOptionSymbolCodeInfoRequest) returns (SymbolCodeInfo); // オプション銘柄コード取得
   rpc GetRegisteredSymbols(GetRegisteredSymbolsRequest) returns (RegisteredSymbols); // 登録銘柄一覧 ※直前で実行されたRegister, Unregister, UnregisterAllの結果を保持しているだけ
   rpc RegisterSymbols(RegisterSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録
   rpc UnregisterSymbols(UnregisterSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録解除
   rpc UnregisterAllSymbols(UnregisterAllSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録全解除
+}
+
+// 先物銘柄コード取得リクエスト
+message GetFutureSymbolCodeInfoRequest{
+  // 先物コード
+  FutureCode future_code = 1;
+
+  // 限月
+  //   年月の値だけを使います
+  //   ゼロ値なら直近の限月と同義
+  google.protobuf.Timestamp derivative_month = 2;
+}
+
+// オプション銘柄コード取得リクエスト
+message GetOptionSymbolCodeInfoRequest{
+  // 限月
+  //   年月の値だけを使います
+  //   ゼロ値なら直近の限月と同義
+  google.protobuf.Timestamp derivative_month = 1;
+
+  // コール or プット
+  CallPut call_or_put = 2;
+
+  // 権利行使価格
+  //   ゼロ値ならATMと同義
+  int32 strike_price = 3;
 }
 
 // 登録銘柄一覧リクエスト
@@ -16,25 +46,40 @@ message GetRegisteredSymbolsRequest {}
 
 // 銘柄登録リクエスト
 message RegisterSymbolsRequest {
-  repeated RegisterSymbol symbols = 1; // 登録する銘柄のリスト
+  // 登録する銘柄のリスト
+  repeated RegisterSymbol symbols = 1;
 }
 
 // 銘柄登録解除リクエスト
 message UnregisterSymbolsRequest {
-  repeated RegisterSymbol symbols = 1; // 登録解除する銘柄のリスト
+  // 登録解除する銘柄のリスト
+  repeated RegisterSymbol symbols = 1;
 }
 
 // 銘柄登録全解除リクエスト
 message UnregisterAllSymbolsRequest {}
 
+// 銘柄コード情報
+message SymbolCodeInfo {
+  // 銘柄コード
+  string code = 1;
+
+  // 銘柄名
+  string name = 2;
+}
+
 // 銘柄登録
 message RegisteredSymbols {
-  repeated RegisterSymbol symbols = 1; // 現在登録されている銘柄のリスト
+  // 現在登録されている銘柄のリスト
+  repeated RegisterSymbol symbols = 1;
 }
 
 // 銘柄登録の詳細
 message RegisterSymbol {
+  // 銘柄コード
   string symbol = 1;
+
+  // 市場
   Exchange exchange = 2;
 }
 
@@ -48,7 +93,30 @@ enum Exchange {
   EXCHANGE_FUKUSHOU = 5; // 福証
   EXCHANGE_SATSUSHOU = 6; // 札証
 
+  // 先物・オプション
   EXCHANGE_ALL_SESSION = 2; // 日通し
   EXCHANGE_DAY_SESSION = 23; // 日中場
   EXCHANGE_NIGHT_SESSION = 24; // 夕場
+}
+
+// 先物コード
+enum FutureCode {
+  FUTURE_CODE_UNSPECIFIED = 0; // 指定なし
+  FUTURE_CODE_NK225 = 1; // 日経平均先物
+  FUTURE_CODE_NK225_MINI = 2; // 日経225mini先物
+  FUTURE_CODE_TOPIX = 3; // TOPIX先物
+  FUTURE_CODE_TOPIX_MINI = 4; // ミニTOPIX先物
+  FUTURE_CODE_MOTHERS = 5; // 東証マザーズ先物
+  FUTURE_CODE_JPX400 = 6; // JPX日経400先物
+  FUTURE_CODE_DOW = 7; // NYダウ先物
+  FUTURE_CODE_VI = 8; // 日経平均VI先物
+  FUTURE_CODE_CORE30 = 9; // TOPIX Core30先物
+  FUTURE_CODE_REIT = 10; // 東証REIT指数先物
+}
+
+// コール or プット
+enum CallPut {
+  CALL_PUT_UNSPECIFIED = 0; // 指定なし
+  CALL_PUT_CALL = 1; // CALL
+  CALL_PUT_PUT = 2; // PUT
 }

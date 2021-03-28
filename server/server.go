@@ -20,6 +20,24 @@ type server struct {
 	registerSymbolService services.RegisterSymbolService
 }
 
+func (s *server) GetFutureSymbolCodeInfo(ctx context.Context, req *kabuspb.GetFutureSymbolCodeInfoRequest) (*kabuspb.SymbolCodeInfo, error) {
+	token, err := s.tokenService.GetToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.security.SymbolNameFuture(ctx, token, req)
+}
+
+func (s *server) GetOptionSymbolCodeInfo(ctx context.Context, req *kabuspb.GetOptionSymbolCodeInfoRequest) (*kabuspb.SymbolCodeInfo, error) {
+	token, err := s.tokenService.GetToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.security.SymbolNameOption(ctx, token, req)
+}
+
 func (s *server) GetRegisteredSymbols(context.Context, *kabuspb.GetRegisteredSymbolsRequest) (*kabuspb.RegisteredSymbols, error) {
 	return &kabuspb.RegisteredSymbols{Symbols: s.registerSymbolService.Get()}, nil
 }

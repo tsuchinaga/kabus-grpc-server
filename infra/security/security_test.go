@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"testing"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"gitlab.com/tsuchinaga/kabus-grpc-server/kabuspb"
 
 	"gitlab.com/tsuchinaga/go-kabusapi/kabus"
@@ -13,20 +15,32 @@ import (
 
 type testRESTClient struct {
 	kabus.RESTClient
-	tokenWithContext1         *kabus.TokenResponse
-	tokenWithContext2         error
-	registerWithContext1      *kabus.RegisterResponse
-	registerWithContext2      error
-	lastRegisterWithContext   kabus.RegisterRequest
-	unregisterWithContext1    *kabus.UnregisterResponse
-	unregisterWithContext2    error
-	lastUnregisterWithContext kabus.UnregisterRequest
-	unregisterAllWithContext1 *kabus.UnregisterAllResponse
-	unregisterAllWithContext2 error
+	tokenWithContext1            *kabus.TokenResponse
+	tokenWithContext2            error
+	symbolNameFutureWithContext1 *kabus.SymbolNameFutureResponse
+	symbolNameFutureWithContext2 error
+	symbolNameOptionWithContext1 *kabus.SymbolNameOptionResponse
+	symbolNameOptionWithContext2 error
+	registerWithContext1         *kabus.RegisterResponse
+	registerWithContext2         error
+	lastRegisterWithContext      kabus.RegisterRequest
+	unregisterWithContext1       *kabus.UnregisterResponse
+	unregisterWithContext2       error
+	lastUnregisterWithContext    kabus.UnregisterRequest
+	unregisterAllWithContext1    *kabus.UnregisterAllResponse
+	unregisterAllWithContext2    error
 }
 
 func (t *testRESTClient) TokenWithContext(context.Context, kabus.TokenRequest) (*kabus.TokenResponse, error) {
 	return t.tokenWithContext1, t.tokenWithContext2
+}
+
+func (t *testRESTClient) SymbolNameFutureWithContext(context.Context, string, kabus.SymbolNameFutureRequest) (*kabus.SymbolNameFutureResponse, error) {
+	return t.symbolNameFutureWithContext1, t.symbolNameFutureWithContext2
+}
+
+func (t *testRESTClient) SymbolNameOptionWithContext(context.Context, string, kabus.SymbolNameOptionRequest) (*kabus.SymbolNameOptionResponse, error) {
+	return t.symbolNameOptionWithContext1, t.symbolNameOptionWithContext2
 }
 
 func (t *testRESTClient) RegisterWithContext(_ context.Context, _ string, request kabus.RegisterRequest) (*kabus.RegisterResponse, error) {
@@ -180,6 +194,82 @@ func Test_security_UnregisterAll(t *testing.T) {
 			restClient := &testRESTClient{unregisterAllWithContext1: test.unregisterAllWithContext1, unregisterAllWithContext2: test.unregisterAllWithContext2}
 			security := &security{restClient: restClient}
 			got1, got2 := security.UnregisterAll(context.Background(), "", &kabuspb.UnregisterAllSymbolsRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_SymbolNameFuture(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                         string
+		symbolNameFutureWithContext1 *kabus.SymbolNameFutureResponse
+		symbolNameFutureWithContext2 error
+		arg                          *kabuspb.GetFutureSymbolCodeInfoRequest
+		want                         *kabuspb.SymbolCodeInfo
+		hasError                     bool
+	}{
+		{name: "errorを返されたらerrorを返す",
+			symbolNameFutureWithContext2: errors.New("error message"),
+			arg:                          &kabuspb.GetFutureSymbolCodeInfoRequest{FutureCode: kabuspb.FutureCode_FUTURE_CODE_NK225, DerivativeMonth: timestamppb.Now()},
+			hasError:                     true},
+		{name: "responseが返されたらresponseを変換して返す",
+			symbolNameFutureWithContext1: &kabus.SymbolNameFutureResponse{Symbol: "166060018", SymbolName: "日経平均先物 21/06"},
+			arg:                          &kabuspb.GetFutureSymbolCodeInfoRequest{FutureCode: kabuspb.FutureCode_FUTURE_CODE_NK225, DerivativeMonth: timestamppb.Now()},
+			want:                         &kabuspb.SymbolCodeInfo{Code: "166060018", Name: "日経平均先物 21/06"}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{symbolNameFutureWithContext1: test.symbolNameFutureWithContext1, symbolNameFutureWithContext2: test.symbolNameFutureWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.SymbolNameFuture(context.Background(), "", test.arg)
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_SymbolNameOption(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                         string
+		symbolNameOptionWithContext1 *kabus.SymbolNameOptionResponse
+		symbolNameOptionWithContext2 error
+		arg                          *kabuspb.GetOptionSymbolCodeInfoRequest
+		want                         *kabuspb.SymbolCodeInfo
+		hasError                     bool
+	}{
+		{name: "errorを返されたらerrorを返す",
+			symbolNameOptionWithContext2: errors.New("error message"),
+			arg: &kabuspb.GetOptionSymbolCodeInfoRequest{
+				DerivativeMonth: timestamppb.Now(),
+				CallOrPut:       kabuspb.CallPut_CALL_PUT_PUT,
+				StrikePrice:     0,
+			},
+			hasError: true},
+		{name: "responseが返されたらresponseを変換して返す",
+			symbolNameOptionWithContext1: &kabus.SymbolNameOptionResponse{Symbol: "136049118", SymbolName: "日経平均オプション 21/04 プット 29125"},
+			arg: &kabuspb.GetOptionSymbolCodeInfoRequest{
+				DerivativeMonth: timestamppb.Now(),
+				CallOrPut:       kabuspb.CallPut_CALL_PUT_PUT,
+				StrikePrice:     0,
+			},
+			want: &kabuspb.SymbolCodeInfo{Code: "136049118", Name: "日経平均オプション 21/04 プット 29125"}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{symbolNameOptionWithContext1: test.symbolNameOptionWithContext1, symbolNameOptionWithContext2: test.symbolNameOptionWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.SymbolNameOption(context.Background(), "", test.arg)
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}
