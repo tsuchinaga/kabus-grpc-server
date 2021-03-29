@@ -3,6 +3,8 @@ package server
 import (
 	"context"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"gitlab.com/tsuchinaga/kabus-grpc-server/server/repositories"
 
 	"gitlab.com/tsuchinaga/kabus-grpc-server/kabuspb"
@@ -18,6 +20,22 @@ type server struct {
 	security              repositories.Security
 	tokenService          services.TokenService
 	registerSymbolService services.RegisterSymbolService
+}
+
+func (s *server) GetToken(context.Context, *kabuspb.GetTokenRequest) (*kabuspb.Token, error) {
+	token, err := s.tokenService.GetToken(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	return &kabuspb.Token{Token: token, ExpiredAt: timestamppb.New(s.tokenService.GetExpiredAt())}, nil
+}
+
+func (s *server) RefreshToken(context.Context, *kabuspb.RefreshTokenRequest) (*kabuspb.Token, error) {
+	token, err := s.tokenService.Refresh(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	return &kabuspb.Token{Token: token, ExpiredAt: timestamppb.New(s.tokenService.GetExpiredAt())}, nil
 }
 
 func (s *server) GetFutureSymbolCodeInfo(ctx context.Context, req *kabuspb.GetFutureSymbolCodeInfoRequest) (*kabuspb.SymbolCodeInfo, error) {

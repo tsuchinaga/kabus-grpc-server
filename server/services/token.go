@@ -17,6 +17,8 @@ func NewTokenService(
 
 type TokenService interface {
 	GetToken(ctx context.Context) (string, error)
+	GetExpiredAt() time.Time
+	Refresh(ctx context.Context) (string, error)
 }
 
 type token struct {
@@ -41,4 +43,13 @@ func (s *token) GetToken(ctx context.Context) (string, error) {
 	}
 
 	return s.tokenStore.GetToken(), nil
+}
+
+func (s *token) GetExpiredAt() time.Time {
+	return s.tokenStore.GetExpiredAt()
+}
+
+func (s *token) Refresh(ctx context.Context) (string, error) {
+	s.tokenStore.Reset()
+	return s.GetToken(ctx)
 }

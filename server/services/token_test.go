@@ -88,3 +88,64 @@ func Test_token_GetToken(t *testing.T) {
 		})
 	}
 }
+
+func Test_token_GetExpiredAt(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name         string
+		getExpiredAt time.Time
+		want         time.Time
+	}{
+		{name: "storeの有効期限が返される",
+			getExpiredAt: time.Date(2021, 3, 30, 2, 51, 0, 0, time.Local),
+			want:         time.Date(2021, 3, 30, 2, 51, 0, 0, time.Local)},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			tokenStore := &testTokenStore{getExpiredAt: test.getExpiredAt}
+			service := &token{tokenStore: tokenStore}
+			got := service.GetExpiredAt()
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_token_Refresh(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name       string
+		now        time.Time
+		isExpired  bool
+		getToken   string
+		want       string
+		hasError   bool
+		resetCount int
+	}{
+		{name: "refreshが叩かれてから有効期限をチェックしてtokenの結果を返す",
+			now:        time.Date(2021, 3, 30, 2, 55, 0, 0, time.Local),
+			isExpired:  false,
+			getToken:   "TOKEN_STRING",
+			want:       "TOKEN_STRING",
+			hasError:   false,
+			resetCount: 1},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			clock := &testClock{now: test.now}
+			tokenStore := &testTokenStore{getToken: test.getToken, isExpired: test.isExpired}
+			service := &token{clock: clock, tokenStore: tokenStore}
+			got1, got2 := service.Refresh(context.Background())
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError || !reflect.DeepEqual(test.resetCount, tokenStore.resetCount) {
+				t.Errorf("%s error\nwant: %+v, %+v, %+v\ngot: %+v, %+v, %+v\n", t.Name(), test.want, test.hasError, test.resetCount, got1, got2, tokenStore.resetCount)
+			}
+		})
+	}
+}

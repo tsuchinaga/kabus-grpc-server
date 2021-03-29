@@ -5,6 +5,7 @@ import (
 	"errors"
 	"reflect"
 	"testing"
+	"time"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -51,13 +52,16 @@ func (t *testSecurity) SymbolNameOption(context.Context, string, *kabuspb.GetOpt
 
 type testTokenService struct {
 	services.TokenService
-	getToken1 string
-	getToken2 error
+	getToken1    string
+	getToken2    error
+	refresh1     string
+	refresh2     error
+	getExpiredAt time.Time
 }
 
-func (t *testTokenService) GetToken(context.Context) (string, error) {
-	return t.getToken1, t.getToken2
-}
+func (t *testTokenService) GetToken(context.Context) (string, error) { return t.getToken1, t.getToken2 }
+func (t *testTokenService) GetExpiredAt() time.Time                  { return t.getExpiredAt }
+func (t *testTokenService) Refresh(context.Context) (string, error)  { return t.refresh1, t.refresh2 }
 
 type testRegisterSymbolService struct {
 	services.RegisterSymbolService
@@ -318,6 +322,70 @@ func Test_server_GetOptionSymbolCodeInfo(t *testing.T) {
 				DerivativeMonth: timestamppb.Now(),
 				CallOrPut:       kabuspb.CallPut_CALL_PUT_CALL,
 				StrikePrice:     0})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_server_GetToken(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name         string
+		getToken1    string
+		getToken2    error
+		getExpiredAt time.Time
+		want         *kabuspb.Token
+		hasError     bool
+	}{
+		{name: "token取得でerrorがあればerrorを返す",
+			getToken2: errors.New("error message"),
+			hasError:  true},
+		{name: "token取得でerrorがなければ取得したtokenと有効期限を返す",
+			getToken1:    "TOKEN_STRING",
+			getExpiredAt: time.Date(2021, 3, 30, 6, 30, 0, 0, time.Local),
+			want:         &kabuspb.Token{Token: "TOKEN_STRING", ExpiredAt: timestamppb.New(time.Date(2021, 3, 30, 6, 30, 0, 0, time.Local))}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, getExpiredAt: test.getExpiredAt}}
+			got1, got2 := server.GetToken(context.Background(), &kabuspb.GetTokenRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_server_RefreshToken(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name         string
+		refresh1     string
+		refresh2     error
+		getExpiredAt time.Time
+		want         *kabuspb.Token
+		hasError     bool
+	}{
+		{name: "refreshでerrorがあればerrorを返す",
+			refresh2: errors.New("error message"),
+			hasError: true},
+		{name: "refreshでerrorがなければ取得したtokenと有効期限を返す",
+			refresh1:     "TOKEN_STRING",
+			getExpiredAt: time.Date(2021, 3, 30, 6, 30, 0, 0, time.Local),
+			want:         &kabuspb.Token{Token: "TOKEN_STRING", ExpiredAt: timestamppb.New(time.Date(2021, 3, 30, 6, 30, 0, 0, time.Local))}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{tokenService: &testTokenService{refresh1: test.refresh1, refresh2: test.refresh2, getExpiredAt: test.getExpiredAt}}
+			got1, got2 := server.RefreshToken(context.Background(), &kabuspb.RefreshTokenRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}

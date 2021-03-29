@@ -7,6 +7,8 @@ option go_package = ".;kabuspb";
 import "google/protobuf/timestamp.proto";
 
 service KabusService {
+  rpc GetToken(GetTokenRequest) returns (Token); // トークン取得
+  rpc RefreshToken(RefreshTokenRequest) returns (Token); // トークン再取得
   rpc GetFutureSymbolCodeInfo(GetFutureSymbolCodeInfoRequest) returns (SymbolCodeInfo); // 先物銘柄コード取得
   rpc GetOptionSymbolCodeInfo(GetOptionSymbolCodeInfoRequest) returns (SymbolCodeInfo); // オプション銘柄コード取得
   rpc GetRegisteredSymbols(GetRegisteredSymbolsRequest) returns (RegisteredSymbols); // 登録銘柄一覧 ※直前で実行されたRegister, Unregister, UnregisterAllの結果を保持しているだけ
@@ -14,6 +16,13 @@ service KabusService {
   rpc UnregisterSymbols(UnregisterSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録解除
   rpc UnregisterAllSymbols(UnregisterAllSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録全解除
 }
+
+// トークン取得
+message GetTokenRequest {}
+
+
+// トークン再取得
+message RefreshTokenRequest {}
 
 // 先物銘柄コード取得リクエスト
 message GetFutureSymbolCodeInfoRequest{
@@ -58,6 +67,15 @@ message UnregisterSymbolsRequest {
 
 // 銘柄登録全解除リクエスト
 message UnregisterAllSymbolsRequest {}
+
+// トークン
+message Token {
+  // トークン
+  string token = 1;
+
+  // 有効期限
+  google.protobuf.Timestamp expired_at = 2;
+}
 
 // 銘柄コード情報
 message SymbolCodeInfo {

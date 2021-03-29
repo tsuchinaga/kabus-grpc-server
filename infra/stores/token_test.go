@@ -135,3 +135,30 @@ func Test_token_Reset(t *testing.T) {
 		})
 	}
 }
+
+func Test_token_GetExpiredAt(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name  string
+		token repositories.TokenStore
+		want  time.Time
+	}{
+		{name: "ゼロ値でも返される",
+			token: &token{expire: time.Time{}},
+			want:  time.Time{}},
+		{name: "有効な日付を返される",
+			token: &token{expire: time.Date(2021, 3, 30, 2, 49, 0, 0, time.Local)},
+			want:  time.Date(2021, 3, 30, 2, 49, 0, 0, time.Local)},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := test.token.GetExpiredAt()
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}

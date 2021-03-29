@@ -35,6 +35,12 @@ func (s *token) GetToken() string {
 	return s.token
 }
 
+func (s *token) GetExpiredAt() time.Time {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+	return s.expire
+}
+
 func (s *token) SetToken(token string, expire time.Time) {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()

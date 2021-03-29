@@ -12,16 +12,22 @@ import (
 type testTokenStore struct {
 	repositories.TokenStore
 	getToken      string
+	getExpiredAt  time.Time
 	isExpired     bool
 	lastSetToken1 string
 	lastSetToken2 time.Time
+	resetCount    int
 }
 
 func (t *testTokenStore) GetToken() string         { return t.getToken }
+func (t *testTokenStore) GetExpiredAt() time.Time  { return t.getExpiredAt }
 func (t *testTokenStore) IsExpired(time.Time) bool { return t.isExpired }
 func (t *testTokenStore) SetToken(token string, expire time.Time) {
 	t.lastSetToken1 = token
 	t.lastSetToken2 = expire
+}
+func (t *testTokenStore) Reset() {
+	t.resetCount++
 }
 
 type testSecurity struct {
