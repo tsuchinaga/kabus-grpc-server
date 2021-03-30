@@ -38,6 +38,15 @@ func (s *server) RefreshToken(context.Context, *kabuspb.RefreshTokenRequest) (*k
 	return &kabuspb.Token{Token: token, ExpiredAt: timestamppb.New(s.tokenService.GetExpiredAt())}, nil
 }
 
+func (s *server) GetBoard(ctx context.Context, req *kabuspb.GetBoardRequest) (*kabuspb.Board, error) {
+	token, err := s.tokenService.GetToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.security.Board(ctx, token, req)
+}
+
 func (s *server) GetFutureSymbolCodeInfo(ctx context.Context, req *kabuspb.GetFutureSymbolCodeInfoRequest) (*kabuspb.SymbolCodeInfo, error) {
 	token, err := s.tokenService.GetToken(ctx)
 	if err != nil {

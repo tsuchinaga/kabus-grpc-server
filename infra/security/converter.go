@@ -93,3 +93,137 @@ func toPutOrCall(callPut kabuspb.CallPut) kabus.PutOrCall {
 	}
 	return kabus.PutOrCallUnspecified
 }
+
+func fromCurrentPriceChangeStatus(status kabus.CurrentPriceChangeStatus) string {
+	switch status {
+	case kabus.CurrentPriceChangeStatusUnspecified:
+		return "0000"
+	case kabus.CurrentPriceChangeStatusNoChange:
+		return "0056"
+	case kabus.CurrentPriceChangeStatusUp:
+		return "0057"
+	case kabus.CurrentPriceChangeStatusDown:
+		return "0058"
+	case kabus.CurrentPriceChangeStatusOpenPriceAfterBreak:
+		return "0059"
+	case kabus.CurrentPriceChangeStatusTradingSessionClose:
+		return "0060"
+	case kabus.CurrentPriceChangeStatusClose:
+		return "0061"
+	case kabus.CurrentPriceChangeStatusBreakClose:
+		return "0062"
+	case kabus.CurrentPriceChangeStatusDownClose:
+		return "0063"
+	case kabus.CurrentPriceChangeStatusTarnOverClose:
+		return "0064"
+	case kabus.CurrentPriceChangeStatusSpecialQuoteClose:
+		return "0066"
+	case kabus.CurrentPriceChangeStatusReservationClose:
+		return "0067"
+	case kabus.CurrentPriceChangeStatusStopClose:
+		return "0068"
+	case kabus.CurrentPriceChangeCircuitBreakerClose:
+		return "0069"
+	case kabus.CurrentPriceChangeDynamicCircuitBreakerClose:
+		return "0431"
+	}
+	return ""
+}
+
+func fromCurrentPriceStatus(status kabus.CurrentPriceStatus) int32 {
+	switch status {
+	case kabus.CurrentPriceStatusCurrentPrice:
+		return 1
+	case kabus.CurrentPriceStatusNoContinuousTicks:
+		return 2
+	case kabus.CurrentPriceStatusItayose:
+		return 3
+	case kabus.CurrentPriceStatusSystemError:
+		return 4
+	case kabus.CurrentPriceStatusPause:
+		return 5
+	case kabus.CurrentPriceStatusStopTrading:
+		return 6
+	case kabus.CurrentPriceStatusRestart:
+		return 7
+	case kabus.CurrentPriceStatusClosePrice:
+		return 8
+	case kabus.CurrentPriceStatusSystemStop:
+		return 9
+	case kabus.CurrentPriceStatusRoughQuote:
+		return 10
+	case kabus.CurrentPriceStatusReference:
+		return 11
+	case kabus.CurrentPriceStatusInCircuitBreak:
+		return 12
+	case kabus.CurrentPriceStatusRestoration:
+		return 13
+	case kabus.CurrentPriceStatusReleaseCircuitBreak:
+		return 14
+	case kabus.CurrentPriceStatusReleasePause:
+		return 15
+	case kabus.CurrentPriceStatusInReservation:
+		return 16
+	case kabus.CurrentPriceStatusReleaseReservation:
+		return 17
+	case kabus.CurrentPriceStatusFileError:
+		return 18
+	case kabus.CurrentPriceStatusReleaseFileError:
+		return 19
+	case kabus.CurrentPriceStatusSpreadStrategy:
+		return 20
+	case kabus.CurrentPriceStatusInDynamicCircuitBreak:
+		return 21
+	case kabus.CurrentPriceStatusReleaseDynamicCircuitBreak:
+		return 22
+	case kabus.CurrentPriceStatusContractedInItayose:
+		return 23
+	}
+	return 0
+}
+
+func fromBidAskSign(sign kabus.BidAskSign) string {
+	switch sign {
+	case kabus.BidAskSignNoEffect:
+		return "0000"
+	case kabus.BidAskSignGeneral:
+		return "0101"
+	case kabus.BidAskSignSpecial:
+		return "0102"
+	case kabus.BidAskSignAttention:
+		return "0103"
+	case kabus.BidAskSignBeforeOpen:
+		return "0107"
+	case kabus.BidAskSignSpecialBeforeStop:
+		return "0108"
+	case kabus.BidAskSignAfterClose:
+		return "0109"
+	case kabus.BidAskSignNotExistsContractPoint:
+		return "0116"
+	case kabus.BidAskSignExistsContractPoint:
+		return "0117"
+	case kabus.BidAskSignContinuous:
+		return "0118"
+	case kabus.BidAskSignContinuousBeforeStop:
+		return "0119"
+	case kabus.BidAskSignMoving:
+		return "0120"
+	}
+	return ""
+}
+
+func fromFirstBoardSign(firstBoardSign kabus.FirstBoardSign) *kabuspb.FirstQuote {
+	return &kabuspb.FirstQuote{
+		Time:     timestamppb.New(firstBoardSign.Time),
+		Sign:     fromBidAskSign(firstBoardSign.Sign),
+		Price:    firstBoardSign.Price,
+		Quantity: firstBoardSign.Qty,
+	}
+}
+
+func fromBoardSign(boardSign kabus.BoardSign) *kabuspb.Quote {
+	return &kabuspb.Quote{
+		Price:    boardSign.Price,
+		Quantity: boardSign.Qty,
+	}
+}

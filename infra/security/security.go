@@ -3,6 +3,8 @@ package security
 import (
 	"context"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"gitlab.com/tsuchinaga/kabus-grpc-server/server/repositories"
 
 	"gitlab.com/tsuchinaga/go-kabusapi/kabus"
@@ -15,6 +17,77 @@ func NewSecurity(restClient kabus.RESTClient) repositories.Security {
 
 type security struct {
 	restClient kabus.RESTClient
+}
+
+func (s *security) Board(ctx context.Context, token string, req *kabuspb.GetBoardRequest) (*kabuspb.Board, error) {
+	res, err := s.restClient.BoardWithContext(ctx, token, kabus.BoardRequest{Symbol: req.SymbolCode, Exchange: toExchange(req.Exchange)})
+	if err != nil {
+		return nil, err
+	}
+	return &kabuspb.Board{
+		SymbolCode:               res.Symbol,
+		SymbolName:               res.SymbolName,
+		Exchange:                 fromExchange(res.Exchange),
+		ExchangeName:             res.ExchangeName,
+		CurrentPrice:             res.CurrentPrice,
+		CurrentPriceTime:         timestamppb.New(res.CurrentPriceTime),
+		CurrentPriceChangeStatus: fromCurrentPriceChangeStatus(res.CurrentPriceChangeStatus),
+		CurrentPriceStatus:       fromCurrentPriceStatus(res.CurrentPriceStatus),
+		CalculationPrice:         res.CalcPrice,
+		PreviousClose:            res.PreviousClose,
+		PreviousCloseTime:        timestamppb.New(res.PreviousCloseTime),
+		ChangePreviousClose:      res.ChangePreviousClose,
+		ChangePreviousClosePer:   res.ChangePreviousClosePer,
+		OpeningPrice:             res.OpeningPrice,
+		OpeningPriceTime:         timestamppb.New(res.OpeningPriceTime),
+		HighPrice:                res.HighPrice,
+		HighPriceTime:            timestamppb.New(res.HighPriceTime),
+		LowPrice:                 res.LowPrice,
+		LowPriceTime:             timestamppb.New(res.LowPriceTime),
+		TradingVolume:            res.TradingVolume,
+		TradingVolumeTime:        timestamppb.New(res.TradingVolumeTime),
+		Vwap:                     res.VWAP,
+		TradingValue:             res.TradingValue,
+		BidQuantity:              res.BidQty,
+		BidPrice:                 res.BidPrice,
+		BidTime:                  timestamppb.New(res.BidTime),
+		BidSign:                  fromBidAskSign(res.BidSign),
+		MarketOrderSellQuantity:  res.MarketOrderSellQty,
+		Sell1:                    fromFirstBoardSign(res.Sell1),
+		Sell2:                    fromBoardSign(res.Sell2),
+		Sell3:                    fromBoardSign(res.Sell3),
+		Sell4:                    fromBoardSign(res.Sell4),
+		Sell5:                    fromBoardSign(res.Sell5),
+		Sell6:                    fromBoardSign(res.Sell6),
+		Sell7:                    fromBoardSign(res.Sell7),
+		Sell8:                    fromBoardSign(res.Sell8),
+		Sell9:                    fromBoardSign(res.Sell9),
+		Sell10:                   fromBoardSign(res.Sell10),
+		AskQuantity:              res.AskQty,
+		AskPrice:                 res.AskPrice,
+		AskTime:                  timestamppb.New(res.AskTime),
+		AskSign:                  fromBidAskSign(res.AskSign),
+		MarketOrderBuyQuantity:   res.MarketOrderBuyQty,
+		Buy1:                     fromFirstBoardSign(res.Buy1),
+		Buy2:                     fromBoardSign(res.Buy2),
+		Buy3:                     fromBoardSign(res.Buy3),
+		Buy4:                     fromBoardSign(res.Buy4),
+		Buy5:                     fromBoardSign(res.Buy5),
+		Buy6:                     fromBoardSign(res.Buy6),
+		Buy7:                     fromBoardSign(res.Buy7),
+		Buy8:                     fromBoardSign(res.Buy8),
+		Buy9:                     fromBoardSign(res.Buy9),
+		Buy10:                    fromBoardSign(res.Buy10),
+		OverSellQuantity:         res.OverSellQty,
+		UnderBuyQuantity:         res.UnderBuyQty,
+		TotalMarketValue:         res.TotalMarketValue,
+		ClearingPrice:            res.ClearingPrice,
+		ImpliedVolatility:        res.IV,
+		Gamma:                    res.Gamma,
+		Theta:                    res.Theta,
+		Vega:                     res.Vega,
+		Delta:                    res.Delta,
+	}, nil
 }
 
 func (s *security) SymbolNameFuture(ctx context.Context, token string, req *kabuspb.GetFutureSymbolCodeInfoRequest) (*kabuspb.SymbolCodeInfo, error) {

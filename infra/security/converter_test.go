@@ -153,3 +153,155 @@ func Test_toPutOrCall(t *testing.T) {
 		})
 	}
 }
+
+func Test_fromCurrentPriceChangeStatus(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.CurrentPriceChangeStatus
+		want string
+	}{
+		{name: "事象なし を変換できる", arg: kabus.CurrentPriceChangeStatusUnspecified, want: "0000"},
+		{name: "変わらず を変換できる", arg: kabus.CurrentPriceChangeStatusNoChange, want: "0056"},
+		{name: "UP を変換できる", arg: kabus.CurrentPriceChangeStatusUp, want: "0057"},
+		{name: "DOWN を変換できる", arg: kabus.CurrentPriceChangeStatusDown, want: "0058"},
+		{name: "中断板寄り後の初値 を変換できる", arg: kabus.CurrentPriceChangeStatusOpenPriceAfterBreak, want: "0059"},
+		{name: "ザラバ引け を変換できる", arg: kabus.CurrentPriceChangeStatusTradingSessionClose, want: "0060"},
+		{name: "板寄り引け を変換できる", arg: kabus.CurrentPriceChangeStatusClose, want: "0061"},
+		{name: "中断引け を変換できる", arg: kabus.CurrentPriceChangeStatusBreakClose, want: "0062"},
+		{name: "ダウン引け を変換できる", arg: kabus.CurrentPriceChangeStatusDownClose, want: "0063"},
+		{name: "逆転終値 を変換できる", arg: kabus.CurrentPriceChangeStatusTarnOverClose, want: "0064"},
+		{name: "特別気配引け を変換できる", arg: kabus.CurrentPriceChangeStatusSpecialQuoteClose, want: "0066"},
+		{name: "一時留保引け を変換できる", arg: kabus.CurrentPriceChangeStatusReservationClose, want: "0067"},
+		{name: "売買停止引け を変換できる", arg: kabus.CurrentPriceChangeStatusStopClose, want: "0068"},
+		{name: "サーキットブレーカ引け を変換できる", arg: kabus.CurrentPriceChangeCircuitBreakerClose, want: "0069"},
+		{name: "ダイナミックサーキットブレーカ引け を変換できる", arg: kabus.CurrentPriceChangeDynamicCircuitBreakerClose, want: "0431"},
+		{name: "未定義 を変換できる", arg: kabus.CurrentPriceChangeStatus("-1"), want: ""},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromCurrentPriceChangeStatus(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromCurrentPriceStatus(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.CurrentPriceStatus
+		want int32
+	}{
+		{name: "指定なし を変換できる", arg: kabus.CurrentPriceStatusUnspecified, want: 0},
+		{name: "現値 を変換できる", arg: kabus.CurrentPriceStatusCurrentPrice, want: 1},
+		{name: "不連続歩み を変換できる", arg: kabus.CurrentPriceStatusNoContinuousTicks, want: 2},
+		{name: "板寄せ を変換できる", arg: kabus.CurrentPriceStatusItayose, want: 3},
+		{name: "システム障害 を変換できる", arg: kabus.CurrentPriceStatusSystemError, want: 4},
+		{name: "中断 を変換できる", arg: kabus.CurrentPriceStatusPause, want: 5},
+		{name: "売買停止 を変換できる", arg: kabus.CurrentPriceStatusStopTrading, want: 6},
+		{name: "売買停止・システム停止解除 を変換できる", arg: kabus.CurrentPriceStatusRestart, want: 7},
+		{name: "終値 を変換できる", arg: kabus.CurrentPriceStatusClosePrice, want: 8},
+		{name: "システム停止 を変換できる", arg: kabus.CurrentPriceStatusSystemStop, want: 9},
+		{name: "概算値 を変換できる", arg: kabus.CurrentPriceStatusRoughQuote, want: 10},
+		{name: "参考値 を変換できる", arg: kabus.CurrentPriceStatusReference, want: 11},
+		{name: "サーキットブレイク実施中 を変換できる", arg: kabus.CurrentPriceStatusInCircuitBreak, want: 12},
+		{name: "システム障害解除 を変換できる", arg: kabus.CurrentPriceStatusRestoration, want: 13},
+		{name: "サーキットブレイク解除 を変換できる", arg: kabus.CurrentPriceStatusReleaseCircuitBreak, want: 14},
+		{name: "中断解除 を変換できる", arg: kabus.CurrentPriceStatusReleasePause, want: 15},
+		{name: "一時留保中 を変換できる", arg: kabus.CurrentPriceStatusInReservation, want: 16},
+		{name: "一時留保解除 を変換できる", arg: kabus.CurrentPriceStatusReleaseReservation, want: 17},
+		{name: "ファイル障害 を変換できる", arg: kabus.CurrentPriceStatusFileError, want: 18},
+		{name: "ファイル障害解除 を変換できる", arg: kabus.CurrentPriceStatusReleaseFileError, want: 19},
+		{name: "Spread/Strategy を変換できる", arg: kabus.CurrentPriceStatusSpreadStrategy, want: 20},
+		{name: "ダイナミックサーキットブレイク発動 を変換できる", arg: kabus.CurrentPriceStatusInDynamicCircuitBreak, want: 21},
+		{name: "ダイナミックサーキットブレイク解除 を変換できる", arg: kabus.CurrentPriceStatusReleaseDynamicCircuitBreak, want: 22},
+		{name: "板寄せ約定 を変換できる", arg: kabus.CurrentPriceStatusContractedInItayose, want: 23},
+		{name: "未定義 を変換できる", arg: kabus.CurrentPriceStatus(-1), want: 0},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromCurrentPriceStatus(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromBidAskSign(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.BidAskSign
+		want string
+	}{
+		{name: "指定なし を変換できる", arg: kabus.BidAskSignUnspecified, want: ""},
+		{name: "事象なし を変換できる", arg: kabus.BidAskSignNoEffect, want: "0000"},
+		{name: "一般気配 を変換できる", arg: kabus.BidAskSignGeneral, want: "0101"},
+		{name: "特別気配 を変換できる", arg: kabus.BidAskSignSpecial, want: "0102"},
+		{name: "注意気配 を変換できる", arg: kabus.BidAskSignAttention, want: "0103"},
+		{name: "寄前気配 を変換できる", arg: kabus.BidAskSignBeforeOpen, want: "0107"},
+		{name: "停止前特別気配 を変換できる", arg: kabus.BidAskSignSpecialBeforeStop, want: "0108"},
+		{name: "引け後気配 を変換できる", arg: kabus.BidAskSignAfterClose, want: "0109"},
+		{name: "寄前気配約定成立ポイントなし を変換できる", arg: kabus.BidAskSignNotExistsContractPoint, want: "0116"},
+		{name: "寄前気配約定成立ポイントあり を変換できる", arg: kabus.BidAskSignExistsContractPoint, want: "0117"},
+		{name: "連続約定気配 を変換できる", arg: kabus.BidAskSignContinuous, want: "0118"},
+		{name: "停止前の連続約定気配 を変換できる", arg: kabus.BidAskSignContinuousBeforeStop, want: "0119"},
+		{name: "買い上がり売り下がり中 を変換できる", arg: kabus.BidAskSignMoving, want: "0120"},
+		{name: "未定義 を変換できる", arg: kabus.BidAskSign("-1"), want: ""},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromBidAskSign(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromFirstBoardSign(t *testing.T) {
+	t.Parallel()
+	got := fromFirstBoardSign(kabus.FirstBoardSign{
+		Time:  time.Date(2021, 3, 30, 22, 53, 0, 0, time.Local),
+		Sign:  kabus.BidAskSignNoEffect,
+		Price: 22500,
+		Qty:   1,
+	})
+	want := &kabuspb.FirstQuote{
+		Time:     timestamppb.New(time.Date(2021, 3, 30, 22, 53, 0, 0, time.Local)),
+		Sign:     "0000",
+		Price:    22500,
+		Quantity: 1,
+	}
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
+	}
+}
+
+func Test_fromBoardSign(t *testing.T) {
+	t.Parallel()
+	got := fromBoardSign(kabus.BoardSign{
+		Price: 22500,
+		Qty:   1,
+	})
+	want := &kabuspb.Quote{
+		Price:    22500,
+		Quantity: 1,
+	}
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
+	}
+}

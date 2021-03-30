@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 type KabusServiceClient interface {
 	GetToken(ctx context.Context, in *GetTokenRequest, opts ...grpc.CallOption) (*Token, error)
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*Token, error)
+	GetBoard(ctx context.Context, in *GetBoardRequest, opts ...grpc.CallOption) (*Board, error)
 	GetFutureSymbolCodeInfo(ctx context.Context, in *GetFutureSymbolCodeInfoRequest, opts ...grpc.CallOption) (*SymbolCodeInfo, error)
 	GetOptionSymbolCodeInfo(ctx context.Context, in *GetOptionSymbolCodeInfoRequest, opts ...grpc.CallOption) (*SymbolCodeInfo, error)
 	GetRegisteredSymbols(ctx context.Context, in *GetRegisteredSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
@@ -47,6 +48,15 @@ func (c *kabusServiceClient) GetToken(ctx context.Context, in *GetTokenRequest, 
 func (c *kabusServiceClient) RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*Token, error) {
 	out := new(Token)
 	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/RefreshToken", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) GetBoard(ctx context.Context, in *GetBoardRequest, opts ...grpc.CallOption) (*Board, error) {
+	out := new(Board)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetBoard", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -113,6 +123,7 @@ func (c *kabusServiceClient) UnregisterAllSymbols(ctx context.Context, in *Unreg
 type KabusServiceServer interface {
 	GetToken(context.Context, *GetTokenRequest) (*Token, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*Token, error)
+	GetBoard(context.Context, *GetBoardRequest) (*Board, error)
 	GetFutureSymbolCodeInfo(context.Context, *GetFutureSymbolCodeInfoRequest) (*SymbolCodeInfo, error)
 	GetOptionSymbolCodeInfo(context.Context, *GetOptionSymbolCodeInfoRequest) (*SymbolCodeInfo, error)
 	GetRegisteredSymbols(context.Context, *GetRegisteredSymbolsRequest) (*RegisteredSymbols, error)
@@ -131,6 +142,9 @@ func (UnimplementedKabusServiceServer) GetToken(context.Context, *GetTokenReques
 }
 func (UnimplementedKabusServiceServer) RefreshToken(context.Context, *RefreshTokenRequest) (*Token, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RefreshToken not implemented")
+}
+func (UnimplementedKabusServiceServer) GetBoard(context.Context, *GetBoardRequest) (*Board, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBoard not implemented")
 }
 func (UnimplementedKabusServiceServer) GetFutureSymbolCodeInfo(context.Context, *GetFutureSymbolCodeInfoRequest) (*SymbolCodeInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFutureSymbolCodeInfo not implemented")
@@ -195,6 +209,24 @@ func _KabusService_RefreshToken_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KabusServiceServer).RefreshToken(ctx, req.(*RefreshTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_GetBoard_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBoardRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).GetBoard(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/GetBoard",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).GetBoard(ctx, req.(*GetBoardRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -321,6 +353,10 @@ var KabusService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RefreshToken",
 			Handler:    _KabusService_RefreshToken_Handler,
+		},
+		{
+			MethodName: "GetBoard",
+			Handler:    _KabusService_GetBoard_Handler,
 		},
 		{
 			MethodName: "GetFutureSymbolCodeInfo",

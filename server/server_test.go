@@ -28,6 +28,8 @@ type testSecurity struct {
 	symbolNameFuture2 error
 	symbolNameOption1 *kabuspb.SymbolCodeInfo
 	symbolNameOption2 error
+	board1            *kabuspb.Board
+	board2            error
 }
 
 func (t *testSecurity) RegisterSymbols(context.Context, string, *kabuspb.RegisterSymbolsRequest) (*kabuspb.RegisteredSymbols, error) {
@@ -48,6 +50,10 @@ func (t *testSecurity) SymbolNameFuture(context.Context, string, *kabuspb.GetFut
 
 func (t *testSecurity) SymbolNameOption(context.Context, string, *kabuspb.GetOptionSymbolCodeInfoRequest) (*kabuspb.SymbolCodeInfo, error) {
 	return t.symbolNameOption1, t.symbolNameOption2
+}
+
+func (t *testSecurity) Board(context.Context, string, *kabuspb.GetBoardRequest) (*kabuspb.Board, error) {
+	return t.board1, t.board2
 }
 
 type testTokenService struct {
@@ -264,7 +270,7 @@ func Test_server_GetFutureSymbolCodeInfo(t *testing.T) {
 			getToken1:         "TOKEN_STRING",
 			symbolNameFuture2: errors.New("register error message"),
 			hasError:          true},
-		{name: "SymbolNameFutureの結果をStoreに保存してから結果を返す",
+		{name: "SymbolNameFutureの結果を結果を返す",
 			getToken1:         "TOKEN_STRING",
 			symbolNameFuture1: &kabuspb.SymbolCodeInfo{Code: "166060018", Name: "日経平均先物 21/06"},
 			want:              &kabuspb.SymbolCodeInfo{Code: "166060018", Name: "日経平均先物 21/06"}},
@@ -305,7 +311,7 @@ func Test_server_GetOptionSymbolCodeInfo(t *testing.T) {
 			getToken1:         "TOKEN_STRING",
 			symbolNameOption2: errors.New("register error message"),
 			hasError:          true},
-		{name: "SymbolNameOptionの結果をStoreに保存してから結果を返す",
+		{name: "SymbolNameOptionの結果を結果を返す",
 			getToken1:         "TOKEN_STRING",
 			symbolNameOption1: &kabuspb.SymbolCodeInfo{Code: "166060018", Name: "日経平均先物 21/06"},
 			want:              &kabuspb.SymbolCodeInfo{Code: "166060018", Name: "日経平均先物 21/06"}},
@@ -386,6 +392,45 @@ func Test_server_RefreshToken(t *testing.T) {
 			t.Parallel()
 			server := &server{tokenService: &testTokenService{refresh1: test.refresh1, refresh2: test.refresh2, getExpiredAt: test.getExpiredAt}}
 			got1, got2 := server.RefreshToken(context.Background(), &kabuspb.RefreshTokenRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_server_GetBoard(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name      string
+		getToken1 string
+		getToken2 error
+		board1    *kabuspb.Board
+		board2    error
+		want      *kabuspb.Board
+		hasError  bool
+	}{
+		{name: "token取得でエラーがあればエラーを返す",
+			getToken2: errors.New("get token error message"),
+			hasError:  true},
+		{name: "SymbolNameOptionでエラーがあればエラーを返す",
+			getToken1: "TOKEN_STRING",
+			board2:    errors.New("register error message"),
+			hasError:  true},
+		{name: "Boardの結果を結果を返す",
+			getToken1: "TOKEN_STRING",
+			board1:    &kabuspb.Board{SymbolCode: "5401", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU},
+			want:      &kabuspb.Board{SymbolCode: "5401", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{
+				security:     &testSecurity{board1: test.board1, board2: test.board2},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+			got1, got2 := server.GetBoard(context.Background(), &kabuspb.GetBoardRequest{SymbolCode: "5401", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}

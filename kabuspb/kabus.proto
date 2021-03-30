@@ -9,6 +9,7 @@ import "google/protobuf/timestamp.proto";
 service KabusService {
   rpc GetToken(GetTokenRequest) returns (Token); // トークン取得
   rpc RefreshToken(RefreshTokenRequest) returns (Token); // トークン再取得
+  rpc GetBoard(GetBoardRequest) returns (Board); // 時価情報・板情報
   rpc GetFutureSymbolCodeInfo(GetFutureSymbolCodeInfoRequest) returns (SymbolCodeInfo); // 先物銘柄コード取得
   rpc GetOptionSymbolCodeInfo(GetOptionSymbolCodeInfoRequest) returns (SymbolCodeInfo); // オプション銘柄コード取得
   rpc GetRegisteredSymbols(GetRegisteredSymbolsRequest) returns (RegisteredSymbols); // 登録銘柄一覧 ※直前で実行されたRegister, Unregister, UnregisterAllの結果を保持しているだけ
@@ -17,12 +18,17 @@ service KabusService {
   rpc UnregisterAllSymbols(UnregisterAllSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録全解除
 }
 
-// トークン取得
+// トークン取得リクエスト
 message GetTokenRequest {}
 
-
-// トークン再取得
+// トークン再取得リクエスト
 message RefreshTokenRequest {}
+
+// 時価情報・板情報リクエスト
+message GetBoardRequest {
+  string symbol_code = 1;
+  Exchange exchange = 2;
+}
 
 // 先物銘柄コード取得リクエスト
 message GetFutureSymbolCodeInfoRequest{
@@ -77,6 +83,220 @@ message Token {
   google.protobuf.Timestamp expired_at = 2;
 }
 
+// 時価情報・板情報
+message Board {
+  // 銘柄コード
+  string symbol_code = 1;
+
+  // 銘柄名
+  string symbol_name = 2;
+
+  // 市場コード
+  //   株式・先物・オプション銘柄の場合のみ
+  Exchange exchange = 3;
+
+  // 市場名称
+  //   株式・先物・オプション銘柄の場合のみ
+  string exchange_name = 4;
+
+  // 現値
+  double current_price = 5;
+
+  // 現値時刻
+  google.protobuf.Timestamp current_price_time = 6;
+
+  // 現値前値比較
+  string current_price_change_status = 7; // TODO enum化
+
+  // 現値ステータス
+  int32 current_price_status = 8; // TODO enum化
+
+  // 計算用現値
+  double calculation_price = 9;
+
+  // 前日終値
+  double previous_close = 10;
+
+  // 前日終値日付
+  google.protobuf.Timestamp previous_close_time = 11;
+
+  // 前日比
+  double change_previous_close = 12;
+
+  // 騰落率
+  double change_previous_close_per = 13;
+
+  // 始値
+  double opening_price = 14;
+
+  // 始値時刻
+  google.protobuf.Timestamp opening_price_time = 15;
+
+  // 高値
+  double high_price = 16;
+
+  // 高値時刻
+  google.protobuf.Timestamp high_price_time = 17;
+
+  // 安値
+  double low_price = 18;
+
+  // 安値時刻
+  google.protobuf.Timestamp low_price_time = 19;
+
+  // 売買高
+  //   株式・先物・オプション銘柄の場合のみ
+  double trading_volume = 20;
+
+  // 売買高時刻
+  //   株式・先物・オプション銘柄の場合のみ
+  google.protobuf.Timestamp trading_volume_time = 21;
+
+  // 売買高加重平均価格（VWAP）
+  //   株式・先物・オプション銘柄の場合のみ
+  double vwap = 22;
+
+  // 売買代金
+  //   株式・先物・オプション銘柄の場合のみ
+  double trading_value = 23;
+
+  // 最良売気配数量
+  //   株式・先物・オプション銘柄の場合のみ
+  double bid_quantity = 24;
+
+  // 最良売気配値段
+  //   株式・先物・オプション銘柄の場合のみ
+  double bid_price = 25;
+
+  // 最良売気配時刻
+  //  株式銘柄の場合のみ
+  google.protobuf.Timestamp bid_time = 26;
+
+  // 最良売気配フラグ
+  //   株式・先物・オプション銘柄の場合のみ
+  string bid_sign = 27; // TODO enum化
+
+  // 売成行数量
+  //   株式銘柄の場合のみ
+  double market_order_sell_quantity = 28;
+
+  // 売気配数量1本目
+  FirstQuote sell1 = 29;
+
+  // 売気配数量2本目
+  Quote sell2 = 30;
+
+  // 売気配数量3本目
+  Quote sell3 = 31;
+
+  // 売気配数量4本目
+  Quote sell4 = 32;
+
+  // 売気配数量5本目
+  Quote sell5 = 33;
+
+  // 売気配数量6本目
+  Quote sell6 = 34;
+
+  // 売気配数量7本目
+  Quote sell7 = 35;
+
+  // 売気配数量8本目
+  Quote sell8 = 36;
+
+  // 売気配数量9本目
+  Quote sell9 = 37;
+
+  // 売気配数量10本目
+  Quote sell10 = 38;
+
+  // 最良買気配数量
+  //   株式・先物・オプション銘柄の場合のみ
+  double ask_quantity = 39;
+
+  // 最良買気配値段
+  //   株式・先物・オプション銘柄の場合のみ
+  double ask_price = 40;
+
+  // 最良買気配時刻
+  //  株式銘柄の場合のみ
+  google.protobuf.Timestamp ask_time = 41;
+
+  // 最良買気配フラグ
+  //   株式・先物・オプション銘柄の場合のみ
+  string ask_sign = 42; // TODO enum化
+
+  // 買成行数量
+  //   株式銘柄の場合のみ
+  double market_order_buy_quantity = 43;
+
+  // 買気配数量1本目
+  FirstQuote buy1 = 44;
+
+  // 買気配数量2本目
+  Quote buy2 = 45;
+
+  // 買気配数量3本目
+  Quote buy3 = 46;
+
+  // 買気配数量4本目
+  Quote buy4 = 47;
+
+  // 買気配数量5本目
+  Quote buy5 = 48;
+
+  // 買気配数量6本目
+  Quote buy6 = 49;
+
+  // 買気配数量7本目
+  Quote buy7 = 50;
+
+  // 買気配数量8本目
+  Quote buy8 = 51;
+
+  // 買気配数量9本目
+  Quote buy9 = 52;
+
+  // 買気配数量10本目
+  Quote buy10 = 53;
+
+  // OVER気配数量
+  //   株式銘柄の場合のみ
+  double over_sell_quantity = 54;
+
+  // UNDER気配数量
+  //   株式銘柄の場合のみ
+  double under_buy_quantity = 55;
+
+  // 時価総額
+  //   株式銘柄の場合のみ
+  double total_market_value = 56;
+
+  // 清算値
+  //   先物銘柄の場合のみ
+  double clearing_price = 57;
+
+  // インプライド・ボラティリティ
+  //   オプション銘柄かつ日通しの場合のみ
+  double implied_volatility = 58;
+
+  // ガンマ
+  //   オプション銘柄かつ日通しの場合のみ
+  double gamma = 59;
+
+  // セータ
+  //   オプション銘柄かつ日通しの場合のみ
+  double theta = 60;
+
+  // ベガ
+  //   オプション銘柄かつ日通しの場合のみ
+  double vega = 61;
+
+  // デルタ
+  //   オプション銘柄かつ日通しの場合のみ
+  double delta = 62;
+}
+
 // 銘柄コード情報
 message SymbolCodeInfo {
   // 銘柄コード
@@ -84,6 +304,36 @@ message SymbolCodeInfo {
 
   // 銘柄名
   string name = 2;
+}
+
+// 気配値 + 気配値フラグ
+message FirstQuote {
+  // 時刻
+  //  株式銘柄の場合のみ
+  google.protobuf.Timestamp time = 1;
+
+  // 気配フラグ
+  //   株式・先物・オプション銘柄の場合のみ
+  string sign = 2; // TODO enum化
+
+  // 値段
+  //   株式・先物・オプション銘柄の場合のみ
+  double price = 3;
+
+  // 数量
+  //   株式・先物・オプション銘柄の場合のみ
+  double quantity = 4;
+}
+
+// 気配値
+message Quote {
+  // 値段
+  //   株式・先物・オプション銘柄の場合のみ
+  double price = 1;
+
+  // 数量
+  //   株式・先物・オプション銘柄の場合のみ
+  double quantity = 2;
 }
 
 // 銘柄登録
