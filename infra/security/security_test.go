@@ -32,6 +32,8 @@ type testRESTClient struct {
 	unregisterAllWithContext2    error
 	boardWithContext1            *kabus.BoardResponse
 	boardWithContext2            error
+	symbolWithContext1           *kabus.SymbolResponse
+	symbolWithContext2           error
 }
 
 func (t *testRESTClient) TokenWithContext(context.Context, kabus.TokenRequest) (*kabus.TokenResponse, error) {
@@ -62,6 +64,10 @@ func (t *testRESTClient) UnregisterAllWithContext(context.Context, string) (*kab
 
 func (t *testRESTClient) BoardWithContext(context.Context, string, kabus.BoardRequest) (*kabus.BoardResponse, error) {
 	return t.boardWithContext1, t.boardWithContext2
+}
+
+func (t *testRESTClient) SymbolWithContext(context.Context, string, kabus.SymbolRequest) (*kabus.SymbolResponse, error) {
+	return t.symbolWithContext1, t.symbolWithContext2
 }
 
 func Test_NewSecurity(t *testing.T) {
@@ -432,6 +438,85 @@ func Test_security_Board(t *testing.T) {
 			restClient := &testRESTClient{boardWithContext1: test.boardWithContext1, boardWithContext2: test.boardWithContext2}
 			security := &security{restClient: restClient}
 			got1, got2 := security.Board(context.Background(), "", &kabuspb.GetBoardRequest{SymbolCode: "5401", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_Symbol(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name               string
+		symbolWithContext1 *kabus.SymbolResponse
+		symbolWithContext2 error
+		want               *kabuspb.Symbol
+		hasError           bool
+	}{
+		{name: "errorを返されたらerrorを返す", symbolWithContext2: errors.New("error message"), hasError: true},
+		{name: "responseが返されたらresponseを変換して返す",
+			symbolWithContext1: &kabus.SymbolResponse{
+				Symbol:             "9433",
+				SymbolName:         "ＫＤＤＩ",
+				DisplayName:        "ＫＤＤＩ",
+				Exchange:           kabus.ExchangeToushou,
+				ExchangeName:       "東証１部",
+				BisCategory:        "5250",
+				TotalMarketValue:   7654484465100,
+				TotalStocks:        4484,
+				TradingUnit:        100,
+				FiscalYearEndBasic: kabus.YmdNUM{Time: time.Date(2021, 3, 31, 0, 0, 0, 0, time.Local)},
+				PriceRangeGroup:    kabus.PriceRangeGroup10003,
+				KCMarginBuy:        true,
+				KCMarginSell:       true,
+				MarginBuy:          true,
+				MarginSell:         true,
+				UpperLimit:         4041,
+				LowerLimit:         2641,
+				Underlyer:          kabus.UnderlyerNK225,
+				DerivMonth:         kabus.YmString{Time: time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local)},
+				TradeStart:         kabus.YmdNUM{Time: time.Date(2015, 12, 11, 0, 0, 0, 0, time.Local)},
+				TradeEnd:           kabus.YmdNUM{Time: time.Date(2020, 12, 10, 0, 0, 0, 0, time.Local)},
+				StrikePrice:        23250,
+				PutOrCall:          kabus.PutOrCallNumCall,
+				ClearingPrice:      23000,
+			},
+			want: &kabuspb.Symbol{
+				Code:               "9433",
+				Name:               "ＫＤＤＩ",
+				DisplayName:        "ＫＤＤＩ",
+				Exchange:           kabuspb.Exchange_EXCHANGE_TOUSHOU,
+				ExchangeName:       "東証１部",
+				IndustryCategory:   "5250",
+				TotalMarketValue:   7654484465100,
+				TotalStocks:        4484,
+				TradingUnit:        100,
+				FiscalYearEndBasic: timestamppb.New(time.Date(2021, 3, 31, 0, 0, 0, 0, time.Local)),
+				PriceRangeGroup:    "10003",
+				KabucomMarginBuy:   true,
+				KabucomMarginSell:  true,
+				MarginBuy:          true,
+				MarginSell:         true,
+				UpperLimit:         4041,
+				LowerLimit:         2641,
+				Underlyer:          "NK225",
+				DerivativeMonth:    timestamppb.New(time.Date(2020, 12, 1, 0, 0, 0, 0, time.Local)),
+				TradeStart:         timestamppb.New(time.Date(2015, 12, 11, 0, 0, 0, 0, time.Local)),
+				TradeEnd:           timestamppb.New(time.Date(2020, 12, 10, 0, 0, 0, 0, time.Local)),
+				StrikePrice:        23250,
+				CallOrPut:          kabuspb.CallPut_CALL_PUT_CALL,
+				ClearingPrice:      23000,
+			}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{symbolWithContext1: test.symbolWithContext1, symbolWithContext2: test.symbolWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.Symbol(context.Background(), "", &kabuspb.GetSymbolRequest{SymbolCode: "5401", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}

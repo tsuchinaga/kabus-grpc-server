@@ -305,3 +305,96 @@ func Test_fromBoardSign(t *testing.T) {
 		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
 	}
 }
+
+func Test_fromPutOrCallNum(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.PutOrCallNum
+		want kabuspb.CallPut
+	}{
+		{name: "未指定 を変換できる", arg: kabus.PutOrCallNumUnspecified, want: kabuspb.CallPut_CALL_PUT_UNSPECIFIED},
+		{name: "プット を変換できる", arg: kabus.PutOrCallNumPut, want: kabuspb.CallPut_CALL_PUT_PUT},
+		{name: "コール を変換できる", arg: kabus.PutOrCallNumCall, want: kabuspb.CallPut_CALL_PUT_CALL},
+		{name: "未定義 を変換できる", arg: kabus.PutOrCallNum(-1), want: kabuspb.CallPut_CALL_PUT_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromPutOrCallNum(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromUnderlyer(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.Underlyer
+		want string
+	}{
+		{name: "未指定 を変換できる", arg: kabus.UnderlyerUnspecified, want: ""},
+		{name: "日経225 を変換できる", arg: kabus.UnderlyerNK225, want: "NK225"},
+		{name: "日経300 を変換できる", arg: kabus.UnderlyerNK300, want: "NK300"},
+		{name: "東証マザーズ を変換できる", arg: kabus.UnderlyerMOTHERS, want: "MOTHERS"},
+		{name: "JPX日経400 を変換できる", arg: kabus.UnderlyerJPX400, want: "JPX400"},
+		{name: "TOPIX を変換できる", arg: kabus.UnderlyerTOPIX, want: "TOPIX"},
+		{name: "日経平均VI を変換できる", arg: kabus.UnderlyerNKVI, want: "NKVI"},
+		{name: "NYダウ を変換できる", arg: kabus.UnderlyerDJIA, want: "DJIA"},
+		{name: "東証REIT指数 を変換できる", arg: kabus.UnderlyerTSEREITINDEX, want: "TSEREITINDEX"},
+		{name: "TOPIX Core30 を変換できる", arg: kabus.UnderlyerTOPIXCORE30, want: "TOPIXCORE30"},
+		{name: "未定義 を変換できる", arg: kabus.Underlyer("-1"), want: ""},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromUnderlyer(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromPriceRangeGroup(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.PriceRangeGroup
+		want string
+	}{
+		{name: "未指定 を変換できる", arg: kabus.PriceRangeGroupUnspecified, want: ""},
+		{name: "10000 を変換できる", arg: kabus.PriceRangeGroup10000, want: "10000"},
+		{name: "10003 を変換できる", arg: kabus.PriceRangeGroup10003, want: "10003"},
+		{name: "10118 を変換できる", arg: kabus.PriceRangeGroup10118, want: "10118"},
+		{name: "10119 を変換できる", arg: kabus.PriceRangeGroup10119, want: "10119"},
+		{name: "10318 を変換できる", arg: kabus.PriceRangeGroup10318, want: "10318"},
+		{name: "10706 を変換できる", arg: kabus.PriceRangeGroup10706, want: "10706"},
+		{name: "10718 を変換できる", arg: kabus.PriceRangeGroup10718, want: "10718"},
+		{name: "12122 を変換できる", arg: kabus.PriceRangeGroup12122, want: "12122"},
+		{name: "14473 を変換できる", arg: kabus.PriceRangeGroup14473, want: "14473"},
+		{name: "14515 を変換できる", arg: kabus.PriceRangeGroup14515, want: "14515"},
+		{name: "15411 を変換できる", arg: kabus.PriceRangeGroup15411, want: "15411"},
+		{name: "15569 を変換できる", arg: kabus.PriceRangeGroup15569, want: "15569"},
+		{name: "17163 を変換できる", arg: kabus.PriceRangeGroup17163, want: "17163"},
+		{name: "未定義 を変換できる", arg: kabus.PriceRangeGroup("-1"), want: ""},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromPriceRangeGroup(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}

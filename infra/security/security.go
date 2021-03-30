@@ -90,6 +90,39 @@ func (s *security) Board(ctx context.Context, token string, req *kabuspb.GetBoar
 	}, nil
 }
 
+func (s *security) Symbol(ctx context.Context, token string, req *kabuspb.GetSymbolRequest) (*kabuspb.Symbol, error) {
+	res, err := s.restClient.SymbolWithContext(ctx, token, kabus.SymbolRequest{Symbol: req.SymbolCode, Exchange: toExchange(req.Exchange)})
+	if err != nil {
+		return nil, err
+	}
+	return &kabuspb.Symbol{
+		Code:               res.Symbol,
+		Name:               res.SymbolName,
+		DisplayName:        res.DisplayName,
+		Exchange:           fromExchange(res.Exchange),
+		ExchangeName:       res.ExchangeName,
+		IndustryCategory:   res.BisCategory,
+		TotalMarketValue:   res.TotalMarketValue,
+		TotalStocks:        res.TotalStocks,
+		TradingUnit:        res.TradingUnit,
+		FiscalYearEndBasic: timestamppb.New(res.FiscalYearEndBasic.Time),
+		PriceRangeGroup:    fromPriceRangeGroup(res.PriceRangeGroup),
+		KabucomMarginBuy:   res.KCMarginBuy,
+		KabucomMarginSell:  res.KCMarginSell,
+		MarginBuy:          res.MarginBuy,
+		MarginSell:         res.MarginSell,
+		UpperLimit:         res.UpperLimit,
+		LowerLimit:         res.LowerLimit,
+		Underlyer:          fromUnderlyer(res.Underlyer),
+		DerivativeMonth:    timestamppb.New(res.DerivMonth.Time),
+		TradeStart:         timestamppb.New(res.TradeStart.Time),
+		TradeEnd:           timestamppb.New(res.TradeEnd.Time),
+		StrikePrice:        res.StrikePrice,
+		CallOrPut:          fromPutOrCallNum(res.PutOrCall),
+		ClearingPrice:      res.ClearingPrice,
+	}, nil
+}
+
 func (s *security) SymbolNameFuture(ctx context.Context, token string, req *kabuspb.GetFutureSymbolCodeInfoRequest) (*kabuspb.SymbolCodeInfo, error) {
 	res, err := s.restClient.SymbolNameFutureWithContext(ctx, token, kabus.SymbolNameFutureRequest{
 		FutureCode: toFutureCode(req.FutureCode),

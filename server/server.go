@@ -113,3 +113,12 @@ func (s *server) UnregisterAllSymbols(ctx context.Context, req *kabuspb.Unregist
 	s.registerSymbolService.Set(res.Symbols)
 	return res, err
 }
+
+func (s *server) GetSymbol(ctx context.Context, req *kabuspb.GetSymbolRequest) (*kabuspb.Symbol, error) {
+	token, err := s.tokenService.GetToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.security.Symbol(ctx, token, req)
+}

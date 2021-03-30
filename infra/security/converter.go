@@ -227,3 +227,69 @@ func fromBoardSign(boardSign kabus.BoardSign) *kabuspb.Quote {
 		Quantity: boardSign.Qty,
 	}
 }
+
+func fromPutOrCallNum(putOrCall kabus.PutOrCallNum) kabuspb.CallPut {
+	switch putOrCall {
+	case kabus.PutOrCallNumCall:
+		return kabuspb.CallPut_CALL_PUT_CALL
+	case kabus.PutOrCallNumPut:
+		return kabuspb.CallPut_CALL_PUT_PUT
+	}
+	return kabuspb.CallPut_CALL_PUT_UNSPECIFIED
+}
+
+func fromUnderlyer(underlyer kabus.Underlyer) string {
+	switch underlyer {
+	case kabus.UnderlyerNK225:
+		return "NK225"
+	case kabus.UnderlyerNK300:
+		return "NK300"
+	case kabus.UnderlyerMOTHERS:
+		return "MOTHERS"
+	case kabus.UnderlyerJPX400:
+		return "JPX400"
+	case kabus.UnderlyerTOPIX:
+		return "TOPIX"
+	case kabus.UnderlyerNKVI:
+		return "NKVI"
+	case kabus.UnderlyerDJIA:
+		return "DJIA"
+	case kabus.UnderlyerTSEREITINDEX:
+		return "TSEREITINDEX"
+	case kabus.UnderlyerTOPIXCORE30:
+		return "TOPIXCORE30"
+	}
+	return ""
+}
+
+func fromPriceRangeGroup(priceRangeGroup kabus.PriceRangeGroup) string {
+	switch priceRangeGroup {
+	case kabus.PriceRangeGroup10000:
+		return "10000"
+	case kabus.PriceRangeGroup10003:
+		return "10003"
+	case kabus.PriceRangeGroup10118:
+		return "10118"
+	case kabus.PriceRangeGroup10119:
+		return "10119"
+	case kabus.PriceRangeGroup10318:
+		return "10318"
+	case kabus.PriceRangeGroup10706:
+		return "10706"
+	case kabus.PriceRangeGroup10718:
+		return "10718"
+	case kabus.PriceRangeGroup12122:
+		return "12122"
+	case kabus.PriceRangeGroup14473:
+		return "14473"
+	case kabus.PriceRangeGroup14515:
+		return "14515"
+	case kabus.PriceRangeGroup15411:
+		return "15411"
+	case kabus.PriceRangeGroup15569:
+		return "15569"
+	case kabus.PriceRangeGroup17163:
+		return "17163"
+	}
+	return ""
+}

@@ -30,6 +30,8 @@ type testSecurity struct {
 	symbolNameOption2 error
 	board1            *kabuspb.Board
 	board2            error
+	symbol1           *kabuspb.Symbol
+	symbol2           error
 }
 
 func (t *testSecurity) RegisterSymbols(context.Context, string, *kabuspb.RegisterSymbolsRequest) (*kabuspb.RegisteredSymbols, error) {
@@ -54,6 +56,10 @@ func (t *testSecurity) SymbolNameOption(context.Context, string, *kabuspb.GetOpt
 
 func (t *testSecurity) Board(context.Context, string, *kabuspb.GetBoardRequest) (*kabuspb.Board, error) {
 	return t.board1, t.board2
+}
+
+func (t *testSecurity) Symbol(context.Context, string, *kabuspb.GetSymbolRequest) (*kabuspb.Symbol, error) {
+	return t.symbol1, t.symbol2
 }
 
 type testTokenService struct {
@@ -413,7 +419,7 @@ func Test_server_GetBoard(t *testing.T) {
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
 			hasError:  true},
-		{name: "SymbolNameOptionでエラーがあればエラーを返す",
+		{name: "Boardでエラーがあればエラーを返す",
 			getToken1: "TOKEN_STRING",
 			board2:    errors.New("register error message"),
 			hasError:  true},
@@ -431,6 +437,45 @@ func Test_server_GetBoard(t *testing.T) {
 				security:     &testSecurity{board1: test.board1, board2: test.board2},
 				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
 			got1, got2 := server.GetBoard(context.Background(), &kabuspb.GetBoardRequest{SymbolCode: "5401", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_server_GetSymbol(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name      string
+		getToken1 string
+		getToken2 error
+		symbol1   *kabuspb.Symbol
+		symbol2   error
+		want      *kabuspb.Symbol
+		hasError  bool
+	}{
+		{name: "token取得でエラーがあればエラーを返す",
+			getToken2: errors.New("get token error message"),
+			hasError:  true},
+		{name: "Symbolでエラーがあればエラーを返す",
+			getToken1: "TOKEN_STRING",
+			symbol2:   errors.New("register error message"),
+			hasError:  true},
+		{name: "Symbolの結果を結果を返す",
+			getToken1: "TOKEN_STRING",
+			symbol1:   &kabuspb.Symbol{Code: "5401", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU},
+			want:      &kabuspb.Symbol{Code: "5401", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{
+				security:     &testSecurity{symbol1: test.symbol1, symbol2: test.symbol2},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+			got1, got2 := server.GetSymbol(context.Background(), &kabuspb.GetSymbolRequest{SymbolCode: "5401", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}

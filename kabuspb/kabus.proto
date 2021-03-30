@@ -10,6 +10,7 @@ service KabusService {
   rpc GetToken(GetTokenRequest) returns (Token); // トークン取得
   rpc RefreshToken(RefreshTokenRequest) returns (Token); // トークン再取得
   rpc GetBoard(GetBoardRequest) returns (Board); // 時価情報・板情報
+  rpc GetSymbol(GetSymbolRequest) returns (Symbol); // 銘柄情報
   rpc GetFutureSymbolCodeInfo(GetFutureSymbolCodeInfoRequest) returns (SymbolCodeInfo); // 先物銘柄コード取得
   rpc GetOptionSymbolCodeInfo(GetOptionSymbolCodeInfoRequest) returns (SymbolCodeInfo); // オプション銘柄コード取得
   rpc GetRegisteredSymbols(GetRegisteredSymbolsRequest) returns (RegisteredSymbols); // 登録銘柄一覧 ※直前で実行されたRegister, Unregister, UnregisterAllの結果を保持しているだけ
@@ -26,6 +27,12 @@ message RefreshTokenRequest {}
 
 // 時価情報・板情報リクエスト
 message GetBoardRequest {
+  string symbol_code = 1;
+  Exchange exchange = 2;
+}
+
+// 銘柄情報リクエスト
+message GetSymbolRequest {
   string symbol_code = 1;
   Exchange exchange = 2;
 }
@@ -295,6 +302,107 @@ message Board {
   // デルタ
   //   オプション銘柄かつ日通しの場合のみ
   double delta = 62;
+}
+
+// 銘柄
+message Symbol {
+  // 銘柄コード
+  string code = 1;
+
+  // 銘柄名
+  string name = 2;
+
+  // 銘柄略称
+  //   ※株式・先物・オプション銘柄の場合のみ
+  string display_name = 3;
+
+  // 市場コード
+  //   株式・先物・オプション銘柄の場合のみ
+  Exchange exchange = 4;
+
+  // 市場名称
+  //   株式・先物・オプション銘柄の場合のみ
+  string exchange_name = 5;
+
+  // 業種コード名
+  //   株式銘柄の場合のみ
+  string industry_category = 6; // TODO enum
+
+  // 時価総額
+  //   株式銘柄の場合のみ
+  double total_market_value = 7;
+
+  // 発行済み株式数（千株）
+  //   株式銘柄の場合のみ
+  double total_stocks = 8;
+
+  // 売買単位
+  //   株式・先物・オプション銘柄の場合のみ
+  double trading_unit = 9;
+
+  // 決算期日
+  //   株式銘柄の場合のみ
+  google.protobuf.Timestamp fiscal_year_end_basic = 10;
+
+  // 呼値グループ
+  //   株式・先物・オプション銘柄の場合のみ
+  string price_range_group = 11; // todo enum
+
+  // 一般信用買建フラグ
+  //   trueのとき一般信用買建可能
+  //   株式銘柄の場合のみ
+  bool kabucom_margin_buy = 12;
+
+  // 一般信用売建フラグ
+  //   trueのとき一般信用売建可能
+  //   株式銘柄の場合のみ
+  bool kabucom_margin_sell = 13;
+
+  // 制度信用買建フラグ
+  //   trueのとき制度信用買建可能
+  //   株式銘柄の場合のみ
+  bool margin_buy = 14;
+
+  // 制度信用売建フラグ
+  //   trueのとき制度信用売建可能
+  //   株式銘柄の場合のみ
+  bool margin_sell = 15;
+
+  // 値幅上限
+  //   株式・先物・オプション銘柄の場合のみ
+  double upper_limit = 16;
+
+  // 値幅下限
+  //   株式・先物・オプション銘柄の場合のみ
+  double lower_limit = 17;
+
+  // 原資産コード
+  //   先物・オプション銘柄の場合のみ
+  string underlyer = 18; // todo enum
+
+  // 限月-年月
+  //   先物・オプション銘柄の場合のみ
+  google.protobuf.Timestamp derivative_month = 19;
+
+  // 取引開始日
+  //   先物・オプション銘柄の場合のみ
+  google.protobuf.Timestamp trade_start = 20;
+
+  // 取引終了日
+  //   先物・オプション銘柄の場合のみ
+  google.protobuf.Timestamp trade_end = 21;
+
+  // 権利行使価格
+  //   オプション銘柄の場合のみ
+  double strike_price = 22;
+
+  // プット/コール区分
+  //   オプション銘柄の場合のみ
+  CallPut call_or_put = 23;
+
+  // 清算値
+  //   先物銘柄の場合のみ
+  double clearing_price = 24;
 }
 
 // 銘柄コード情報
