@@ -141,6 +141,18 @@ func (s *security) Orders(ctx context.Context, token string, req *kabuspb.GetOrd
 	return fromOrders(res), nil
 }
 
+func (s *security) Positions(ctx context.Context, token string, req *kabuspb.GetPositionsRequest) (*kabuspb.Positions, error) {
+	res, err := s.restClient.PositionsWithContext(ctx, token, kabus.PositionsRequest{
+		Product: toProduct(req.Product),
+		Symbol:  req.SymbolCode,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return fromPositions(res), nil
+}
+
 func (s *security) SymbolNameFuture(ctx context.Context, token string, req *kabuspb.GetFutureSymbolCodeInfoRequest) (*kabuspb.SymbolCodeInfo, error) {
 	res, err := s.restClient.SymbolNameFutureWithContext(ctx, token, kabus.SymbolNameFutureRequest{
 		FutureCode: toFutureCode(req.FutureCode),

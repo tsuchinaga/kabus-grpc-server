@@ -65,6 +65,8 @@ gitlab.com/tsuchinaga/go-kabusapi v1.3.8 h1:aE1GczmmP40dswBpyb2G4y6wq4LT+5ZzTaYW
 gitlab.com/tsuchinaga/go-kabusapi v1.3.8/go.mod h1:yrhgbJRW5L/SaQorC/9Eo8o6KpCimnUf6DcVOukDzJk=
 gitlab.com/tsuchinaga/go-kabusapi v1.3.9 h1:o4yWKpKy8bgKuqcK+0qTdUg9GtYVxZNTMBjMM3zXg5A=
 gitlab.com/tsuchinaga/go-kabusapi v1.3.9/go.mod h1:yrhgbJRW5L/SaQorC/9Eo8o6KpCimnUf6DcVOukDzJk=
+gitlab.com/tsuchinaga/go-kabusapi v1.3.10 h1:Qp+9mbzWhxlns5DXE1DHG/bBQMdNiFuVlXADzILMkoc=
+gitlab.com/tsuchinaga/go-kabusapi v1.3.10/go.mod h1:yrhgbJRW5L/SaQorC/9Eo8o6KpCimnUf6DcVOukDzJk=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 h1:psW17arqaxU48Z5kZ0CQnkZWQJsqcURM6tKiBApRjXI=
 golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=

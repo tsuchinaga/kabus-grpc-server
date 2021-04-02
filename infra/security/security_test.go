@@ -36,6 +36,8 @@ type testRESTClient struct {
 	symbolWithContext2           error
 	ordersWithContext1           *kabus.OrdersResponse
 	ordersWithContext2           error
+	positionsWithContext1        *kabus.PositionsResponse
+	positionsWithContext2        error
 }
 
 func (t *testRESTClient) TokenWithContext(context.Context, kabus.TokenRequest) (*kabus.TokenResponse, error) {
@@ -74,6 +76,10 @@ func (t *testRESTClient) SymbolWithContext(context.Context, string, kabus.Symbol
 
 func (t *testRESTClient) OrdersWithContext(context.Context, string, kabus.OrdersRequest) (*kabus.OrdersResponse, error) {
 	return t.ordersWithContext1, t.ordersWithContext2
+}
+
+func (t *testRESTClient) PositionsWithContext(context.Context, string, kabus.PositionsRequest) (*kabus.PositionsResponse, error) {
+	return t.positionsWithContext1, t.positionsWithContext2
 }
 
 func Test_NewSecurity(t *testing.T) {
@@ -594,6 +600,79 @@ func Test_security_Orders(t *testing.T) {
 			restClient := &testRESTClient{ordersWithContext1: test.ordersWithContext1, ordersWithContext2: test.ordersWithContext2}
 			security := &security{restClient: restClient}
 			got1, got2 := security.Orders(context.Background(), "", &kabuspb.GetOrdersRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_Positions(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                  string
+		positionsWithContext1 *kabus.PositionsResponse
+		positionsWithContext2 error
+		want                  *kabuspb.Positions
+		hasError              bool
+	}{
+		{name: "errorを返されたらerrorを返す", positionsWithContext2: errors.New("error message"), hasError: true},
+		{name: "responseが返されたらresponseを変換して返す",
+			positionsWithContext1: &kabus.PositionsResponse{{
+				ExecutionID:     "20200715E02N04738464",
+				AccountType:     kabus.AccountTypeSpecific,
+				Symbol:          "8306",
+				SymbolName:      "三菱ＵＦＪフィナンシャル・グループ",
+				Exchange:        kabus.ExchangeToushou,
+				ExchangeName:    "東証１部",
+				SecurityType:    kabus.SecurityTypeNK225,
+				ExecutionDay:    kabus.NewYmdNUM(time.Date(2020, 7, 2, 0, 0, 0, 0, time.Local)),
+				Price:           704,
+				LeavesQty:       500,
+				HoldQty:         0,
+				Side:            kabus.SideSell,
+				Expenses:        0,
+				Commission:      1620,
+				CommissionTax:   162,
+				ExpireDay:       kabus.NewYmdNUM(time.Date(2020, 12, 29, 0, 0, 0, 0, time.Local)),
+				MarginTradeType: kabus.MarginTradeTypeSystem,
+				CurrentPrice:    414.5,
+				Valuation:       207250,
+				ProfitLoss:      144750,
+				ProfitLossRate:  41.12215909090909,
+			}},
+			want: &kabuspb.Positions{Positions: []*kabuspb.Position{{
+				ExecutionId:     "20200715E02N04738464",
+				AccountType:     kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC,
+				SymbolCode:      "8306",
+				SymbolName:      "三菱ＵＦＪフィナンシャル・グループ",
+				Exchange:        kabuspb.Exchange_EXCHANGE_TOUSHOU,
+				ExchangeName:    "東証１部",
+				SecurityType:    kabuspb.SecurityType_SECURITY_TYPE_NK225,
+				ExecutionDay:    timestamppb.New(time.Date(2020, 7, 2, 0, 0, 0, 0, time.Local)),
+				Price:           704,
+				LeavesQuantity:  500,
+				HoldQuantity:    0,
+				Side:            kabuspb.Side_SIDE_SELL,
+				Expenses:        0,
+				Commission:      1620,
+				CommissionTax:   162,
+				ExpireDay:       timestamppb.New(time.Date(2020, 12, 29, 0, 0, 0, 0, time.Local)),
+				MarginTradeType: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_SYSTEM,
+				CurrentPrice:    414.5,
+				Valuation:       207250,
+				ProfitLoss:      144750,
+				ProfitLossRate:  41.12215909090909,
+			}}}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{positionsWithContext1: test.positionsWithContext1, positionsWithContext2: test.positionsWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.Positions(context.Background(), "", &kabuspb.GetPositionsRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}

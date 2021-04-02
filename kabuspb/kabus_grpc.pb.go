@@ -22,6 +22,7 @@ type KabusServiceClient interface {
 	GetBoard(ctx context.Context, in *GetBoardRequest, opts ...grpc.CallOption) (*Board, error)
 	GetSymbol(ctx context.Context, in *GetSymbolRequest, opts ...grpc.CallOption) (*Symbol, error)
 	GetOrders(ctx context.Context, in *GetOrdersRequest, opts ...grpc.CallOption) (*Orders, error)
+	GetPositions(ctx context.Context, in *GetPositionsRequest, opts ...grpc.CallOption) (*Positions, error)
 	GetFutureSymbolCodeInfo(ctx context.Context, in *GetFutureSymbolCodeInfoRequest, opts ...grpc.CallOption) (*SymbolCodeInfo, error)
 	GetOptionSymbolCodeInfo(ctx context.Context, in *GetOptionSymbolCodeInfoRequest, opts ...grpc.CallOption) (*SymbolCodeInfo, error)
 	GetRegisteredSymbols(ctx context.Context, in *GetRegisteredSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
@@ -77,6 +78,15 @@ func (c *kabusServiceClient) GetSymbol(ctx context.Context, in *GetSymbolRequest
 func (c *kabusServiceClient) GetOrders(ctx context.Context, in *GetOrdersRequest, opts ...grpc.CallOption) (*Orders, error) {
 	out := new(Orders)
 	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetOrders", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) GetPositions(ctx context.Context, in *GetPositionsRequest, opts ...grpc.CallOption) (*Positions, error) {
+	out := new(Positions)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetPositions", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -146,6 +156,7 @@ type KabusServiceServer interface {
 	GetBoard(context.Context, *GetBoardRequest) (*Board, error)
 	GetSymbol(context.Context, *GetSymbolRequest) (*Symbol, error)
 	GetOrders(context.Context, *GetOrdersRequest) (*Orders, error)
+	GetPositions(context.Context, *GetPositionsRequest) (*Positions, error)
 	GetFutureSymbolCodeInfo(context.Context, *GetFutureSymbolCodeInfoRequest) (*SymbolCodeInfo, error)
 	GetOptionSymbolCodeInfo(context.Context, *GetOptionSymbolCodeInfoRequest) (*SymbolCodeInfo, error)
 	GetRegisteredSymbols(context.Context, *GetRegisteredSymbolsRequest) (*RegisteredSymbols, error)
@@ -173,6 +184,9 @@ func (UnimplementedKabusServiceServer) GetSymbol(context.Context, *GetSymbolRequ
 }
 func (UnimplementedKabusServiceServer) GetOrders(context.Context, *GetOrdersRequest) (*Orders, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOrders not implemented")
+}
+func (UnimplementedKabusServiceServer) GetPositions(context.Context, *GetPositionsRequest) (*Positions, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPositions not implemented")
 }
 func (UnimplementedKabusServiceServer) GetFutureSymbolCodeInfo(context.Context, *GetFutureSymbolCodeInfoRequest) (*SymbolCodeInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFutureSymbolCodeInfo not implemented")
@@ -291,6 +305,24 @@ func _KabusService_GetOrders_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KabusServiceServer).GetOrders(ctx, req.(*GetOrdersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_GetPositions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPositionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).GetPositions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/GetPositions",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).GetPositions(ctx, req.(*GetPositionsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -429,6 +461,10 @@ var KabusService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetOrders",
 			Handler:    _KabusService_GetOrders_Handler,
+		},
+		{
+			MethodName: "GetPositions",
+			Handler:    _KabusService_GetPositions_Handler,
 		},
 		{
 			MethodName: "GetFutureSymbolCodeInfo",

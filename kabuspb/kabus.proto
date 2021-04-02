@@ -12,6 +12,7 @@ service KabusService {
   rpc GetBoard(GetBoardRequest) returns (Board); // 時価情報・板情報
   rpc GetSymbol(GetSymbolRequest) returns (Symbol); // 銘柄情報
   rpc GetOrders(GetOrdersRequest) returns (Orders); // 注文約定照会
+  rpc GetPositions(GetPositionsRequest) returns (Positions); // 残高照会
   rpc GetFutureSymbolCodeInfo(GetFutureSymbolCodeInfoRequest) returns (SymbolCodeInfo); // 先物銘柄コード取得
   rpc GetOptionSymbolCodeInfo(GetOptionSymbolCodeInfoRequest) returns (SymbolCodeInfo); // オプション銘柄コード取得
   rpc GetRegisteredSymbols(GetRegisteredSymbolsRequest) returns (RegisteredSymbols); // 登録銘柄一覧 ※直前で実行されたRegister, Unregister, UnregisterAllの結果を保持しているだけ
@@ -76,6 +77,15 @@ message GetOrdersRequest {
   //   指定された取引区分と一致する注文のみレスポンスします。
   //   複数の取引区分を指定することができません。
   TradeType tradeType = 8;
+}
+
+// 残高照会リクエスト
+message GetPositionsRequest{
+  // 取得する商品
+  Product product = 1;
+
+  // 銘柄コード
+  string symbol_code = 2;
 }
 
 // 先物銘柄コード取得リクエスト
@@ -602,6 +612,84 @@ message OrderDetail {
   double commission_tax = 14;
 }
 
+// ポジションリスト
+message Positions {
+  repeated Position positions = 1;
+}
+
+// ポジション
+message Position {
+  // 約定番号
+  string execution_id = 1;
+
+  // 口座種別
+  AccountType account_type = 2;
+
+  // 銘柄コード
+  string symbol_code = 3;
+
+  // 銘柄名
+  string symbol_name = 4;
+
+  // 市場コード
+  Exchange exchange = 5;
+
+  // 市場名
+  string exchange_name = 6;
+
+  // 銘柄種別
+  //   先物・オプション銘柄の場合のみ
+  SecurityType security_type = 7;
+
+  // 約定日（建玉日）
+  //   信用・先物・オプションの場合のみ
+  google.protobuf.Timestamp execution_day = 8;
+
+  // 値段
+  double price = 9;
+
+  // 残数量
+  double leaves_quantity = 10;
+
+  // 拘束数量（保有数量）
+  double hold_quantity = 11;
+
+  // 売買区分
+  Side side = 12;
+
+  // 諸経費
+  //   信用・先物・オプションの場合のみ
+  double expenses = 13;
+
+  // 手数料
+  //   信用・先物・オプションの場合のみ
+  double commission = 14;
+
+  // 手数料消費税
+  //   信用・先物・オプションの場合のみ
+  double commission_tax = 15;
+
+  // 返済期日
+  //   信用・先物・オプションの場合のみ
+  google.protobuf.Timestamp expire_day = 16;
+
+  // 信用取引区分
+  //   信用の場合のみ
+  MarginTradeType margin_trade_type = 17;
+
+  // 現在値
+  double current_price = 18;
+
+  // 評価金額
+  double valuation = 19;
+
+  // 評価損益額
+  double profit_loss = 20;
+
+  // 評価損益率
+  double profit_loss_rate = 21;
+}
+
 // 銘柄登録
 message RegisteredSymbols {
   // 現在登録されている銘柄のリスト
@@ -775,4 +863,20 @@ enum OrderDetailState {
   ORDER_DETAIL_STATE_PROCESSED = 3; // 処理済（発注済・訂正済・取消済・全約定・期限切れ）
   ORDER_DETAIL_STATE_ERROR = 4; // エラー
   ORDER_DETAIL_STATE_DELETED = 5; // 削除済み
+}
+
+// 銘柄種別
+enum SecurityType {
+  SECURITY_TYPE_UNSPECIFIED = 0; // 未指定
+  SECURITY_TYPE_STOCK = 1; // 株式
+  SECURITY_TYPE_NK225 = 101; // 日経225先物
+  SECURITY_TYPE_NK225_MINI = 901; // 日経225mini先物
+  SECURITY_TYPE_JPX400 = 121; // JPX日経インデックス400先物
+  SECURITY_TYPE_TOPIX = 107; // TOPIX先物
+  SECURITY_TYPE_TOPIX_MINI = 907; // ミニTOPIX先物
+  SECURITY_TYPE_MOTHERS = 154; // 東証マザーズ指数先物
+  SECURITY_TYPE_REIT = 155; // 東証REIT指数先物
+  SECURITY_TYPE_DOW = 144; // NYダウ先物
+  SECURITY_TYPE_VI = 145; // 日経平均VI先物
+  SECURITY_TYPE_CODE30 = 171; // TOPIX Core30先物
 }

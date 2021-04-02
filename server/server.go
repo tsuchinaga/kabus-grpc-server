@@ -56,6 +56,15 @@ func (s *server) GetOrders(ctx context.Context, req *kabuspb.GetOrdersRequest) (
 	return s.security.Orders(ctx, token, req)
 }
 
+func (s *server) GetPositions(ctx context.Context, req *kabuspb.GetPositionsRequest) (*kabuspb.Positions, error) {
+	token, err := s.tokenService.GetToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.security.Positions(ctx, token, req)
+}
+
 func (s *server) GetFutureSymbolCodeInfo(ctx context.Context, req *kabuspb.GetFutureSymbolCodeInfoRequest) (*kabuspb.SymbolCodeInfo, error) {
 	token, err := s.tokenService.GetToken(ctx)
 	if err != nil {

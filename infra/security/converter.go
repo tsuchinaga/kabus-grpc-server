@@ -416,7 +416,7 @@ func fromOrdType(ordType kabus.OrdType) kabuspb.OrderType {
 		return kabuspb.OrderType_ORDER_TYPE_FUNARI
 	case kabus.OrdTypeMarketToLimit:
 		return kabuspb.OrderType_ORDER_TYPE_MTLO
-	case kabus.OrdTypeMarketIOC:
+	case kabus.OrdTypeIOC:
 		return kabuspb.OrderType_ORDER_TYPE_IOC
 	}
 	return kabuspb.OrderType_ORDER_TYPE_UNSPECIFIED
@@ -578,4 +578,62 @@ func toIsGetOrderDetail(getDetails bool) kabus.IsGetOrderDetail {
 	} else {
 		return kabus.IsGetOrderDetailTrue
 	}
+}
+
+func fromPositions(positions *kabus.PositionsResponse) *kabuspb.Positions {
+	res := &kabuspb.Positions{Positions: make([]*kabuspb.Position, len(*positions))}
+	for i, position := range *positions {
+		res.Positions[i] = &kabuspb.Position{
+			ExecutionId:     position.ExecutionID,
+			AccountType:     fromAccountType(position.AccountType),
+			SymbolCode:      position.Symbol,
+			SymbolName:      position.SymbolName,
+			Exchange:        fromExchange(position.Exchange),
+			ExchangeName:    position.ExchangeName,
+			SecurityType:    fromSecurityType(position.SecurityType),
+			ExecutionDay:    timestamppb.New(position.ExecutionDay.Time),
+			Price:           position.Price,
+			LeavesQuantity:  position.LeavesQty,
+			HoldQuantity:    position.HoldQty,
+			Side:            fromSide(position.Side),
+			Expenses:        position.Expenses,
+			Commission:      position.Commission,
+			CommissionTax:   position.CommissionTax,
+			ExpireDay:       timestamppb.New(position.ExpireDay.Time),
+			MarginTradeType: fromMarginTradeType(position.MarginTradeType),
+			CurrentPrice:    position.CurrentPrice,
+			Valuation:       position.Valuation,
+			ProfitLoss:      position.ProfitLoss,
+			ProfitLossRate:  position.ProfitLossRate,
+		}
+	}
+	return res
+}
+
+func fromSecurityType(securityType kabus.SecurityType) kabuspb.SecurityType {
+	switch securityType {
+	case kabus.SecurityTypeStock:
+		return kabuspb.SecurityType_SECURITY_TYPE_STOCK
+	case kabus.SecurityTypeNK225:
+		return kabuspb.SecurityType_SECURITY_TYPE_NK225
+	case kabus.SecurityTypeNK225Mini:
+		return kabuspb.SecurityType_SECURITY_TYPE_NK225_MINI
+	case kabus.SecurityTypeJPX400:
+		return kabuspb.SecurityType_SECURITY_TYPE_JPX400
+	case kabus.SecurityTypeTOPIX:
+		return kabuspb.SecurityType_SECURITY_TYPE_TOPIX
+	case kabus.SecurityTypeTOPIXMini:
+		return kabuspb.SecurityType_SECURITY_TYPE_TOPIX_MINI
+	case kabus.SecurityTypeMothers:
+		return kabuspb.SecurityType_SECURITY_TYPE_MOTHERS
+	case kabus.SecurityTypeREIT:
+		return kabuspb.SecurityType_SECURITY_TYPE_REIT
+	case kabus.SecurityTypeDOW:
+		return kabuspb.SecurityType_SECURITY_TYPE_DOW
+	case kabus.SecurityTypeVI:
+		return kabuspb.SecurityType_SECURITY_TYPE_VI
+	case kabus.SecurityTypeCORE30:
+		return kabuspb.SecurityType_SECURITY_TYPE_CODE30
+	}
+	return kabuspb.SecurityType_SECURITY_TYPE_UNSPECIFIED
 }

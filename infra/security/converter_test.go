@@ -834,7 +834,7 @@ func Test_fromOrdType(t *testing.T) {
 		{name: "引け を変換できる", arg: kabus.OrdTypeClose, want: kabuspb.OrderType_ORDER_TYPE_CLOSE},
 		{name: "不成 を変換できる", arg: kabus.OrdTypeNoContracted, want: kabuspb.OrderType_ORDER_TYPE_FUNARI},
 		{name: "対当指値 を変換できる", arg: kabus.OrdTypeMarketToLimit, want: kabuspb.OrderType_ORDER_TYPE_MTLO},
-		{name: "IOC を変換できる", arg: kabus.OrdTypeMarketIOC, want: kabuspb.OrderType_ORDER_TYPE_IOC},
+		{name: "IOC を変換できる", arg: kabus.OrdTypeIOC, want: kabuspb.OrderType_ORDER_TYPE_IOC},
 		{name: "未定義 を変換できる", arg: kabus.OrdType(-1), want: kabuspb.OrderType_ORDER_TYPE_UNSPECIFIED},
 	}
 
@@ -1162,6 +1162,200 @@ func Test_toIsGetOrderDetail(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			got := toIsGetOrderDetail(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromSecurityType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.SecurityType
+		want kabuspb.SecurityType
+	}{
+		{name: "未指定 を変換できる", arg: kabus.SecurityTypeUnspecified, want: kabuspb.SecurityType_SECURITY_TYPE_UNSPECIFIED},
+		{name: "株式 を変換できる", arg: kabus.SecurityTypeStock, want: kabuspb.SecurityType_SECURITY_TYPE_STOCK},
+		{name: "日経225先物 を変換できる", arg: kabus.SecurityTypeNK225, want: kabuspb.SecurityType_SECURITY_TYPE_NK225},
+		{name: "日経225mini先物 を変換できる", arg: kabus.SecurityTypeNK225Mini, want: kabuspb.SecurityType_SECURITY_TYPE_NK225_MINI},
+		{name: "JPX日経インデックス400先物 を変換できる", arg: kabus.SecurityTypeJPX400, want: kabuspb.SecurityType_SECURITY_TYPE_JPX400},
+		{name: "TOPIX先物 を変換できる", arg: kabus.SecurityTypeTOPIX, want: kabuspb.SecurityType_SECURITY_TYPE_TOPIX},
+		{name: "ミニTOPIX先物 を変換できる", arg: kabus.SecurityTypeTOPIXMini, want: kabuspb.SecurityType_SECURITY_TYPE_TOPIX_MINI},
+		{name: "東証マザーズ指数先物 を変換できる", arg: kabus.SecurityTypeMothers, want: kabuspb.SecurityType_SECURITY_TYPE_MOTHERS},
+		{name: "東証REIT指数先物 を変換できる", arg: kabus.SecurityTypeREIT, want: kabuspb.SecurityType_SECURITY_TYPE_REIT},
+		{name: "NYダウ先物 を変換できる", arg: kabus.SecurityTypeDOW, want: kabuspb.SecurityType_SECURITY_TYPE_DOW},
+		{name: "日経平均VI先物 を変換できる", arg: kabus.SecurityTypeVI, want: kabuspb.SecurityType_SECURITY_TYPE_VI},
+		{name: "TOPIX Core30先物 を変換できる", arg: kabus.SecurityTypeCORE30, want: kabuspb.SecurityType_SECURITY_TYPE_CODE30},
+		{name: "未定義 を変換できる", arg: kabus.SecurityType(-1), want: kabuspb.SecurityType_SECURITY_TYPE_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromSecurityType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromPositions(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  *kabus.PositionsResponse
+		want *kabuspb.Positions
+	}{
+		{name: "空配列が渡されたら空配列を返す", arg: &kabus.PositionsResponse{}, want: &kabuspb.Positions{Positions: []*kabuspb.Position{}}},
+		{name: "要素が1つの配列が渡されたら要素が1つの配列を返す",
+			arg: &kabus.PositionsResponse{{
+				ExecutionID:     "20200715E02N04738464",
+				AccountType:     kabus.AccountTypeSpecific,
+				Symbol:          "8306",
+				SymbolName:      "三菱ＵＦＪフィナンシャル・グループ",
+				Exchange:        kabus.ExchangeToushou,
+				ExchangeName:    "東証１部",
+				SecurityType:    kabus.SecurityTypeNK225,
+				ExecutionDay:    kabus.NewYmdNUM(time.Date(2020, 7, 2, 0, 0, 0, 0, time.Local)),
+				Price:           704,
+				LeavesQty:       500,
+				HoldQty:         0,
+				Side:            kabus.SideSell,
+				Expenses:        0,
+				Commission:      1620,
+				CommissionTax:   162,
+				ExpireDay:       kabus.NewYmdNUM(time.Date(2020, 12, 29, 0, 0, 0, 0, time.Local)),
+				MarginTradeType: kabus.MarginTradeTypeSystem,
+				CurrentPrice:    414.5,
+				Valuation:       207250,
+				ProfitLoss:      144750,
+				ProfitLossRate:  41.12215909090909,
+			}},
+			want: &kabuspb.Positions{Positions: []*kabuspb.Position{{
+				ExecutionId:     "20200715E02N04738464",
+				AccountType:     kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC,
+				SymbolCode:      "8306",
+				SymbolName:      "三菱ＵＦＪフィナンシャル・グループ",
+				Exchange:        kabuspb.Exchange_EXCHANGE_TOUSHOU,
+				ExchangeName:    "東証１部",
+				SecurityType:    kabuspb.SecurityType_SECURITY_TYPE_NK225,
+				ExecutionDay:    timestamppb.New(time.Date(2020, 7, 2, 0, 0, 0, 0, time.Local)),
+				Price:           704,
+				LeavesQuantity:  500,
+				HoldQuantity:    0,
+				Side:            kabuspb.Side_SIDE_SELL,
+				Expenses:        0,
+				Commission:      1620,
+				CommissionTax:   162,
+				ExpireDay:       timestamppb.New(time.Date(2020, 12, 29, 0, 0, 0, 0, time.Local)),
+				MarginTradeType: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_SYSTEM,
+				CurrentPrice:    414.5,
+				Valuation:       207250,
+				ProfitLoss:      144750,
+				ProfitLossRate:  41.12215909090909,
+			}}}},
+		{name: "要素が2つの配列が渡されたら要素が2つの配列を返す",
+			arg: &kabus.PositionsResponse{{
+				ExecutionID:     "20200715E02N04738464",
+				AccountType:     kabus.AccountTypeSpecific,
+				Symbol:          "8306",
+				SymbolName:      "三菱ＵＦＪフィナンシャル・グループ",
+				Exchange:        kabus.ExchangeToushou,
+				ExchangeName:    "東証１部",
+				SecurityType:    kabus.SecurityTypeNK225,
+				ExecutionDay:    kabus.NewYmdNUM(time.Date(2020, 7, 2, 0, 0, 0, 0, time.Local)),
+				Price:           704,
+				LeavesQty:       500,
+				HoldQty:         0,
+				Side:            kabus.SideSell,
+				Expenses:        0,
+				Commission:      1620,
+				CommissionTax:   162,
+				ExpireDay:       kabus.NewYmdNUM(time.Date(2020, 12, 29, 0, 0, 0, 0, time.Local)),
+				MarginTradeType: kabus.MarginTradeTypeSystem,
+				CurrentPrice:    414.5,
+				Valuation:       207250,
+				ProfitLoss:      144750,
+				ProfitLossRate:  41.12215909090909,
+			}, {
+				ExecutionID:     "20200715E02N04738464",
+				AccountType:     kabus.AccountTypeSpecific,
+				Symbol:          "8306",
+				SymbolName:      "三菱ＵＦＪフィナンシャル・グループ",
+				Exchange:        kabus.ExchangeToushou,
+				ExchangeName:    "東証１部",
+				SecurityType:    kabus.SecurityTypeNK225,
+				ExecutionDay:    kabus.NewYmdNUM(time.Date(2020, 7, 2, 0, 0, 0, 0, time.Local)),
+				Price:           704,
+				LeavesQty:       500,
+				HoldQty:         0,
+				Side:            kabus.SideSell,
+				Expenses:        0,
+				Commission:      1620,
+				CommissionTax:   162,
+				ExpireDay:       kabus.NewYmdNUM(time.Date(2020, 12, 29, 0, 0, 0, 0, time.Local)),
+				MarginTradeType: kabus.MarginTradeTypeSystem,
+				CurrentPrice:    414.5,
+				Valuation:       207250,
+				ProfitLoss:      144750,
+				ProfitLossRate:  41.12215909090909,
+			}},
+			want: &kabuspb.Positions{Positions: []*kabuspb.Position{{
+				ExecutionId:     "20200715E02N04738464",
+				AccountType:     kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC,
+				SymbolCode:      "8306",
+				SymbolName:      "三菱ＵＦＪフィナンシャル・グループ",
+				Exchange:        kabuspb.Exchange_EXCHANGE_TOUSHOU,
+				ExchangeName:    "東証１部",
+				SecurityType:    kabuspb.SecurityType_SECURITY_TYPE_NK225,
+				ExecutionDay:    timestamppb.New(time.Date(2020, 7, 2, 0, 0, 0, 0, time.Local)),
+				Price:           704,
+				LeavesQuantity:  500,
+				HoldQuantity:    0,
+				Side:            kabuspb.Side_SIDE_SELL,
+				Expenses:        0,
+				Commission:      1620,
+				CommissionTax:   162,
+				ExpireDay:       timestamppb.New(time.Date(2020, 12, 29, 0, 0, 0, 0, time.Local)),
+				MarginTradeType: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_SYSTEM,
+				CurrentPrice:    414.5,
+				Valuation:       207250,
+				ProfitLoss:      144750,
+				ProfitLossRate:  41.12215909090909,
+			}, {
+				ExecutionId:     "20200715E02N04738464",
+				AccountType:     kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC,
+				SymbolCode:      "8306",
+				SymbolName:      "三菱ＵＦＪフィナンシャル・グループ",
+				Exchange:        kabuspb.Exchange_EXCHANGE_TOUSHOU,
+				ExchangeName:    "東証１部",
+				SecurityType:    kabuspb.SecurityType_SECURITY_TYPE_NK225,
+				ExecutionDay:    timestamppb.New(time.Date(2020, 7, 2, 0, 0, 0, 0, time.Local)),
+				Price:           704,
+				LeavesQuantity:  500,
+				HoldQuantity:    0,
+				Side:            kabuspb.Side_SIDE_SELL,
+				Expenses:        0,
+				Commission:      1620,
+				CommissionTax:   162,
+				ExpireDay:       timestamppb.New(time.Date(2020, 12, 29, 0, 0, 0, 0, time.Local)),
+				MarginTradeType: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_SYSTEM,
+				CurrentPrice:    414.5,
+				Valuation:       207250,
+				ProfitLoss:      144750,
+				ProfitLossRate:  41.12215909090909,
+			}}}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromPositions(test.arg)
 			if !reflect.DeepEqual(test.want, got) {
 				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
 			}
