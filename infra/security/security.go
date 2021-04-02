@@ -123,6 +123,24 @@ func (s *security) Symbol(ctx context.Context, token string, req *kabuspb.GetSym
 	}, nil
 }
 
+func (s *security) Orders(ctx context.Context, token string, req *kabuspb.GetOrdersRequest) (*kabuspb.Orders, error) {
+	res, err := s.restClient.OrdersWithContext(ctx, token, kabus.OrdersRequest{
+		Product:          toProduct(req.Product),
+		ID:               req.Id,
+		UpdateTime:       req.UpdateTime.AsTime(),
+		IsGetOrderDetail: toIsGetOrderDetail(req.GetDetails),
+		Symbol:           req.Symbol,
+		State:            toOrderState(req.State),
+		Side:             toSide(req.Side),
+		CashMargin:       toCashMargin(req.TradeType),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return fromOrders(res), nil
+}
+
 func (s *security) SymbolNameFuture(ctx context.Context, token string, req *kabuspb.GetFutureSymbolCodeInfoRequest) (*kabuspb.SymbolCodeInfo, error) {
 	res, err := s.restClient.SymbolNameFutureWithContext(ctx, token, kabus.SymbolNameFutureRequest{
 		FutureCode: toFutureCode(req.FutureCode),
@@ -194,8 +212,8 @@ func (s *security) UnregisterAll(ctx context.Context, token string, _ *kabuspb.U
 		return nil, err
 	}
 
-	resSymbols := make([]*kabuspb.RegisterSymbol, len(res.RegistList))
-	for i, symbol := range res.RegistList {
+	resSymbols := make([]*kabuspb.RegisterSymbol, len(res.RegisterList))
+	for i, symbol := range res.RegisterList {
 		resSymbols[i] = &kabuspb.RegisterSymbol{Symbol: symbol.Symbol, Exchange: fromExchange(symbol.Exchange)}
 	}
 	return &kabuspb.RegisteredSymbols{Symbols: resSymbols}, nil

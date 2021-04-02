@@ -11,6 +11,7 @@ service KabusService {
   rpc RefreshToken(RefreshTokenRequest) returns (Token); // トークン再取得
   rpc GetBoard(GetBoardRequest) returns (Board); // 時価情報・板情報
   rpc GetSymbol(GetSymbolRequest) returns (Symbol); // 銘柄情報
+  rpc GetOrders(GetOrdersRequest) returns (Orders); // 注文約定照会
   rpc GetFutureSymbolCodeInfo(GetFutureSymbolCodeInfoRequest) returns (SymbolCodeInfo); // 先物銘柄コード取得
   rpc GetOptionSymbolCodeInfo(GetOptionSymbolCodeInfoRequest) returns (SymbolCodeInfo); // オプション銘柄コード取得
   rpc GetRegisteredSymbols(GetRegisteredSymbolsRequest) returns (RegisteredSymbols); // 登録銘柄一覧 ※直前で実行されたRegister, Unregister, UnregisterAllの結果を保持しているだけ
@@ -35,6 +36,46 @@ message GetBoardRequest {
 message GetSymbolRequest {
   string symbol_code = 1;
   Exchange exchange = 2;
+}
+
+// 注文約定照会リクエスト
+message GetOrdersRequest {
+  // 取得する商品
+  Product product = 1;
+
+  // 注文番号
+  //   指定された注文番号と一致する注文のみレスポンスします。
+  //   指定された注文番号との比較では大文字小文字を区別しません。
+  //   複数の注文番号を指定することはできません。
+  string id = 2;
+
+  // 更新日時
+  //   指定された更新日時以降（指定日時含む）に更新された注文のみレスポンスします。
+  //   複数の更新日時を指定することはできません
+  google.protobuf.Timestamp update_time = 3;
+
+  // 注文詳細抑止
+  bool get_details = 4;
+
+  // 銘柄コード
+  //   指定された銘柄コードと一致する注文のみレスポンスします。
+  //   複数の銘柄コードを指定することができません。
+  string symbol = 5;
+
+  // 状態
+  //   指定された状態と一致する注文のみレスポンスします。
+  //   複数の状態を指定することはできません。
+  OrderState state = 6;
+
+  // 売買区分
+  //   指定された売買区分と一致する注文のみレスポンスします。
+  //   複数の売買区分を指定することができません。
+  Side side = 7;
+
+  // 取引区分
+  //   指定された取引区分と一致する注文のみレスポンスします。
+  //   複数の取引区分を指定することができません。
+  TradeType tradeType = 8;
 }
 
 // 先物銘柄コード取得リクエスト
@@ -444,6 +485,123 @@ message Quote {
   double quantity = 2;
 }
 
+// 注文リスト
+message Orders {
+  repeated Order orders = 1;
+}
+
+// 注文
+message Order {
+  // ID
+  string id = 1;
+
+  // 状態
+  State state = 2;
+
+  // 注文状態
+  OrderState order_state = 3;
+
+  // 執行条件
+  OrderType order_type = 4;
+
+  // 受注日時
+  google.protobuf.Timestamp receive_time = 5;
+
+  // 銘柄コード
+  string symbol_code = 6;
+
+  // 銘柄名
+  string symbol_name = 7;
+
+  // 市場コード
+  OrderExchange exchange = 8;
+
+  // 市場名
+  string exchange_name = 9;
+
+  // 有効期間条件
+  TimeInForce time_in_force = 10;
+
+  // 値段
+  double price = 11;
+
+  // 発注数量
+  double order_quantity = 12;
+
+  // 約定数量
+  double cumulative_quantity = 13;
+
+  // 売買区分
+  Side side = 14;
+
+  // 取引区分
+  TradeType trade_type = 15;
+
+  // 口座種別
+  AccountType account_type = 16;
+
+  // 受渡区分
+  DeliveryType delivery_type = 17;
+
+  // 注文有効期限
+  google.protobuf.Timestamp expire_day = 18;
+
+  // 信用取引区分
+  MarginTradeType margin_trade_type = 19;
+
+  // 注文詳細
+  repeated OrderDetail details = 20;
+}
+
+// 注文詳細
+message OrderDetail {
+  // シーケンスNo
+  //   注文明細レコードの生成順序です。
+  //   通番であるとは限りませんが、大小による順序は保たれています。
+  int32 sequence_number = 1;
+
+  // 注文詳細番号
+  string id = 2;
+
+  // 明細種別
+  RecordType record_type = 3;
+
+  // 取引所番号
+  string exchange_id = 4;
+
+  // 状態
+  OrderDetailState state = 5;
+
+  // 処理時刻
+  google.protobuf.Timestamp transact_time = 6;
+
+  // 執行条件
+  OrderType order_type = 7;
+
+  // 値段
+  double price = 8;
+
+  // 数量
+  double quantity = 9;
+
+  // 約定番号
+  string execution_id = 10;
+
+  // 約定日時
+  google.protobuf.Timestamp execution_day = 11;
+
+  // 受渡日
+  google.protobuf.Timestamp delivery_day = 12;
+
+  // 手数料
+  //  注文詳細の明細種別が約定の場合に設定
+  double commission = 13;
+
+  // 手数料消費税
+  //   明細種別は約定の場合にのみ表示されます。
+  double commission_tax = 14;
+}
+
 // 銘柄登録
 message RegisteredSymbols {
   // 現在登録されている銘柄のリスト
@@ -492,7 +650,129 @@ enum FutureCode {
 
 // コール or プット
 enum CallPut {
-  CALL_PUT_UNSPECIFIED = 0; // 指定なし
+  CALL_PUT_UNSPECIFIED = 0; // 未指定
   CALL_PUT_CALL = 1; // CALL
   CALL_PUT_PUT = 2; // PUT
+}
+
+// 商品
+enum Product {
+  PRODUCT_UNSPECIFIED = 0; // 未指定
+  PRODUCT_ALL = 1; // すべて
+  PRODUCT_STOCK = 2; // 現物
+  PRODUCT_MARGIN = 3; // 信用
+  PRODUCT_FUTURE = 4; // 先物
+  PRODUCT_OPTION = 5; // オプション
+}
+
+// 状態
+enum State {
+  STATE_UNSPECIFIED = 0; // 未指定
+  STATE_WAIT = 1; // 待機（発注待機）
+  STATE_PROCESSING = 2; // 処理中（発注送信中）
+  STATE_PROCESSED = 3; // 処理済（発注済・訂正済）
+  STATE_IN_MODIFY = 4; // 訂正取消送信中
+  STATE_DONE = 5; // 終了（発注エラー・取消済・全約定・失効・期限切れ）
+}
+
+// 注文状態
+enum OrderState {
+  ORDER_STATE_UNSPECIFIED = 0; // 未指定
+  ORDER_STATE_WAIT = 1; // 待機（発注待機）
+  ORDER_STATE_PROCESSING = 2; // 処理中（発注送信中）
+  ORDER_STATE_PROCESSED = 3; // 処理済（発注済・訂正済）
+  ORDER_STATE_IN_MODIFY = 4; // 訂正取消送信中
+  ORDER_STATE_DONE = 5; // 終了（発注エラー・取消済・全約定・失効・期限切れ）
+}
+
+// 売買区分
+enum Side {
+  SIDE_UNSPECIFIED = 0; // 未指定
+  SIDE_BUY = 1; // 買い
+  SIDE_SELL = 2; // 売り
+}
+
+// 取引区分
+enum TradeType {
+  TRADE_TYPE_UNSPECIFIED = 0; // 未指定
+  TRADE_TYPE_ENTRY = 1; // 新規
+  TRADE_TYPE_EXIT = 2; // 返済
+}
+
+// 執行条件
+enum OrderType {
+  ORDER_TYPE_UNSPECIFIED = 0; // 未指定
+  ORDER_TYPE_ZARABA = 1; // ザラバ
+  ORDER_TYPE_OPEN = 2; // 寄り
+  ORDER_TYPE_CLOSE = 3; // 引け
+  ORDER_TYPE_FUNARI = 4; // 不成
+  ORDER_TYPE_MTLO = 5; // 対等指値(対当値段条件付注文 Market To Limit Order)
+  ORDER_TYPE_IOC = 6; // IOC
+}
+
+// 注文の市場
+enum OrderExchange {
+  ORDER_EXCHANGE_UNSPECIFIED = 0; // 未指定
+  ORDER_EXCHANGE_TOUSHOU = 1; // 東証
+  ORDER_EXCHANGE_MEISHOU = 3; // 名証
+  ORDER_EXCHANGE_FUKUSHOU = 5; // 福証
+  ORDER_EXCHANGE_SATSUSHOU = 6; // 札証
+  ORDER_EXCHANGE_SOR = 9; // SOR
+  ORDER_EXCHANGE_ALL_SESSION = 2; // 日通し
+  ORDER_EXCHANGE_DAY_SESSION = 23; // 日中場
+  ORDER_EXCHANGE_NIGHT_SESSION = 24; // 夕場
+}
+
+// 口座種別
+enum AccountType {
+  ACCOUNT_TYPE_UNSPECIFIED = 0; // 未指定
+  ACCOUNT_TYPE_GENERAL = 2; // 一般
+  ACCOUNT_TYPE_SPECIFIC = 4; // 特定
+  ACCOUNT_TYPE_CORPORATION = 12; // 法人
+}
+
+// 受渡区分
+enum DeliveryType {
+  DELIVERY_TYPE_UNSPECIFIED = 0; // 未指定
+  DELIVERY_TYPE_AUTO = 1; // 自動振替
+  DELIVERY_TYPE_CASH = 2; // お預かり金
+}
+
+// 信用取引区分
+enum MarginTradeType {
+  MARGIN_TRADE_TYPE_UNSPECIFIED = 0; // 未指定
+  MARGIN_TRADE_TYPE_SYSTEM = 1; // 制度信用
+  MARGIN_TRADE_TYPE_GENERAL_LONG = 2; // 一般信用
+  MARGIN_TRADE_TYPE_GENERAL_SHORT = 3; // 一般信用(売短)
+}
+
+// 有効期間条件
+enum TimeInForce {
+  TIME_IN_FORCE_UNSPECIFIED = 0;
+  TIME_IN_FORCE_FAS = 1; // FAS (Fill And Store)
+  TIME_IN_FORCE_FAK = 2; // FAK (Fill And Kill)
+  TIME_IN_FORCE_FOK = 3; // FOK (Fill Or Kill)
+}
+
+// 注文明細種別
+enum RecordType {
+  RECORD_TYPE_UNSPECIFIED = 0; // 指定なし
+  RECORD_TYPE_RECEIVE = 1; // 受付
+  RECORD_TYPE_CARRIED = 2; // 繰越
+  RECORD_TYPE_EXPIRED = 3; // 期限切れ
+  RECORD_TYPE_ORDERED = 4; // 発注
+  RECORD_TYPE_MODIFIED = 5; // 訂正
+  RECORD_TYPE_CANCELED = 6; // 取消
+  RECORD_TYPE_REVOCATION = 7; // 失効
+  RECORD_TYPE_CONTRACTED = 8; // 約定
+}
+
+// 注文状態ステータス
+enum OrderDetailState {
+  ORDER_DETAIL_STATE_UNSPECIFIED = 0; // 未指定
+  ORDER_DETAIL_STATE_WAIT = 1; // 待機（発注待機）
+  ORDER_DETAIL_STATE_PROCESSING = 2; // 処理中（発注送信中・訂正送信中・取消送信中）
+  ORDER_DETAIL_STATE_PROCESSED = 3; // 処理済（発注済・訂正済・取消済・全約定・期限切れ）
+  ORDER_DETAIL_STATE_ERROR = 4; // エラー
+  ORDER_DETAIL_STATE_DELETED = 5; // 削除済み
 }

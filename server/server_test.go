@@ -32,6 +32,8 @@ type testSecurity struct {
 	board2            error
 	symbol1           *kabuspb.Symbol
 	symbol2           error
+	orders1           *kabuspb.Orders
+	orders2           error
 }
 
 func (t *testSecurity) RegisterSymbols(context.Context, string, *kabuspb.RegisterSymbolsRequest) (*kabuspb.RegisteredSymbols, error) {
@@ -60,6 +62,10 @@ func (t *testSecurity) Board(context.Context, string, *kabuspb.GetBoardRequest) 
 
 func (t *testSecurity) Symbol(context.Context, string, *kabuspb.GetSymbolRequest) (*kabuspb.Symbol, error) {
 	return t.symbol1, t.symbol2
+}
+
+func (t *testSecurity) Orders(context.Context, string, *kabuspb.GetOrdersRequest) (*kabuspb.Orders, error) {
+	return t.orders1, t.orders2
 }
 
 type testTokenService struct {
@@ -476,6 +482,45 @@ func Test_server_GetSymbol(t *testing.T) {
 				security:     &testSecurity{symbol1: test.symbol1, symbol2: test.symbol2},
 				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
 			got1, got2 := server.GetSymbol(context.Background(), &kabuspb.GetSymbolRequest{SymbolCode: "5401", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_server_GetOrders(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name      string
+		getToken1 string
+		getToken2 error
+		orders1   *kabuspb.Orders
+		orders2   error
+		want      *kabuspb.Orders
+		hasError  bool
+	}{
+		{name: "token取得でエラーがあればエラーを返す",
+			getToken2: errors.New("get token error message"),
+			hasError:  true},
+		{name: "Ordersでエラーがあればエラーを返す",
+			getToken1: "TOKEN_STRING",
+			orders2:   errors.New("register error message"),
+			hasError:  true},
+		{name: "Ordersの結果を結果を返す",
+			getToken1: "TOKEN_STRING",
+			orders1:   &kabuspb.Orders{Orders: []*kabuspb.Order{{Id: "20210331A02N36008399"}}},
+			want:      &kabuspb.Orders{Orders: []*kabuspb.Order{{Id: "20210331A02N36008399"}}}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{
+				security:     &testSecurity{orders1: test.orders1, orders2: test.orders2},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+			got1, got2 := server.GetOrders(context.Background(), &kabuspb.GetOrdersRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}

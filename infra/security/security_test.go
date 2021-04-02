@@ -34,6 +34,8 @@ type testRESTClient struct {
 	boardWithContext2            error
 	symbolWithContext1           *kabus.SymbolResponse
 	symbolWithContext2           error
+	ordersWithContext1           *kabus.OrdersResponse
+	ordersWithContext2           error
 }
 
 func (t *testRESTClient) TokenWithContext(context.Context, kabus.TokenRequest) (*kabus.TokenResponse, error) {
@@ -68,6 +70,10 @@ func (t *testRESTClient) BoardWithContext(context.Context, string, kabus.BoardRe
 
 func (t *testRESTClient) SymbolWithContext(context.Context, string, kabus.SymbolRequest) (*kabus.SymbolResponse, error) {
 	return t.symbolWithContext1, t.symbolWithContext2
+}
+
+func (t *testRESTClient) OrdersWithContext(context.Context, string, kabus.OrdersRequest) (*kabus.OrdersResponse, error) {
+	return t.ordersWithContext1, t.ordersWithContext2
 }
 
 func Test_NewSecurity(t *testing.T) {
@@ -196,7 +202,7 @@ func Test_security_UnregisterAll(t *testing.T) {
 			unregisterAllWithContext2: errors.New("error message"),
 			hasError:                  true},
 		{name: "responseが返されたらresponseを変換して返す",
-			unregisterAllWithContext1: &kabus.UnregisterAllResponse{RegistList: []kabus.RegisteredSymbol{}},
+			unregisterAllWithContext1: &kabus.UnregisterAllResponse{RegisterList: []kabus.RegisteredSymbol{}},
 			want:                      &kabuspb.RegisteredSymbols{Symbols: []*kabuspb.RegisterSymbol{}}},
 	}
 
@@ -517,6 +523,77 @@ func Test_security_Symbol(t *testing.T) {
 			restClient := &testRESTClient{symbolWithContext1: test.symbolWithContext1, symbolWithContext2: test.symbolWithContext2}
 			security := &security{restClient: restClient}
 			got1, got2 := security.Symbol(context.Background(), "", &kabuspb.GetSymbolRequest{SymbolCode: "5401", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_Orders(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name               string
+		ordersWithContext1 *kabus.OrdersResponse
+		ordersWithContext2 error
+		want               *kabuspb.Orders
+		hasError           bool
+	}{
+		{name: "errorを返されたらerrorを返す", ordersWithContext2: errors.New("error message"), hasError: true},
+		{name: "responseが返されたらresponseを変換して返す",
+			ordersWithContext1: &kabus.OrdersResponse{{
+				ID:              "20210331A02N36008375",
+				State:           kabus.StateDone,
+				OrderState:      kabus.OrderStateDone,
+				OrdType:         kabus.OrdTypeInTrading,
+				RecvTime:        time.Date(2021, 3, 31, 11, 28, 19, 398248000, time.Local),
+				Symbol:          "1475",
+				SymbolName:      "ｉシェアーズ・コア　ＴＯＰＩＸ　ＥＴＦ",
+				Exchange:        kabus.OrderExchangeToushou,
+				ExchangeName:    "東証ETF/ETN",
+				TimeInForce:     kabus.TimeInForceUnspecified,
+				Price:           0,
+				OrderQty:        1,
+				CumQty:          1,
+				Side:            kabus.SideBuy,
+				CashMargin:      kabus.CashMarginUnspecified,
+				AccountType:     kabus.AccountTypeSpecific,
+				DelivType:       kabus.DelivTypeCash,
+				ExpireDay:       kabus.YmdNUM{Time: time.Date(2021, 3, 31, 0, 0, 0, 0, time.Local)},
+				MarginTradeType: kabus.MarginTradeTypeUnspecified,
+				Details:         []kabus.OrderDetail{},
+			}},
+			want: &kabuspb.Orders{Orders: []*kabuspb.Order{{
+				Id:                 "20210331A02N36008375",
+				State:              kabuspb.State_STATE_DONE,
+				OrderState:         kabuspb.OrderState_ORDER_STATE_DONE,
+				OrderType:          kabuspb.OrderType_ORDER_TYPE_ZARABA,
+				ReceiveTime:        timestamppb.New(time.Date(2021, 3, 31, 11, 28, 19, 398248000, time.Local)),
+				SymbolCode:         "1475",
+				SymbolName:         "ｉシェアーズ・コア　ＴＯＰＩＸ　ＥＴＦ",
+				Exchange:           kabuspb.OrderExchange_ORDER_EXCHANGE_TOUSHOU,
+				ExchangeName:       "東証ETF/ETN",
+				TimeInForce:        kabuspb.TimeInForce_TIME_IN_FORCE_UNSPECIFIED,
+				Price:              0,
+				OrderQuantity:      1,
+				CumulativeQuantity: 1,
+				Side:               kabuspb.Side_SIDE_BUY,
+				TradeType:          kabuspb.TradeType_TRADE_TYPE_UNSPECIFIED,
+				AccountType:        kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC,
+				DeliveryType:       kabuspb.DeliveryType_DELIVERY_TYPE_CASH,
+				ExpireDay:          timestamppb.New(time.Date(2021, 3, 31, 0, 0, 0, 0, time.Local)),
+				MarginTradeType:    kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_UNSPECIFIED,
+				Details:            []*kabuspb.OrderDetail{},
+			}}}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{ordersWithContext1: test.ordersWithContext1, ordersWithContext2: test.ordersWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.Orders(context.Background(), "", &kabuspb.GetOrdersRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}

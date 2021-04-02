@@ -96,7 +96,7 @@ func toPutOrCall(callPut kabuspb.CallPut) kabus.PutOrCall {
 
 func fromCurrentPriceChangeStatus(status kabus.CurrentPriceChangeStatus) string {
 	switch status {
-	case kabus.CurrentPriceChangeStatusUnspecified:
+	case kabus.CurrentPriceChangeStatusNoEffect:
 		return "0000"
 	case kabus.CurrentPriceChangeStatusNoChange:
 		return "0056"
@@ -292,4 +292,290 @@ func fromPriceRangeGroup(priceRangeGroup kabus.PriceRangeGroup) string {
 		return "17163"
 	}
 	return ""
+}
+
+func toOrderState(status kabuspb.OrderState) kabus.OrderState {
+	switch status {
+	case kabuspb.OrderState_ORDER_STATE_WAIT:
+		return kabus.OrderStateWait
+	case kabuspb.OrderState_ORDER_STATE_PROCESSING:
+		return kabus.OrderStateProcessing
+	case kabuspb.OrderState_ORDER_STATE_PROCESSED:
+		return kabus.OrderStateProcessed
+	case kabuspb.OrderState_ORDER_STATE_IN_MODIFY:
+		return kabus.OrderStateInCancel
+	case kabuspb.OrderState_ORDER_STATE_DONE:
+		return kabus.OrderStateDone
+	}
+	return kabus.OrderStateUnspecified
+}
+
+func toSide(side kabuspb.Side) kabus.Side {
+	switch side {
+	case kabuspb.Side_SIDE_BUY:
+		return kabus.SideBuy
+	case kabuspb.Side_SIDE_SELL:
+		return kabus.SideSell
+	}
+	return kabus.SideUnspecified
+}
+
+func fromOrders(orders *kabus.OrdersResponse) *kabuspb.Orders {
+	res := &kabuspb.Orders{Orders: make([]*kabuspb.Order, len(*orders))}
+	for i, order := range *orders {
+		res.Orders[i] = &kabuspb.Order{
+			Id:                 order.ID,
+			State:              fromState(order.State),
+			OrderState:         fromOrderState(order.OrderState),
+			OrderType:          fromOrdType(order.OrdType),
+			ReceiveTime:        timestamppb.New(order.RecvTime),
+			SymbolCode:         order.Symbol,
+			SymbolName:         order.SymbolName,
+			Exchange:           fromOrderExchange(order.Exchange),
+			ExchangeName:       order.ExchangeName,
+			TimeInForce:        fromTimeInForce(order.TimeInForce),
+			Price:              order.Price,
+			OrderQuantity:      order.OrderQty,
+			CumulativeQuantity: order.CumQty,
+			Side:               fromSide(order.Side),
+			TradeType:          fromCashMargin(order.CashMargin),
+			AccountType:        fromAccountType(order.AccountType),
+			DeliveryType:       fromDelivType(order.DelivType),
+			ExpireDay:          timestamppb.New(order.ExpireDay.Time),
+			MarginTradeType:    fromMarginTradeType(order.MarginTradeType),
+			Details:            fromOrderDetails(order.Details),
+		}
+	}
+	return res
+}
+
+func fromOrderDetails(details []kabus.OrderDetail) []*kabuspb.OrderDetail {
+	res := make([]*kabuspb.OrderDetail, len(details))
+	for i, detail := range details {
+		res[i] = &kabuspb.OrderDetail{
+			SequenceNumber: int32(detail.SeqNum),
+			Id:             detail.ID,
+			RecordType:     fromRecType(detail.RecType),
+			ExchangeId:     detail.ExchangeID,
+			State:          fromOrderDetailState(detail.State),
+			TransactTime:   timestamppb.New(detail.TransactTime),
+			OrderType:      fromOrdType(detail.OrdType),
+			Price:          detail.Price,
+			Quantity:       detail.Qty,
+			ExecutionId:    detail.ExecutionID,
+			ExecutionDay:   timestamppb.New(detail.ExecutionDay),
+			DeliveryDay:    timestamppb.New(detail.DelivDay.Time),
+			Commission:     detail.Commission,
+			CommissionTax:  detail.CommissionTax,
+		}
+	}
+	return res
+}
+
+func fromState(state kabus.State) kabuspb.State {
+	switch state {
+	case kabus.StateWait:
+		return kabuspb.State_STATE_WAIT
+	case kabus.StateProcessing:
+		return kabuspb.State_STATE_PROCESSING
+	case kabus.StateProcessed:
+		return kabuspb.State_STATE_PROCESSED
+	case kabus.StateInCancel:
+		return kabuspb.State_STATE_IN_MODIFY
+	case kabus.StateDone:
+		return kabuspb.State_STATE_DONE
+	}
+	return kabuspb.State_STATE_UNSPECIFIED
+}
+
+func fromOrderState(orderState kabus.OrderState) kabuspb.OrderState {
+	switch orderState {
+	case kabus.OrderStateWait:
+		return kabuspb.OrderState_ORDER_STATE_WAIT
+	case kabus.OrderStateProcessing:
+		return kabuspb.OrderState_ORDER_STATE_PROCESSING
+	case kabus.OrderStateProcessed:
+		return kabuspb.OrderState_ORDER_STATE_PROCESSED
+	case kabus.OrderStateInCancel:
+		return kabuspb.OrderState_ORDER_STATE_IN_MODIFY
+	case kabus.OrderStateDone:
+		return kabuspb.OrderState_ORDER_STATE_DONE
+	}
+	return kabuspb.OrderState_ORDER_STATE_UNSPECIFIED
+}
+
+func fromOrdType(ordType kabus.OrdType) kabuspb.OrderType {
+	switch ordType {
+	case kabus.OrdTypeInTrading:
+		return kabuspb.OrderType_ORDER_TYPE_ZARABA
+	case kabus.OrdTypeOpen:
+		return kabuspb.OrderType_ORDER_TYPE_OPEN
+	case kabus.OrdTypeClose:
+		return kabuspb.OrderType_ORDER_TYPE_CLOSE
+	case kabus.OrdTypeNoContracted:
+		return kabuspb.OrderType_ORDER_TYPE_FUNARI
+	case kabus.OrdTypeMarketToLimit:
+		return kabuspb.OrderType_ORDER_TYPE_MTLO
+	case kabus.OrdTypeMarketIOC:
+		return kabuspb.OrderType_ORDER_TYPE_IOC
+	}
+	return kabuspb.OrderType_ORDER_TYPE_UNSPECIFIED
+}
+
+func fromOrderExchange(exchange kabus.OrderExchange) kabuspb.OrderExchange {
+	switch exchange {
+	case kabus.OrderExchangeToushou:
+		return kabuspb.OrderExchange_ORDER_EXCHANGE_TOUSHOU
+	case kabus.OrderExchangeMeishou:
+		return kabuspb.OrderExchange_ORDER_EXCHANGE_MEISHOU
+	case kabus.OrderExchangeFukushou:
+		return kabuspb.OrderExchange_ORDER_EXCHANGE_FUKUSHOU
+	case kabus.OrderExchangeSatsushou:
+		return kabuspb.OrderExchange_ORDER_EXCHANGE_SATSUSHOU
+	case kabus.OrderExchangeSOR:
+		return kabuspb.OrderExchange_ORDER_EXCHANGE_SOR
+	case kabus.OrderExchangeAll:
+		return kabuspb.OrderExchange_ORDER_EXCHANGE_ALL_SESSION
+	case kabus.OrderExchangeDaytime:
+		return kabuspb.OrderExchange_ORDER_EXCHANGE_DAY_SESSION
+	case kabus.OrderExchangeEvening:
+		return kabuspb.OrderExchange_ORDER_EXCHANGE_NIGHT_SESSION
+	}
+	return kabuspb.OrderExchange_ORDER_EXCHANGE_UNSPECIFIED
+}
+
+func fromSide(side kabus.Side) kabuspb.Side {
+	switch side {
+	case kabus.SideBuy:
+		return kabuspb.Side_SIDE_BUY
+	case kabus.SideSell:
+		return kabuspb.Side_SIDE_SELL
+	}
+	return kabuspb.Side_SIDE_UNSPECIFIED
+}
+
+func fromAccountType(accountType kabus.AccountType) kabuspb.AccountType {
+	switch accountType {
+	case kabus.AccountTypeGeneral:
+		return kabuspb.AccountType_ACCOUNT_TYPE_GENERAL
+	case kabus.AccountTypeSpecific:
+		return kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC
+	case kabus.AccountTypeCorporation:
+		return kabuspb.AccountType_ACCOUNT_TYPE_CORPORATION
+	}
+	return kabuspb.AccountType_ACCOUNT_TYPE_UNSPECIFIED
+}
+
+func fromDelivType(delivType kabus.DelivType) kabuspb.DeliveryType {
+	switch delivType {
+	case kabus.DelivTypeAuto:
+		return kabuspb.DeliveryType_DELIVERY_TYPE_AUTO
+	case kabus.DelivTypeCash:
+		return kabuspb.DeliveryType_DELIVERY_TYPE_CASH
+	}
+	return kabuspb.DeliveryType_DELIVERY_TYPE_UNSPECIFIED
+}
+
+func fromRecType(recType kabus.RecType) kabuspb.RecordType {
+	switch recType {
+	case kabus.RecTypeReceived:
+		return kabuspb.RecordType_RECORD_TYPE_RECEIVE
+	case kabus.RecTypeCarried:
+		return kabuspb.RecordType_RECORD_TYPE_CARRIED
+	case kabus.RecTypeExpired:
+		return kabuspb.RecordType_RECORD_TYPE_EXPIRED
+	case kabus.RecTypeOrdered:
+		return kabuspb.RecordType_RECORD_TYPE_ORDERED
+	case kabus.RecTypeModified:
+		return kabuspb.RecordType_RECORD_TYPE_MODIFIED
+	case kabus.RecTypeCanceled:
+		return kabuspb.RecordType_RECORD_TYPE_CANCELED
+	case kabus.RecTypeRevocation:
+		return kabuspb.RecordType_RECORD_TYPE_REVOCATION
+	case kabus.RecTypeContracted:
+		return kabuspb.RecordType_RECORD_TYPE_CONTRACTED
+	}
+	return kabuspb.RecordType_RECORD_TYPE_UNSPECIFIED
+}
+
+func fromOrderDetailState(orderDetailState kabus.OrderDetailState) kabuspb.OrderDetailState {
+	switch orderDetailState {
+	case kabus.OrderDetailStateWait:
+		return kabuspb.OrderDetailState_ORDER_DETAIL_STATE_WAIT
+	case kabus.OrderDetailStateProcessing:
+		return kabuspb.OrderDetailState_ORDER_DETAIL_STATE_PROCESSING
+	case kabus.OrderDetailStateProcessed:
+		return kabuspb.OrderDetailState_ORDER_DETAIL_STATE_PROCESSED
+	case kabus.OrderDetailStateError:
+		return kabuspb.OrderDetailState_ORDER_DETAIL_STATE_ERROR
+	case kabus.OrderDetailStateDeleted:
+		return kabuspb.OrderDetailState_ORDER_DETAIL_STATE_DELETED
+	}
+	return kabuspb.OrderDetailState_ORDER_DETAIL_STATE_UNSPECIFIED
+}
+
+func toCashMargin(tradeType kabuspb.TradeType) kabus.CashMargin {
+	switch tradeType {
+	case kabuspb.TradeType_TRADE_TYPE_ENTRY:
+		return kabus.CashMarginMarginEntry
+	case kabuspb.TradeType_TRADE_TYPE_EXIT:
+		return kabus.CashMarginMarginExit
+	}
+	return kabus.CashMarginUnspecified
+}
+
+func fromCashMargin(cashMargin kabus.CashMargin) kabuspb.TradeType {
+	switch cashMargin {
+	case kabus.CashMarginMarginEntry:
+		return kabuspb.TradeType_TRADE_TYPE_ENTRY
+	case kabus.CashMarginMarginExit:
+		return kabuspb.TradeType_TRADE_TYPE_EXIT
+	}
+	return kabuspb.TradeType_TRADE_TYPE_UNSPECIFIED
+}
+
+func fromMarginTradeType(marginTradeType kabus.MarginTradeType) kabuspb.MarginTradeType {
+	switch marginTradeType {
+	case kabus.MarginTradeTypeSystem:
+		return kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_SYSTEM
+	case kabus.MarginTradeTypeGeneralLong:
+		return kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_LONG
+	case kabus.MarginTradeTypeGeneralShort:
+		return kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_SHORT
+	}
+	return kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_UNSPECIFIED
+}
+
+func fromTimeInForce(timeInForce kabus.TimeInForce) kabuspb.TimeInForce {
+	switch timeInForce {
+	case kabus.TimeInForceFAS:
+		return kabuspb.TimeInForce_TIME_IN_FORCE_FAS
+	case kabus.TimeInForceFAK:
+		return kabuspb.TimeInForce_TIME_IN_FORCE_FAK
+	case kabus.TimeInForceFOK:
+		return kabuspb.TimeInForce_TIME_IN_FORCE_FOK
+	}
+	return kabuspb.TimeInForce_TIME_IN_FORCE_UNSPECIFIED
+}
+
+func toProduct(product kabuspb.Product) kabus.Product {
+	switch product {
+	case kabuspb.Product_PRODUCT_STOCK:
+		return kabus.ProductCash
+	case kabuspb.Product_PRODUCT_MARGIN:
+		return kabus.ProductMargin
+	case kabuspb.Product_PRODUCT_FUTURE:
+		return kabus.ProductFuture
+	case kabuspb.Product_PRODUCT_OPTION:
+		return kabus.ProductOption
+	}
+	return kabus.ProductAll
+}
+
+func toIsGetOrderDetail(getDetails bool) kabus.IsGetOrderDetail {
+	if !getDetails {
+		return kabus.IsGetOrderDetailFalse
+	} else {
+		return kabus.IsGetOrderDetailTrue
+	}
 }

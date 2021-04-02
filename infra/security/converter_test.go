@@ -161,7 +161,8 @@ func Test_fromCurrentPriceChangeStatus(t *testing.T) {
 		arg  kabus.CurrentPriceChangeStatus
 		want string
 	}{
-		{name: "事象なし を変換できる", arg: kabus.CurrentPriceChangeStatusUnspecified, want: "0000"},
+		{name: "未指定 を変換できる", arg: kabus.CurrentPriceChangeStatusUnspecified, want: ""},
+		{name: "事象なし を変換できる", arg: kabus.CurrentPriceChangeStatusNoEffect, want: "0000"},
 		{name: "変わらず を変換できる", arg: kabus.CurrentPriceChangeStatusNoChange, want: "0056"},
 		{name: "UP を変換できる", arg: kabus.CurrentPriceChangeStatusUp, want: "0057"},
 		{name: "DOWN を変換できる", arg: kabus.CurrentPriceChangeStatusDown, want: "0058"},
@@ -392,6 +393,775 @@ func Test_fromPriceRangeGroup(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			got := fromPriceRangeGroup(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toOrderState(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.OrderState
+		want kabus.OrderState
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.OrderState_ORDER_STATE_UNSPECIFIED, want: kabus.OrderStateUnspecified},
+		{name: "待機 を変換できる", arg: kabuspb.OrderState_ORDER_STATE_WAIT, want: kabus.OrderStateWait},
+		{name: "処理中 を変換できる", arg: kabuspb.OrderState_ORDER_STATE_PROCESSING, want: kabus.OrderStateProcessing},
+		{name: "処理済 を変換できる", arg: kabuspb.OrderState_ORDER_STATE_PROCESSED, want: kabus.OrderStateProcessed},
+		{name: "訂正取消送信中 を変換できる", arg: kabuspb.OrderState_ORDER_STATE_IN_MODIFY, want: kabus.OrderStateInCancel},
+		{name: "終了 を変換できる", arg: kabuspb.OrderState_ORDER_STATE_DONE, want: kabus.OrderStateDone},
+		{name: "未定義 を変換できる", arg: kabuspb.OrderState(-1), want: kabus.OrderStateUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toOrderState(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toSide(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.Side
+		want kabus.Side
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.Side_SIDE_UNSPECIFIED, want: kabus.SideUnspecified},
+		{name: "買い を変換できる", arg: kabuspb.Side_SIDE_BUY, want: kabus.SideBuy},
+		{name: "売り を変換できる", arg: kabuspb.Side_SIDE_SELL, want: kabus.SideSell},
+		{name: "未定義 を変換できる", arg: kabuspb.Side(-1), want: kabus.SideUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toSide(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromOrders(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  *kabus.OrdersResponse
+		want *kabuspb.Orders
+	}{
+		{name: "空配列なら空配列を返す",
+			arg:  &kabus.OrdersResponse{},
+			want: &kabuspb.Orders{Orders: []*kabuspb.Order{}}},
+		{name: "渡す要素が1つなら要素が1つの配列が返される",
+			arg: &kabus.OrdersResponse{{
+				ID:              "20210331A02N36008375",
+				State:           kabus.StateDone,
+				OrderState:      kabus.OrderStateDone,
+				OrdType:         kabus.OrdTypeInTrading,
+				RecvTime:        time.Date(2021, 3, 31, 11, 28, 19, 398248000, time.Local),
+				Symbol:          "1475",
+				SymbolName:      "ｉシェアーズ・コア　ＴＯＰＩＸ　ＥＴＦ",
+				Exchange:        kabus.OrderExchangeToushou,
+				ExchangeName:    "東証ETF/ETN",
+				TimeInForce:     kabus.TimeInForceUnspecified,
+				Price:           0,
+				OrderQty:        1,
+				CumQty:          1,
+				Side:            kabus.SideBuy,
+				CashMargin:      kabus.CashMarginUnspecified,
+				AccountType:     kabus.AccountTypeSpecific,
+				DelivType:       kabus.DelivTypeCash,
+				ExpireDay:       kabus.YmdNUM{Time: time.Date(2021, 3, 31, 0, 0, 0, 0, time.Local)},
+				MarginTradeType: kabus.MarginTradeTypeUnspecified,
+				Details:         []kabus.OrderDetail{},
+			}},
+			want: &kabuspb.Orders{Orders: []*kabuspb.Order{{
+				Id:                 "20210331A02N36008375",
+				State:              kabuspb.State_STATE_DONE,
+				OrderState:         kabuspb.OrderState_ORDER_STATE_DONE,
+				OrderType:          kabuspb.OrderType_ORDER_TYPE_ZARABA,
+				ReceiveTime:        timestamppb.New(time.Date(2021, 3, 31, 11, 28, 19, 398248000, time.Local)),
+				SymbolCode:         "1475",
+				SymbolName:         "ｉシェアーズ・コア　ＴＯＰＩＸ　ＥＴＦ",
+				Exchange:           kabuspb.OrderExchange_ORDER_EXCHANGE_TOUSHOU,
+				ExchangeName:       "東証ETF/ETN",
+				TimeInForce:        kabuspb.TimeInForce_TIME_IN_FORCE_UNSPECIFIED,
+				Price:              0,
+				OrderQuantity:      1,
+				CumulativeQuantity: 1,
+				Side:               kabuspb.Side_SIDE_BUY,
+				TradeType:          kabuspb.TradeType_TRADE_TYPE_UNSPECIFIED,
+				AccountType:        kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC,
+				DeliveryType:       kabuspb.DeliveryType_DELIVERY_TYPE_CASH,
+				ExpireDay:          timestamppb.New(time.Date(2021, 3, 31, 0, 0, 0, 0, time.Local)),
+				MarginTradeType:    kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_UNSPECIFIED,
+				Details:            []*kabuspb.OrderDetail{},
+			}}}},
+		{name: "渡す要素が2つなら要素が2つの配列が返される",
+			arg: &kabus.OrdersResponse{{
+				ID:              "20210331A02N36008375",
+				State:           kabus.StateDone,
+				OrderState:      kabus.OrderStateDone,
+				OrdType:         kabus.OrdTypeInTrading,
+				RecvTime:        time.Date(2021, 3, 31, 11, 28, 19, 398248000, time.Local),
+				Symbol:          "1475",
+				SymbolName:      "ｉシェアーズ・コア　ＴＯＰＩＸ　ＥＴＦ",
+				Exchange:        kabus.OrderExchangeToushou,
+				ExchangeName:    "東証ETF/ETN",
+				TimeInForce:     kabus.TimeInForceUnspecified,
+				Price:           0,
+				OrderQty:        1,
+				CumQty:          1,
+				Side:            kabus.SideBuy,
+				CashMargin:      kabus.CashMarginUnspecified,
+				AccountType:     kabus.AccountTypeSpecific,
+				DelivType:       kabus.DelivTypeCash,
+				ExpireDay:       kabus.YmdNUM{Time: time.Date(2021, 3, 31, 0, 0, 0, 0, time.Local)},
+				MarginTradeType: kabus.MarginTradeTypeUnspecified,
+				Details:         []kabus.OrderDetail{},
+			}, {
+				ID:              "20210331A02N36008399",
+				State:           kabus.StateDone,
+				OrderState:      kabus.OrderStateDone,
+				OrdType:         kabus.OrdTypeInTrading,
+				RecvTime:        time.Date(2021, 3, 31, 11, 28, 37, 291907000, time.Local),
+				Symbol:          "1475",
+				SymbolName:      "ｉシェアーズ・コア　ＴＯＰＩＸ　ＥＴＦ",
+				Exchange:        kabus.OrderExchangeSOR,
+				ExchangeName:    "SOR",
+				TimeInForce:     kabus.TimeInForceUnspecified,
+				Price:           0,
+				OrderQty:        1,
+				CumQty:          1,
+				Side:            kabus.SideSell,
+				CashMargin:      kabus.CashMarginUnspecified,
+				AccountType:     kabus.AccountTypeSpecific,
+				DelivType:       kabus.DelivTypeUnspecified,
+				ExpireDay:       kabus.YmdNUM{Time: time.Date(2021, 3, 31, 0, 0, 0, 0, time.Local)},
+				MarginTradeType: kabus.MarginTradeTypeUnspecified,
+				Details:         []kabus.OrderDetail{},
+			}},
+			want: &kabuspb.Orders{Orders: []*kabuspb.Order{{
+				Id:                 "20210331A02N36008375",
+				State:              kabuspb.State_STATE_DONE,
+				OrderState:         kabuspb.OrderState_ORDER_STATE_DONE,
+				OrderType:          kabuspb.OrderType_ORDER_TYPE_ZARABA,
+				ReceiveTime:        timestamppb.New(time.Date(2021, 3, 31, 11, 28, 19, 398248000, time.Local)),
+				SymbolCode:         "1475",
+				SymbolName:         "ｉシェアーズ・コア　ＴＯＰＩＸ　ＥＴＦ",
+				Exchange:           kabuspb.OrderExchange_ORDER_EXCHANGE_TOUSHOU,
+				ExchangeName:       "東証ETF/ETN",
+				TimeInForce:        kabuspb.TimeInForce_TIME_IN_FORCE_UNSPECIFIED,
+				Price:              0,
+				OrderQuantity:      1,
+				CumulativeQuantity: 1,
+				Side:               kabuspb.Side_SIDE_BUY,
+				TradeType:          kabuspb.TradeType_TRADE_TYPE_UNSPECIFIED,
+				AccountType:        kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC,
+				DeliveryType:       kabuspb.DeliveryType_DELIVERY_TYPE_CASH,
+				ExpireDay:          timestamppb.New(time.Date(2021, 3, 31, 0, 0, 0, 0, time.Local)),
+				MarginTradeType:    kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_UNSPECIFIED,
+				Details:            []*kabuspb.OrderDetail{},
+			}, {
+				Id:                 "20210331A02N36008399",
+				State:              kabuspb.State_STATE_DONE,
+				OrderState:         kabuspb.OrderState_ORDER_STATE_DONE,
+				OrderType:          kabuspb.OrderType_ORDER_TYPE_ZARABA,
+				ReceiveTime:        timestamppb.New(time.Date(2021, 3, 31, 11, 28, 37, 291907000, time.Local)),
+				SymbolCode:         "1475",
+				SymbolName:         "ｉシェアーズ・コア　ＴＯＰＩＸ　ＥＴＦ",
+				Exchange:           kabuspb.OrderExchange_ORDER_EXCHANGE_SOR,
+				ExchangeName:       "SOR",
+				TimeInForce:        kabuspb.TimeInForce_TIME_IN_FORCE_UNSPECIFIED,
+				Price:              0,
+				OrderQuantity:      1,
+				CumulativeQuantity: 1,
+				Side:               kabuspb.Side_SIDE_SELL,
+				TradeType:          kabuspb.TradeType_TRADE_TYPE_UNSPECIFIED,
+				AccountType:        kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC,
+				DeliveryType:       kabuspb.DeliveryType_DELIVERY_TYPE_UNSPECIFIED,
+				ExpireDay:          timestamppb.New(time.Date(2021, 3, 31, 0, 0, 0, 0, time.Local)),
+				MarginTradeType:    kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_UNSPECIFIED,
+				Details:            []*kabuspb.OrderDetail{},
+			}}}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromOrders(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromOrderDetails(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  []kabus.OrderDetail
+		want []*kabuspb.OrderDetail
+	}{
+		{name: "空配列が渡されたら空配列が返される",
+			arg:  []kabus.OrderDetail{},
+			want: []*kabuspb.OrderDetail{}},
+		{name: "渡す要素が1つなら要素が1つの配列が返される",
+			arg: []kabus.OrderDetail{
+				{
+					SeqNum:        1,
+					ID:            "20200715A02N04738436",
+					RecType:       kabus.RecTypeReceived,
+					ExchangeID:    "00000000-0000-0000-0000-00000000",
+					State:         kabus.OrderDetailStateProcessed,
+					TransactTime:  time.Date(2020, 7, 16, 18, 0, 51, 763683000, time.Local),
+					OrdType:       kabus.OrdTypeInTrading,
+					Price:         704.5,
+					Qty:           1500,
+					ExecutionID:   "",
+					ExecutionDay:  time.Date(2020, 7, 2, 18, 2, 0, 0, time.Local),
+					DelivDay:      kabus.NewYmdNUM(time.Date(2020, 7, 6, 0, 0, 0, 0, time.Local)),
+					Commission:    0,
+					CommissionTax: 0,
+				},
+			},
+			want: []*kabuspb.OrderDetail{
+				{
+					SequenceNumber: 1,
+					Id:             "20200715A02N04738436",
+					RecordType:     kabuspb.RecordType_RECORD_TYPE_RECEIVE,
+					ExchangeId:     "00000000-0000-0000-0000-00000000",
+					State:          kabuspb.OrderDetailState_ORDER_DETAIL_STATE_PROCESSED,
+					TransactTime:   timestamppb.New(time.Date(2020, 7, 16, 18, 0, 51, 763683000, time.Local)),
+					OrderType:      kabuspb.OrderType_ORDER_TYPE_ZARABA,
+					Price:          704.5,
+					Quantity:       1500,
+					ExecutionId:    "",
+					ExecutionDay:   timestamppb.New(time.Date(2020, 7, 2, 18, 2, 0, 0, time.Local)),
+					DeliveryDay:    timestamppb.New(time.Date(2020, 7, 6, 0, 0, 0, 0, time.Local)),
+					Commission:     0,
+					CommissionTax:  0,
+				},
+			}},
+		{name: "渡す要素が3つなら要素が3つの配列が返される",
+			arg: []kabus.OrderDetail{
+				{
+					SeqNum:        1,
+					ID:            "20210331A02N36008375",
+					RecType:       kabus.RecTypeReceived,
+					ExchangeID:    "",
+					State:         kabus.OrderDetailStateProcessed,
+					TransactTime:  time.Date(2021, 3, 31, 11, 28, 19, 398248000, time.Local),
+					OrdType:       kabus.OrdTypeInTrading,
+					Price:         0,
+					Qty:           1,
+					ExecutionID:   "",
+					ExecutionDay:  time.Time{},
+					DelivDay:      kabus.NewYmdNUM(time.Date(2021, 4, 2, 0, 0, 0, 0, time.Local)),
+					Commission:    0,
+					CommissionTax: 0,
+				}, {
+					SeqNum:        4,
+					ID:            "20210331B02N36008376",
+					RecType:       kabus.RecTypeOrdered,
+					ExchangeID:    "1F111300012175",
+					State:         kabus.OrderDetailStateProcessed,
+					TransactTime:  time.Date(2021, 3, 31, 11, 28, 19, 53576000, time.Local),
+					OrdType:       kabus.OrdTypeInTrading,
+					Price:         0,
+					Qty:           1,
+					ExecutionID:   "",
+					ExecutionDay:  time.Time{},
+					DelivDay:      kabus.NewYmdNUM(time.Date(2021, 4, 2, 0, 0, 0, 0, time.Local)),
+					Commission:    0,
+					CommissionTax: 0,
+				}, {
+					SeqNum:        5,
+					ID:            "20210331E02N36008377",
+					RecType:       kabus.RecTypeContracted,
+					ExchangeID:    "416",
+					State:         kabus.OrderDetailStateProcessed,
+					TransactTime:  time.Date(2021, 3, 31, 11, 28, 19, 535867000, time.Local),
+					OrdType:       kabus.OrdTypeUnspecified,
+					Price:         2018,
+					Qty:           1,
+					ExecutionID:   "E20210331022VE",
+					ExecutionDay:  time.Date(2021, 3, 31, 11, 28, 19, 535867000, time.Local),
+					DelivDay:      kabus.NewYmdNUM(time.Date(2021, 4, 2, 0, 0, 0, 0, time.Local)),
+					Commission:    0,
+					CommissionTax: 0,
+				},
+			},
+			want: []*kabuspb.OrderDetail{{
+				SequenceNumber: 1,
+				Id:             "20210331A02N36008375",
+				RecordType:     kabuspb.RecordType_RECORD_TYPE_RECEIVE,
+				ExchangeId:     "",
+				State:          kabuspb.OrderDetailState_ORDER_DETAIL_STATE_PROCESSED,
+				TransactTime:   timestamppb.New(time.Date(2021, 3, 31, 11, 28, 19, 398248000, time.Local)),
+				OrderType:      kabuspb.OrderType_ORDER_TYPE_ZARABA,
+				Price:          0,
+				Quantity:       1,
+				ExecutionId:    "",
+				ExecutionDay:   timestamppb.New(time.Time{}),
+				DeliveryDay:    timestamppb.New(time.Date(2021, 4, 2, 0, 0, 0, 0, time.Local)),
+				Commission:     0,
+				CommissionTax:  0,
+			}, {
+				SequenceNumber: 4,
+				Id:             "20210331B02N36008376",
+				RecordType:     kabuspb.RecordType_RECORD_TYPE_ORDERED,
+				ExchangeId:     "1F111300012175",
+				State:          kabuspb.OrderDetailState_ORDER_DETAIL_STATE_PROCESSED,
+				TransactTime:   timestamppb.New(time.Date(2021, 3, 31, 11, 28, 19, 53576000, time.Local)),
+				OrderType:      kabuspb.OrderType_ORDER_TYPE_ZARABA,
+				Price:          0,
+				Quantity:       1,
+				ExecutionId:    "",
+				ExecutionDay:   timestamppb.New(time.Time{}),
+				DeliveryDay:    timestamppb.New(time.Date(2021, 4, 2, 0, 0, 0, 0, time.Local)),
+				Commission:     0,
+				CommissionTax:  0,
+			}, {
+				SequenceNumber: 5,
+				Id:             "20210331E02N36008377",
+				RecordType:     kabuspb.RecordType_RECORD_TYPE_CONTRACTED,
+				ExchangeId:     "416",
+				State:          kabuspb.OrderDetailState_ORDER_DETAIL_STATE_PROCESSED,
+				TransactTime:   timestamppb.New(time.Date(2021, 3, 31, 11, 28, 19, 535867000, time.Local)),
+				OrderType:      kabuspb.OrderType_ORDER_TYPE_UNSPECIFIED,
+				Price:          2018,
+				Quantity:       1,
+				ExecutionId:    "E20210331022VE",
+				ExecutionDay:   timestamppb.New(time.Date(2021, 3, 31, 11, 28, 19, 535867000, time.Local)),
+				DeliveryDay:    timestamppb.New(time.Date(2021, 4, 2, 0, 0, 0, 0, time.Local)),
+				Commission:     0,
+				CommissionTax:  0,
+			}}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromOrderDetails(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromState(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.State
+		want kabuspb.State
+	}{
+		{name: "未指定 を変換できる", arg: kabus.StateUnspecified, want: kabuspb.State_STATE_UNSPECIFIED},
+		{name: "待機 を変換できる", arg: kabus.StateWait, want: kabuspb.State_STATE_WAIT},
+		{name: "処理中 を変換できる", arg: kabus.StateProcessing, want: kabuspb.State_STATE_PROCESSING},
+		{name: "処理済 を変換できる", arg: kabus.StateProcessed, want: kabuspb.State_STATE_PROCESSED},
+		{name: "訂正取消送信中 を変換できる", arg: kabus.StateInCancel, want: kabuspb.State_STATE_IN_MODIFY},
+		{name: "終了 を変換できる", arg: kabus.StateDone, want: kabuspb.State_STATE_DONE},
+		{name: "未定義 を変換できる", arg: kabus.State(-1), want: kabuspb.State_STATE_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromState(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromOrderState(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.OrderState
+		want kabuspb.OrderState
+	}{
+		{name: "未指定 を変換できる", arg: kabus.OrderStateUnspecified, want: kabuspb.OrderState_ORDER_STATE_UNSPECIFIED},
+		{name: "待機 を変換できる", arg: kabus.OrderStateWait, want: kabuspb.OrderState_ORDER_STATE_WAIT},
+		{name: "処理中 を変換できる", arg: kabus.OrderStateProcessing, want: kabuspb.OrderState_ORDER_STATE_PROCESSING},
+		{name: "処理済 を変換できる", arg: kabus.OrderStateProcessed, want: kabuspb.OrderState_ORDER_STATE_PROCESSED},
+		{name: "訂正取消送信中 を変換できる", arg: kabus.OrderStateInCancel, want: kabuspb.OrderState_ORDER_STATE_IN_MODIFY},
+		{name: "終了 を変換できる", arg: kabus.OrderStateDone, want: kabuspb.OrderState_ORDER_STATE_DONE},
+		{name: "未定義 を変換できる", arg: kabus.OrderState(-1), want: kabuspb.OrderState_ORDER_STATE_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromOrderState(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromOrdType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.OrdType
+		want kabuspb.OrderType
+	}{
+		{name: "未指定 を変換できる", arg: kabus.OrdTypeUnspecified, want: kabuspb.OrderType_ORDER_TYPE_UNSPECIFIED},
+		{name: "ザラバ を変換できる", arg: kabus.OrdTypeInTrading, want: kabuspb.OrderType_ORDER_TYPE_ZARABA},
+		{name: "寄り を変換できる", arg: kabus.OrdTypeOpen, want: kabuspb.OrderType_ORDER_TYPE_OPEN},
+		{name: "引け を変換できる", arg: kabus.OrdTypeClose, want: kabuspb.OrderType_ORDER_TYPE_CLOSE},
+		{name: "不成 を変換できる", arg: kabus.OrdTypeNoContracted, want: kabuspb.OrderType_ORDER_TYPE_FUNARI},
+		{name: "対当指値 を変換できる", arg: kabus.OrdTypeMarketToLimit, want: kabuspb.OrderType_ORDER_TYPE_MTLO},
+		{name: "IOC を変換できる", arg: kabus.OrdTypeMarketIOC, want: kabuspb.OrderType_ORDER_TYPE_IOC},
+		{name: "未定義 を変換できる", arg: kabus.OrdType(-1), want: kabuspb.OrderType_ORDER_TYPE_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromOrdType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromOrderExchange(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.OrderExchange
+		want kabuspb.OrderExchange
+	}{
+		{name: "未指定 を変換できる", arg: kabus.OrderExchangeUnspecified, want: kabuspb.OrderExchange_ORDER_EXCHANGE_UNSPECIFIED},
+		{name: "東証 を変換できる", arg: kabus.OrderExchangeToushou, want: kabuspb.OrderExchange_ORDER_EXCHANGE_TOUSHOU},
+		{name: "名証 を変換できる", arg: kabus.OrderExchangeMeishou, want: kabuspb.OrderExchange_ORDER_EXCHANGE_MEISHOU},
+		{name: "福証 を変換できる", arg: kabus.OrderExchangeFukushou, want: kabuspb.OrderExchange_ORDER_EXCHANGE_FUKUSHOU},
+		{name: "札証 を変換できる", arg: kabus.OrderExchangeSatsushou, want: kabuspb.OrderExchange_ORDER_EXCHANGE_SATSUSHOU},
+		{name: "SOR を変換できる", arg: kabus.OrderExchangeSOR, want: kabuspb.OrderExchange_ORDER_EXCHANGE_SOR},
+		{name: "日通し を変換できる", arg: kabus.OrderExchangeAll, want: kabuspb.OrderExchange_ORDER_EXCHANGE_ALL_SESSION},
+		{name: "日中 を変換できる", arg: kabus.OrderExchangeDaytime, want: kabuspb.OrderExchange_ORDER_EXCHANGE_DAY_SESSION},
+		{name: "夜間 を変換できる", arg: kabus.OrderExchangeEvening, want: kabuspb.OrderExchange_ORDER_EXCHANGE_NIGHT_SESSION},
+		{name: "未定義 を変換できる", arg: kabus.OrderExchange(-1), want: kabuspb.OrderExchange_ORDER_EXCHANGE_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromOrderExchange(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromSide(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.Side
+		want kabuspb.Side
+	}{
+		{name: "未指定 を変換できる", arg: kabus.SideUnspecified, want: kabuspb.Side_SIDE_UNSPECIFIED},
+		{name: "売 を変換できる", arg: kabus.SideSell, want: kabuspb.Side_SIDE_SELL},
+		{name: "買 を変換できる", arg: kabus.SideBuy, want: kabuspb.Side_SIDE_BUY},
+		{name: "未定義 を変換できる", arg: kabus.Side("-1"), want: kabuspb.Side_SIDE_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromSide(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromAccountType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.AccountType
+		want kabuspb.AccountType
+	}{
+		{name: "未指定 を変換できる", arg: kabus.AccountTypeUnspecified, want: kabuspb.AccountType_ACCOUNT_TYPE_UNSPECIFIED},
+		{name: "一般 を変換できる", arg: kabus.AccountTypeGeneral, want: kabuspb.AccountType_ACCOUNT_TYPE_GENERAL},
+		{name: "特定 を変換できる", arg: kabus.AccountTypeSpecific, want: kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC},
+		{name: "法人 を変換できる", arg: kabus.AccountTypeCorporation, want: kabuspb.AccountType_ACCOUNT_TYPE_CORPORATION},
+		{name: "未定義 を変換できる", arg: kabus.AccountType(-1), want: kabuspb.AccountType_ACCOUNT_TYPE_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromAccountType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromDelivType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.DelivType
+		want kabuspb.DeliveryType
+	}{
+		{name: "未指定 を変換できる", arg: kabus.DelivTypeUnspecified, want: kabuspb.DeliveryType_DELIVERY_TYPE_UNSPECIFIED},
+		{name: "自動振替 を変換できる", arg: kabus.DelivTypeAuto, want: kabuspb.DeliveryType_DELIVERY_TYPE_AUTO},
+		{name: "お預り金 を変換できる", arg: kabus.DelivTypeCash, want: kabuspb.DeliveryType_DELIVERY_TYPE_CASH},
+		{name: "未定義 を変換できる", arg: kabus.DelivType(-1), want: kabuspb.DeliveryType_DELIVERY_TYPE_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromDelivType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromRecType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.RecType
+		want kabuspb.RecordType
+	}{
+		{name: "未指定 を変換できる", arg: kabus.RecTypeUnspecified, want: kabuspb.RecordType_RECORD_TYPE_UNSPECIFIED},
+		{name: "受付 を変換できる", arg: kabus.RecTypeReceived, want: kabuspb.RecordType_RECORD_TYPE_RECEIVE},
+		{name: "繰越 を変換できる", arg: kabus.RecTypeCarried, want: kabuspb.RecordType_RECORD_TYPE_CARRIED},
+		{name: "期限切れ を変換できる", arg: kabus.RecTypeExpired, want: kabuspb.RecordType_RECORD_TYPE_EXPIRED},
+		{name: "発注 を変換できる", arg: kabus.RecTypeOrdered, want: kabuspb.RecordType_RECORD_TYPE_ORDERED},
+		{name: "訂正 を変換できる", arg: kabus.RecTypeModified, want: kabuspb.RecordType_RECORD_TYPE_MODIFIED},
+		{name: "取消 を変換できる", arg: kabus.RecTypeCanceled, want: kabuspb.RecordType_RECORD_TYPE_CANCELED},
+		{name: "失効 を変換できる", arg: kabus.RecTypeRevocation, want: kabuspb.RecordType_RECORD_TYPE_REVOCATION},
+		{name: "約定 を変換できる", arg: kabus.RecTypeContracted, want: kabuspb.RecordType_RECORD_TYPE_CONTRACTED},
+		{name: "未定義 を変換できる", arg: kabus.RecType(-1), want: kabuspb.RecordType_RECORD_TYPE_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromRecType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromOrderDetailState(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.OrderDetailState
+		want kabuspb.OrderDetailState
+	}{
+		{name: "未指定 を変換できる", arg: kabus.OrderDetailStateUnspecified, want: kabuspb.OrderDetailState_ORDER_DETAIL_STATE_UNSPECIFIED},
+		{name: "待機 を変換できる", arg: kabus.OrderDetailStateWait, want: kabuspb.OrderDetailState_ORDER_DETAIL_STATE_WAIT},
+		{name: "処理中 を変換できる", arg: kabus.OrderDetailStateProcessing, want: kabuspb.OrderDetailState_ORDER_DETAIL_STATE_PROCESSING},
+		{name: "処理済 を変換できる", arg: kabus.OrderDetailStateProcessed, want: kabuspb.OrderDetailState_ORDER_DETAIL_STATE_PROCESSED},
+		{name: "エラー を変換できる", arg: kabus.OrderDetailStateError, want: kabuspb.OrderDetailState_ORDER_DETAIL_STATE_ERROR},
+		{name: "削除済み を変換できる", arg: kabus.OrderDetailStateDeleted, want: kabuspb.OrderDetailState_ORDER_DETAIL_STATE_DELETED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromOrderDetailState(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toCashMargin(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.TradeType
+		want kabus.CashMargin
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.TradeType_TRADE_TYPE_UNSPECIFIED, want: kabus.CashMarginUnspecified},
+		{name: "新規 を変換できる", arg: kabuspb.TradeType_TRADE_TYPE_ENTRY, want: kabus.CashMarginMarginEntry},
+		{name: "返済 を変換できる", arg: kabuspb.TradeType_TRADE_TYPE_EXIT, want: kabus.CashMarginMarginExit},
+		{name: "未定義 を変換できる", arg: kabuspb.TradeType(-1), want: kabus.CashMarginUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toCashMargin(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromCashMargin(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.CashMargin
+		want kabuspb.TradeType
+	}{
+		{name: "未指定 を変換できる", arg: kabus.CashMarginUnspecified, want: kabuspb.TradeType_TRADE_TYPE_UNSPECIFIED},
+		{name: "現物 を変換できる", arg: kabus.CashMarginCash, want: kabuspb.TradeType_TRADE_TYPE_UNSPECIFIED},
+		{name: "信用新規 を変換できる", arg: kabus.CashMarginMarginEntry, want: kabuspb.TradeType_TRADE_TYPE_ENTRY},
+		{name: "信用返済 を変換できる", arg: kabus.CashMarginMarginExit, want: kabuspb.TradeType_TRADE_TYPE_EXIT},
+		{name: "未定義 を変換できる", arg: kabus.CashMargin(-1), want: kabuspb.TradeType_TRADE_TYPE_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromCashMargin(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromMarginTradeType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.MarginTradeType
+		want kabuspb.MarginTradeType
+	}{
+		{name: "未指定 を変換できる", arg: kabus.MarginTradeTypeUnspecified, want: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_UNSPECIFIED},
+		{name: "制度信用 を変換できる", arg: kabus.MarginTradeTypeSystem, want: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_SYSTEM},
+		{name: "一般信用 を変換できる", arg: kabus.MarginTradeTypeGeneralLong, want: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_LONG},
+		{name: "一般信用(売短) を変換できる", arg: kabus.MarginTradeTypeGeneralShort, want: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_SHORT},
+		{name: "未定義 を変換できる", arg: kabus.MarginTradeType(-1), want: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromMarginTradeType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromTimeInForce(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.TimeInForce
+		want kabuspb.TimeInForce
+	}{
+		{name: "未指定 を変換できる", arg: kabus.TimeInForceUnspecified, want: kabuspb.TimeInForce_TIME_IN_FORCE_UNSPECIFIED},
+		{name: "FAS を変換できる", arg: kabus.TimeInForceFAS, want: kabuspb.TimeInForce_TIME_IN_FORCE_FAS},
+		{name: "FAK を変換できる", arg: kabus.TimeInForceFAK, want: kabuspb.TimeInForce_TIME_IN_FORCE_FAK},
+		{name: "FOK を変換できる", arg: kabus.TimeInForceFOK, want: kabuspb.TimeInForce_TIME_IN_FORCE_FOK},
+		{name: "未定義 を変換できる", arg: kabus.TimeInForce(-1), want: kabuspb.TimeInForce_TIME_IN_FORCE_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromTimeInForce(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toProduct(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.Product
+		want kabus.Product
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.Product_PRODUCT_UNSPECIFIED, want: kabus.ProductAll},
+		{name: "すべて を変換できる", arg: kabuspb.Product_PRODUCT_ALL, want: kabus.ProductAll},
+		{name: "現物 を変換できる", arg: kabuspb.Product_PRODUCT_STOCK, want: kabus.ProductCash},
+		{name: "信用 を変換できる", arg: kabuspb.Product_PRODUCT_MARGIN, want: kabus.ProductMargin},
+		{name: "先物 を変換できる", arg: kabuspb.Product_PRODUCT_FUTURE, want: kabus.ProductFuture},
+		{name: "オプション を変換できる", arg: kabuspb.Product_PRODUCT_OPTION, want: kabus.ProductOption},
+		{name: "未定義 を変換できる", arg: kabuspb.Product(-1), want: kabus.ProductAll},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toProduct(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toIsGetOrderDetail(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  bool
+		want kabus.IsGetOrderDetail
+	}{
+		{name: "true を変換できる", arg: true, want: kabus.IsGetOrderDetailTrue},
+		{name: "false を変換できる", arg: false, want: kabus.IsGetOrderDetailFalse},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toIsGetOrderDetail(test.arg)
 			if !reflect.DeepEqual(test.want, got) {
 				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
 			}
