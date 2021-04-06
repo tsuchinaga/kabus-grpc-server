@@ -36,6 +36,18 @@ type testSecurity struct {
 	orders2           error
 	positions1        *kabuspb.Positions
 	positions2        error
+	priceRanking1     *kabuspb.PriceRanking
+	priceRanking2     error
+	tickRanking1      *kabuspb.TickRanking
+	tickRanking2      error
+	volumeRanking1    *kabuspb.VolumeRanking
+	volumeRanking2    error
+	valueRanking1     *kabuspb.ValueRanking
+	valueRanking2     error
+	marginRanking1    *kabuspb.MarginRanking
+	marginRanking2    error
+	industryRanking1  *kabuspb.IndustryRanking
+	industryRanking2  error
 }
 
 func (t *testSecurity) RegisterSymbols(context.Context, string, *kabuspb.RegisterSymbolsRequest) (*kabuspb.RegisteredSymbols, error) {
@@ -72,6 +84,30 @@ func (t *testSecurity) Orders(context.Context, string, *kabuspb.GetOrdersRequest
 
 func (t *testSecurity) Positions(context.Context, string, *kabuspb.GetPositionsRequest) (*kabuspb.Positions, error) {
 	return t.positions1, t.positions2
+}
+
+func (t *testSecurity) PriceRanking(context.Context, string, *kabuspb.GetPriceRankingRequest) (*kabuspb.PriceRanking, error) {
+	return t.priceRanking1, t.priceRanking2
+}
+
+func (t *testSecurity) TickRanking(context.Context, string, *kabuspb.GetTickRankingRequest) (*kabuspb.TickRanking, error) {
+	return t.tickRanking1, t.tickRanking2
+}
+
+func (t *testSecurity) VolumeRanking(context.Context, string, *kabuspb.GetVolumeRankingRequest) (*kabuspb.VolumeRanking, error) {
+	return t.volumeRanking1, t.volumeRanking2
+}
+
+func (t *testSecurity) ValueRanking(context.Context, string, *kabuspb.GetValueRankingRequest) (*kabuspb.ValueRanking, error) {
+	return t.valueRanking1, t.valueRanking2
+}
+
+func (t *testSecurity) MarginRanking(context.Context, string, *kabuspb.GetMarginRankingRequest) (*kabuspb.MarginRanking, error) {
+	return t.marginRanking1, t.marginRanking2
+}
+
+func (t *testSecurity) IndustryRanking(context.Context, string, *kabuspb.GetIndustryRankingRequest) (*kabuspb.IndustryRanking, error) {
+	return t.industryRanking1, t.industryRanking2
 }
 
 type testTokenService struct {
@@ -566,6 +602,240 @@ func Test_server_GetPositions(t *testing.T) {
 				security:     &testSecurity{positions1: test.positions1, positions2: test.positions2},
 				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
 			got1, got2 := server.GetPositions(context.Background(), &kabuspb.GetPositionsRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_server_GetPriceRanking(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name          string
+		getToken1     string
+		getToken2     error
+		priceRanking1 *kabuspb.PriceRanking
+		priceRanking2 error
+		want          *kabuspb.PriceRanking
+		hasError      bool
+	}{
+		{name: "token取得でエラーがあればエラーを返す",
+			getToken2: errors.New("get token error message"),
+			hasError:  true},
+		{name: "PriceRankingでエラーがあればエラーを返す",
+			getToken1:     "TOKEN_STRING",
+			priceRanking2: errors.New("register error message"),
+			hasError:      true},
+		{name: "PriceRankingの結果を結果を返す",
+			getToken1:     "TOKEN_STRING",
+			priceRanking1: &kabuspb.PriceRanking{Type: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_INCREASE_RATE},
+			want:          &kabuspb.PriceRanking{Type: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_INCREASE_RATE}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{
+				security:     &testSecurity{priceRanking1: test.priceRanking1, priceRanking2: test.priceRanking2},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+			got1, got2 := server.GetPriceRanking(context.Background(), &kabuspb.GetPriceRankingRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_server_GetTickRanking(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name         string
+		getToken1    string
+		getToken2    error
+		tickRanking1 *kabuspb.TickRanking
+		tickRanking2 error
+		want         *kabuspb.TickRanking
+		hasError     bool
+	}{
+		{name: "token取得でエラーがあればエラーを返す",
+			getToken2: errors.New("get token error message"),
+			hasError:  true},
+		{name: "TickRankingでエラーがあればエラーを返す",
+			getToken1:    "TOKEN_STRING",
+			tickRanking2: errors.New("register error message"),
+			hasError:     true},
+		{name: "TickRankingの結果を結果を返す",
+			getToken1:    "TOKEN_STRING",
+			tickRanking1: &kabuspb.TickRanking{ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL},
+			want:         &kabuspb.TickRanking{ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{
+				security:     &testSecurity{tickRanking1: test.tickRanking1, tickRanking2: test.tickRanking2},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+			got1, got2 := server.GetTickRanking(context.Background(), &kabuspb.GetTickRankingRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_server_GetVolumeRanking(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name           string
+		getToken1      string
+		getToken2      error
+		volumeRanking1 *kabuspb.VolumeRanking
+		volumeRanking2 error
+		want           *kabuspb.VolumeRanking
+		hasError       bool
+	}{
+		{name: "token取得でエラーがあればエラーを返す",
+			getToken2: errors.New("get token error message"),
+			hasError:  true},
+		{name: "VolumeRankingでエラーがあればエラーを返す",
+			getToken1:      "TOKEN_STRING",
+			volumeRanking2: errors.New("register error message"),
+			hasError:       true},
+		{name: "VolumeRankingの結果を結果を返す",
+			getToken1:      "TOKEN_STRING",
+			volumeRanking1: &kabuspb.VolumeRanking{ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL},
+			want:           &kabuspb.VolumeRanking{ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{
+				security:     &testSecurity{volumeRanking1: test.volumeRanking1, volumeRanking2: test.volumeRanking2},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+			got1, got2 := server.GetVolumeRanking(context.Background(), &kabuspb.GetVolumeRankingRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_server_GetValueRanking(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name          string
+		getToken1     string
+		getToken2     error
+		valueRanking1 *kabuspb.ValueRanking
+		valueRanking2 error
+		want          *kabuspb.ValueRanking
+		hasError      bool
+	}{
+		{name: "token取得でエラーがあればエラーを返す",
+			getToken2: errors.New("get token error message"),
+			hasError:  true},
+		{name: "ValueRankingでエラーがあればエラーを返す",
+			getToken1:     "TOKEN_STRING",
+			valueRanking2: errors.New("register error message"),
+			hasError:      true},
+		{name: "ValueRankingの結果を結果を返す",
+			getToken1:     "TOKEN_STRING",
+			valueRanking1: &kabuspb.ValueRanking{ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL},
+			want:          &kabuspb.ValueRanking{ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{
+				security:     &testSecurity{valueRanking1: test.valueRanking1, valueRanking2: test.valueRanking2},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+			got1, got2 := server.GetValueRanking(context.Background(), &kabuspb.GetValueRankingRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_server_GetMarginRanking(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name           string
+		getToken1      string
+		getToken2      error
+		marginRanking1 *kabuspb.MarginRanking
+		marginRanking2 error
+		want           *kabuspb.MarginRanking
+		hasError       bool
+	}{
+		{name: "token取得でエラーがあればエラーを返す",
+			getToken2: errors.New("get token error message"),
+			hasError:  true},
+		{name: "MarginRankingでエラーがあればエラーを返す",
+			getToken1:      "TOKEN_STRING",
+			marginRanking2: errors.New("register error message"),
+			hasError:       true},
+		{name: "MarginRankingの結果を結果を返す",
+			getToken1:      "TOKEN_STRING",
+			marginRanking1: &kabuspb.MarginRanking{ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL},
+			want:           &kabuspb.MarginRanking{ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{
+				security:     &testSecurity{marginRanking1: test.marginRanking1, marginRanking2: test.marginRanking2},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+			got1, got2 := server.GetMarginRanking(context.Background(), &kabuspb.GetMarginRankingRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_server_GetIndustryRanking(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name             string
+		getToken1        string
+		getToken2        error
+		industryRanking1 *kabuspb.IndustryRanking
+		industryRanking2 error
+		want             *kabuspb.IndustryRanking
+		hasError         bool
+	}{
+		{name: "token取得でエラーがあればエラーを返す",
+			getToken2: errors.New("get token error message"),
+			hasError:  true},
+		{name: "IndustryRankingでエラーがあればエラーを返す",
+			getToken1:        "TOKEN_STRING",
+			industryRanking2: errors.New("register error message"),
+			hasError:         true},
+		{name: "IndustryRankingの結果を結果を返す",
+			getToken1:        "TOKEN_STRING",
+			industryRanking1: &kabuspb.IndustryRanking{ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL},
+			want:             &kabuspb.IndustryRanking{ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{
+				security:     &testSecurity{industryRanking1: test.industryRanking1, industryRanking2: test.industryRanking2},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+			got1, got2 := server.GetIndustryRanking(context.Background(), &kabuspb.GetIndustryRankingRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}

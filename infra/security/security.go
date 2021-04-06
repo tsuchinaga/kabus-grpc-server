@@ -230,3 +230,69 @@ func (s *security) UnregisterAll(ctx context.Context, token string, _ *kabuspb.U
 	}
 	return &kabuspb.RegisteredSymbols{Symbols: resSymbols}, nil
 }
+
+func (s *security) PriceRanking(ctx context.Context, token string, req *kabuspb.GetPriceRankingRequest) (*kabuspb.PriceRanking, error) {
+	res, err := s.restClient.RankingWithContext(ctx, token, kabus.RankingRequest{
+		Type:             toRankingTypeFromPriceRankingType(req.RankingType),
+		ExchangeDivision: toExchangeDivision(req.ExchangeDivision),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return fromRankingToPriceRanking(res), nil
+}
+
+func (s *security) TickRanking(ctx context.Context, token string, req *kabuspb.GetTickRankingRequest) (*kabuspb.TickRanking, error) {
+	res, err := s.restClient.RankingWithContext(ctx, token, kabus.RankingRequest{
+		Type:             kabus.RankingTypeTickCount,
+		ExchangeDivision: toExchangeDivision(req.ExchangeDivision),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return fromRankingToTickRanking(res), nil
+}
+
+func (s *security) VolumeRanking(ctx context.Context, token string, req *kabuspb.GetVolumeRankingRequest) (*kabuspb.VolumeRanking, error) {
+	res, err := s.restClient.RankingWithContext(ctx, token, kabus.RankingRequest{
+		Type:             kabus.RankingTypeVolumeRapidIncrease,
+		ExchangeDivision: toExchangeDivision(req.ExchangeDivision),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return fromRankingToVolumeRanking(res), nil
+}
+
+func (s *security) ValueRanking(ctx context.Context, token string, req *kabuspb.GetValueRankingRequest) (*kabuspb.ValueRanking, error) {
+	res, err := s.restClient.RankingWithContext(ctx, token, kabus.RankingRequest{
+		Type:             kabus.RankingTypeValueRapidIncrease,
+		ExchangeDivision: toExchangeDivision(req.ExchangeDivision),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return fromRankingToValueRanking(res), nil
+}
+
+func (s *security) MarginRanking(ctx context.Context, token string, req *kabuspb.GetMarginRankingRequest) (*kabuspb.MarginRanking, error) {
+	res, err := s.restClient.RankingWithContext(ctx, token, kabus.RankingRequest{
+		Type:             toRankingTypeFromMarginRankingType(req.RankingType),
+		ExchangeDivision: toExchangeDivision(req.ExchangeDivision),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return fromRankingToMarginRanking(res), nil
+}
+
+func (s *security) IndustryRanking(ctx context.Context, token string, req *kabuspb.GetIndustryRankingRequest) (*kabuspb.IndustryRanking, error) {
+	res, err := s.restClient.RankingWithContext(ctx, token, kabus.RankingRequest{
+		Type:             toRankingTypeFromIndustryRankingType(req.RankingType),
+		ExchangeDivision: toExchangeDivision(req.ExchangeDivision),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return fromRankingToIndustryRanking(res), nil
+}

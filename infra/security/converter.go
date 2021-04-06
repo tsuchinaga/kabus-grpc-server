@@ -637,3 +637,355 @@ func fromSecurityType(securityType kabus.SecurityType) kabuspb.SecurityType {
 	}
 	return kabuspb.SecurityType_SECURITY_TYPE_UNSPECIFIED
 }
+
+func toRankingTypeFromPriceRankingType(rankingType kabuspb.PriceRankingType) kabus.RankingType {
+	switch rankingType {
+	case kabuspb.PriceRankingType_PRICE_RANKING_TYPE_INCREASE_RATE:
+		return kabus.RankingTypePriceIncreaseRate
+	case kabuspb.PriceRankingType_PRICE_RANKING_TYPE_DECREASE_RATE:
+		return kabus.RankingTypePriceDecreaseRate
+	case kabuspb.PriceRankingType_PRICE_RANKING_TYPE_VOLUME:
+		return kabus.RankingTypeVolume
+	case kabuspb.PriceRankingType_PRICE_RANKING_TYPE_VALUE:
+		return kabus.RankingTypeValue
+	}
+	return kabus.RankingTypeUnspecified
+}
+
+func fromRankingTypeToPriceRankingType(rankingType kabus.RankingType) kabuspb.PriceRankingType {
+	switch rankingType {
+	case kabus.RankingTypePriceIncreaseRate:
+		return kabuspb.PriceRankingType_PRICE_RANKING_TYPE_INCREASE_RATE
+	case kabus.RankingTypePriceDecreaseRate:
+		return kabuspb.PriceRankingType_PRICE_RANKING_TYPE_DECREASE_RATE
+	case kabus.RankingTypeVolume:
+		return kabuspb.PriceRankingType_PRICE_RANKING_TYPE_VOLUME
+	case kabus.RankingTypeValue:
+		return kabuspb.PriceRankingType_PRICE_RANKING_TYPE_VALUE
+	}
+	return kabuspb.PriceRankingType_PRICE_RANKING_TYPE_UNSPECIFIED
+}
+
+func toRankingTypeFromMarginRankingType(rankingType kabuspb.MarginRankingType) kabus.RankingType {
+	switch rankingType {
+	case kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_SELL_BALANCE_INCREASE:
+		return kabus.RankingTypeMarginSellBalanceIncrease
+	case kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_SELL_BALANCE_DECREASE:
+		return kabus.RankingTypeMarginSellBalanceDecrease
+	case kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_BUY_BALANCE_INCREASE:
+		return kabus.RankingTypeMarginBuyBalanceIncrease
+	case kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_BUY_BALANCE_DECREASE:
+		return kabus.RankingTypeMarginBuyBalanceDecrease
+	case kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_HIGH_MAGNIFICATION:
+		return kabus.RankingTypeMarginHighMagnification
+	case kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_LOW_MAGNIFICATION:
+		return kabus.RankingTypeMarginLowMagnification
+	}
+	return kabus.RankingTypeUnspecified
+}
+
+func fromRankingTypeToMarginRankingType(rankingType kabus.RankingType) kabuspb.MarginRankingType {
+	switch rankingType {
+	case kabus.RankingTypeMarginSellBalanceIncrease:
+		return kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_SELL_BALANCE_INCREASE
+	case kabus.RankingTypeMarginSellBalanceDecrease:
+		return kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_SELL_BALANCE_DECREASE
+	case kabus.RankingTypeMarginBuyBalanceIncrease:
+		return kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_BUY_BALANCE_INCREASE
+	case kabus.RankingTypeMarginBuyBalanceDecrease:
+		return kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_BUY_BALANCE_DECREASE
+	case kabus.RankingTypeMarginHighMagnification:
+		return kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_HIGH_MAGNIFICATION
+	case kabus.RankingTypeMarginLowMagnification:
+		return kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_LOW_MAGNIFICATION
+	}
+	return kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_UNSPECIFIED
+}
+
+func toRankingTypeFromIndustryRankingType(rankingType kabuspb.IndustryRankingType) kabus.RankingType {
+	switch rankingType {
+	case kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_INCREASE_RATE:
+		return kabus.RankingTypePriceIncreaseRateByCategory
+	case kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_DECREASE_RATE:
+		return kabus.RankingTypePriceDecreaseRateByCategory
+	}
+	return kabus.RankingTypeUnspecified
+}
+
+func fromRankingTypeToIndustryRankingType(rankingType kabus.RankingType) kabuspb.IndustryRankingType {
+	switch rankingType {
+	case kabus.RankingTypePriceIncreaseRateByCategory:
+		return kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_INCREASE_RATE
+	case kabus.RankingTypePriceDecreaseRateByCategory:
+		return kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_DECREASE_RATE
+	}
+	return kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_UNSPECIFIED
+}
+
+func toExchangeDivision(exchangeDivision kabuspb.ExchangeDivision) kabus.ExchangeDivision {
+	switch exchangeDivision {
+	case kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL:
+		return kabus.ExchangeDivisionALL
+	case kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_ALL:
+		return kabus.ExchangeDivisionToushou
+	case kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_1:
+		return kabus.ExchangeDivisionToushou1
+	case kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_2:
+		return kabus.ExchangeDivisionToushou2
+	case kabuspb.ExchangeDivision_EXCHANGE_DIVISION_MOTHERS:
+		return kabus.ExchangeDivisionMothers
+	case kabuspb.ExchangeDivision_EXCHANGE_DIVISION_JASDAQ:
+		return kabus.ExchangeDivisionJASDAQ
+	case kabuspb.ExchangeDivision_EXCHANGE_DIVISION_MEISHOU:
+		return kabus.ExchangeDivisionMeishou
+	case kabuspb.ExchangeDivision_EXCHANGE_DIVISION_FUKUSHOU:
+		return kabus.ExchangeDivisionFukushou
+	case kabuspb.ExchangeDivision_EXCHANGE_DIVISION_SATSUSHOU:
+		return kabus.ExchangeDivisionSatsushou
+	}
+	return kabus.ExchangeDivisionUnspecified
+}
+
+func fromExchangeDivision(exchangeDivision kabus.ExchangeDivision) kabuspb.ExchangeDivision {
+	switch exchangeDivision {
+	case kabus.ExchangeDivisionALL:
+		return kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL
+	case kabus.ExchangeDivisionToushou:
+		return kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_ALL
+	case kabus.ExchangeDivisionToushou1:
+		return kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_1
+	case kabus.ExchangeDivisionToushou2:
+		return kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_2
+	case kabus.ExchangeDivisionMothers:
+		return kabuspb.ExchangeDivision_EXCHANGE_DIVISION_MOTHERS
+	case kabus.ExchangeDivisionJASDAQ:
+		return kabuspb.ExchangeDivision_EXCHANGE_DIVISION_JASDAQ
+	case kabus.ExchangeDivisionMeishou:
+		return kabuspb.ExchangeDivision_EXCHANGE_DIVISION_MEISHOU
+	case kabus.ExchangeDivisionFukushou:
+		return kabuspb.ExchangeDivision_EXCHANGE_DIVISION_FUKUSHOU
+	case kabus.ExchangeDivisionSatsushou:
+		return kabuspb.ExchangeDivision_EXCHANGE_DIVISION_SATSUSHOU
+	}
+	return kabuspb.ExchangeDivision_EXCHANGE_DIVISION_UNSPECIFIED
+}
+
+func fromTrend(trend kabus.RankingTrend) kabuspb.RankingTrend {
+	switch trend {
+	case kabus.RankingTrendNoData:
+		return kabuspb.RankingTrend_RANKING_TREND_NO_DATA
+	case kabus.RankingTrendRiseOver20:
+		return kabuspb.RankingTrend_RANKING_TREND_RISE_OVER_20
+	case kabus.RankingTrendRise:
+		return kabuspb.RankingTrend_RANKING_TREND_RISE
+	case kabus.RankingTrendUnchanged:
+		return kabuspb.RankingTrend_RANKING_TREND_NO_CHANGE
+	case kabus.RankingTrendDescent:
+		return kabuspb.RankingTrend_RANKING_TREND_DESCENT
+	case kabus.RankingTrendDescentOver20:
+		return kabuspb.RankingTrend_RANKING_TREND_DESCENT_OVER_20
+	}
+	return kabuspb.RankingTrend_RANKING_TREND_UNSPECIFIED
+}
+
+func fromRankingToPriceRanking(ranking *kabus.RankingResponse) *kabuspb.PriceRanking {
+	res := &kabuspb.PriceRanking{
+		Type:             fromRankingTypeToPriceRankingType(ranking.Type),
+		ExchangeDivision: fromExchangeDivision(ranking.ExchangeDivision),
+		Ranking:          []*kabuspb.PriceRankingInfo{},
+	}
+
+	if ranking.PriceRanking != nil {
+		res.Ranking = make([]*kabuspb.PriceRankingInfo, len(ranking.PriceRanking))
+		for i, rank := range ranking.PriceRanking {
+			res.Ranking[i] = fromPriceRanking(rank)
+		}
+	}
+
+	return res
+}
+
+func fromPriceRanking(rank kabus.PriceRanking) *kabuspb.PriceRankingInfo {
+	return &kabuspb.PriceRankingInfo{
+		No:               int32(rank.No),
+		Trend:            fromTrend(rank.Trend),
+		AverageRanking:   rank.AverageRanking,
+		SymbolCode:       rank.Symbol,
+		SymbolName:       rank.SymbolName,
+		CurrentPrice:     rank.CurrentPrice,
+		ChangeRatio:      rank.ChangeRatio,
+		ChangePercentage: rank.ChangePercentage,
+		CurrentPriceTime: timestamppb.New(rank.CurrentPriceTime.Time),
+		TradingVolume:    rank.TradingVolume,
+		Turnover:         rank.Turnover,
+		ExchangeName:     rank.ExchangeName,
+		IndustryName:     rank.CategoryName,
+	}
+}
+
+func fromRankingToTickRanking(ranking *kabus.RankingResponse) *kabuspb.TickRanking {
+	res := &kabuspb.TickRanking{
+		ExchangeDivision: fromExchangeDivision(ranking.ExchangeDivision),
+		Ranking:          []*kabuspb.TickRankingInfo{},
+	}
+
+	if ranking.TickRanking != nil {
+		res.Ranking = make([]*kabuspb.TickRankingInfo, len(ranking.TickRanking))
+		for i, rank := range ranking.TickRanking {
+			res.Ranking[i] = fromTickRanking(rank)
+		}
+	}
+
+	return res
+}
+
+func fromTickRanking(rank kabus.TickRanking) *kabuspb.TickRankingInfo {
+	return &kabuspb.TickRankingInfo{
+		No:               int32(rank.No),
+		Trend:            fromTrend(rank.Trend),
+		AverageRanking:   rank.AverageRanking,
+		SymbolCode:       rank.Symbol,
+		SymbolName:       rank.SymbolName,
+		CurrentPrice:     rank.CurrentPrice,
+		ChangeRatio:      rank.ChangeRatio,
+		TickCount:        int32(rank.TickCount),
+		UpCount:          int32(rank.UpCount),
+		DownCount:        int32(rank.DownCount),
+		ChangePercentage: rank.ChangePercentage,
+		TradingVolume:    rank.TradingVolume,
+		Turnover:         rank.Turnover,
+		ExchangeName:     rank.ExchangeName,
+		IndustryName:     rank.CategoryName,
+	}
+}
+
+func fromRankingToVolumeRanking(ranking *kabus.RankingResponse) *kabuspb.VolumeRanking {
+	res := &kabuspb.VolumeRanking{
+		ExchangeDivision: fromExchangeDivision(ranking.ExchangeDivision),
+		Ranking:          []*kabuspb.VolumeRankingInfo{},
+	}
+
+	if ranking.VolumeRapidRanking != nil {
+		res.Ranking = make([]*kabuspb.VolumeRankingInfo, len(ranking.VolumeRapidRanking))
+		for i, rank := range ranking.VolumeRapidRanking {
+			res.Ranking[i] = fromVolumeRapidRanking(rank)
+		}
+	}
+
+	return res
+}
+
+func fromVolumeRapidRanking(rank kabus.VolumeRapidRanking) *kabuspb.VolumeRankingInfo {
+	return &kabuspb.VolumeRankingInfo{
+		No:                   int32(rank.No),
+		Trend:                fromTrend(rank.Trend),
+		AverageRanking:       rank.AverageRanking,
+		SymbolCode:           rank.Symbol,
+		SymbolName:           rank.SymbolName,
+		CurrentPrice:         rank.CurrentPrice,
+		ChangeRatio:          rank.ChangeRatio,
+		RapidTradePercentage: rank.RapidTradePercentage,
+		TradingVolume:        rank.TradingVolume,
+		CurrentPriceTime:     timestamppb.New(rank.CurrentPriceTime.Time),
+		ChangePercentage:     rank.ChangePercentage,
+		ExchangeName:         rank.ExchangeName,
+		IndustryName:         rank.CategoryName,
+	}
+}
+
+func fromRankingToValueRanking(ranking *kabus.RankingResponse) *kabuspb.ValueRanking {
+	res := &kabuspb.ValueRanking{
+		ExchangeDivision: fromExchangeDivision(ranking.ExchangeDivision),
+		Ranking:          []*kabuspb.ValueRankingInfo{},
+	}
+
+	if ranking.ValueRapidRanking != nil {
+		res.Ranking = make([]*kabuspb.ValueRankingInfo, len(ranking.ValueRapidRanking))
+		for i, rank := range ranking.ValueRapidRanking {
+			res.Ranking[i] = fromValueRapidRanking(rank)
+		}
+	}
+
+	return res
+}
+
+func fromValueRapidRanking(rank kabus.ValueRapidRanking) *kabuspb.ValueRankingInfo {
+	return &kabuspb.ValueRankingInfo{
+		No:                     int32(rank.No),
+		Trend:                  fromTrend(rank.Trend),
+		AverageRanking:         rank.AverageRanking,
+		SymbolCode:             rank.Symbol,
+		SymbolName:             rank.SymbolName,
+		CurrentPrice:           rank.CurrentPrice,
+		ChangeRatio:            rank.ChangeRatio,
+		RapidPaymentPercentage: rank.RapidPaymentPercentage,
+		Turnover:               rank.Turnover,
+		CurrentPriceTime:       timestamppb.New(rank.CurrentPriceTime.Time),
+		ChangePercentage:       rank.ChangePercentage,
+		ExchangeName:           rank.ExchangeName,
+		IndustryName:           rank.CategoryName,
+	}
+}
+
+func fromRankingToMarginRanking(ranking *kabus.RankingResponse) *kabuspb.MarginRanking {
+	res := &kabuspb.MarginRanking{
+		Type:             fromRankingTypeToMarginRankingType(ranking.Type),
+		ExchangeDivision: fromExchangeDivision(ranking.ExchangeDivision),
+		Ranking:          []*kabuspb.MarginRankingInfo{},
+	}
+
+	if ranking.MarginRanking != nil {
+		res.Ranking = make([]*kabuspb.MarginRankingInfo, len(ranking.MarginRanking))
+		for i, rank := range ranking.MarginRanking {
+			res.Ranking[i] = fromMarginRanking(rank)
+		}
+	}
+
+	return res
+}
+
+func fromMarginRanking(rank kabus.MarginRanking) *kabuspb.MarginRankingInfo {
+	return &kabuspb.MarginRankingInfo{
+		No:                         int32(rank.No),
+		SymbolCode:                 rank.Symbol,
+		SymbolName:                 rank.SymbolName,
+		SellRapidPaymentPercentage: rank.SellRapidPaymentPercentage,
+		SellLastWeekRatio:          rank.SellLastWeekRatio,
+		BuyRapidPaymentPercentage:  rank.BuyRapidPaymentPercentage,
+		BuyLastWeekRatio:           rank.BuyLastWeekRatio,
+		Ratio:                      rank.Ratio,
+		ExchangeName:               rank.ExchangeName,
+		IndustryName:               rank.CategoryName,
+	}
+}
+
+func fromRankingToIndustryRanking(ranking *kabus.RankingResponse) *kabuspb.IndustryRanking {
+	res := &kabuspb.IndustryRanking{
+		Type:             fromRankingTypeToIndustryRankingType(ranking.Type),
+		ExchangeDivision: fromExchangeDivision(ranking.ExchangeDivision),
+		Ranking:          []*kabuspb.IndustryRankingInfo{},
+	}
+
+	if ranking.CategoryPriceRanking != nil {
+		res.Ranking = make([]*kabuspb.IndustryRankingInfo, len(ranking.CategoryPriceRanking))
+		for i, rank := range ranking.CategoryPriceRanking {
+			res.Ranking[i] = fromCategoryRanking(rank)
+		}
+	}
+
+	return res
+}
+
+func fromCategoryRanking(rank kabus.CategoryPriceRanking) *kabuspb.IndustryRankingInfo {
+	return &kabuspb.IndustryRankingInfo{
+		No:               int32(rank.No),
+		Trend:            fromTrend(rank.Trend),
+		AverageRanking:   rank.AverageRanking,
+		IndustryCode:     rank.Category,
+		IndustryName:     rank.CategoryName,
+		CurrentPrice:     rank.CurrentPrice,
+		ChangeRatio:      rank.ChangeRatio,
+		CurrentPriceTime: timestamppb.New(rank.CurrentPriceTime.Time),
+		ChangePercentage: rank.ChangePercentage,
+	}
+}

@@ -38,6 +38,8 @@ type testRESTClient struct {
 	ordersWithContext2           error
 	positionsWithContext1        *kabus.PositionsResponse
 	positionsWithContext2        error
+	rankingWithContext1          *kabus.RankingResponse
+	rankingWithContext2          error
 }
 
 func (t *testRESTClient) TokenWithContext(context.Context, kabus.TokenRequest) (*kabus.TokenResponse, error) {
@@ -80,6 +82,10 @@ func (t *testRESTClient) OrdersWithContext(context.Context, string, kabus.Orders
 
 func (t *testRESTClient) PositionsWithContext(context.Context, string, kabus.PositionsRequest) (*kabus.PositionsResponse, error) {
 	return t.positionsWithContext1, t.positionsWithContext2
+}
+
+func (t *testRESTClient) RankingWithContext(context.Context, string, kabus.RankingRequest) (*kabus.RankingResponse, error) {
+	return t.rankingWithContext1, t.rankingWithContext2
 }
 
 func Test_NewSecurity(t *testing.T) {
@@ -673,6 +679,255 @@ func Test_security_Positions(t *testing.T) {
 			restClient := &testRESTClient{positionsWithContext1: test.positionsWithContext1, positionsWithContext2: test.positionsWithContext2}
 			security := &security{restClient: restClient}
 			got1, got2 := security.Positions(context.Background(), "", &kabuspb.GetPositionsRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_PriceRanking(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                string
+		rankingWithContext1 *kabus.RankingResponse
+		rankingWithContext2 error
+		want                *kabuspb.PriceRanking
+		hasError            bool
+	}{
+		{name: "errorを返されたらerrorを返す", rankingWithContext2: errors.New("error message"), hasError: true},
+		{name: "responseが返されたらresponseを変換して返す",
+			rankingWithContext1: &kabus.RankingResponse{
+				Type:             kabus.RankingTypePriceIncreaseRate,
+				ExchangeDivision: kabus.ExchangeDivisionALL,
+				PriceRanking: []kabus.PriceRanking{
+					{No: 1, Trend: kabus.RankingTrendRiseOver20, AverageRanking: 999, Symbol: "1689", SymbolName: "ガスETF/ETF(C)", CurrentPrice: 2, ChangeRatio: 1, ChangePercentage: 100, CurrentPriceTime: kabus.HmString{Time: time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)}, TradingVolume: 5722.4, Turnover: 10.4136, ExchangeName: "東証ETF/ETN", CategoryName: "その他"},
+					{No: 2, Trend: kabus.RankingTrendRiseOver20, AverageRanking: 999, Symbol: "6907", SymbolName: "ｼﾞｵﾏﾃｯｸ", CurrentPrice: 1013, ChangeRatio: 358, ChangePercentage: 54.65, CurrentPriceTime: kabus.HmString{Time: time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)}, TradingVolume: 3117.5, Turnover: 3194.7121, ExchangeName: "東証JQS", CategoryName: "電気機器"},
+				},
+			},
+			want: &kabuspb.PriceRanking{
+				Type:             kabuspb.PriceRankingType_PRICE_RANKING_TYPE_INCREASE_RATE,
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking: []*kabuspb.PriceRankingInfo{
+					{No: 1, Trend: kabuspb.RankingTrend_RANKING_TREND_RISE_OVER_20, AverageRanking: 999, SymbolCode: "1689", SymbolName: "ガスETF/ETF(C)", CurrentPrice: 2, ChangeRatio: 1, ChangePercentage: 100, CurrentPriceTime: timestamppb.New(time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)), TradingVolume: 5722.4, Turnover: 10.4136, ExchangeName: "東証ETF/ETN", IndustryName: "その他"},
+					{No: 2, Trend: kabuspb.RankingTrend_RANKING_TREND_RISE_OVER_20, AverageRanking: 999, SymbolCode: "6907", SymbolName: "ｼﾞｵﾏﾃｯｸ", CurrentPrice: 1013, ChangeRatio: 358, ChangePercentage: 54.65, CurrentPriceTime: timestamppb.New(time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)), TradingVolume: 3117.5, Turnover: 3194.7121, ExchangeName: "東証JQS", IndustryName: "電気機器"},
+				}}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{rankingWithContext1: test.rankingWithContext1, rankingWithContext2: test.rankingWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.PriceRanking(context.Background(), "", &kabuspb.GetPriceRankingRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_TickRanking(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                string
+		rankingWithContext1 *kabus.RankingResponse
+		rankingWithContext2 error
+		want                *kabuspb.TickRanking
+		hasError            bool
+	}{
+		{name: "errorを返されたらerrorを返す", rankingWithContext2: errors.New("error message"), hasError: true},
+		{name: "responseが返されたらresponseを変換して返す",
+			rankingWithContext1: &kabus.RankingResponse{
+				Type:             kabus.RankingTypeTickCount,
+				ExchangeDivision: kabus.ExchangeDivisionALL,
+				TickRanking: []kabus.TickRanking{
+					{No: 1, Trend: kabus.RankingTrendRiseOver20, AverageRanking: 22, Symbol: "2929", SymbolName: "ﾌｧｰﾏﾌｰｽﾞ", CurrentPrice: 2748, ChangeRatio: 99, TickCount: 40579, UpCount: 12722, DownCount: 12798, ChangePercentage: 3.73, TradingVolume: 16086.8, Turnover: 43810.0498, ExchangeName: "東証２部", CategoryName: "食料品"},
+					{No: 2, Trend: kabus.RankingTrendUnchanged, AverageRanking: 2, Symbol: "9984", SymbolName: "ｿﾌﾄﾊﾞﾝｸG", CurrentPrice: 8285, ChangeRatio: -309, TickCount: 32219, UpCount: 8655, DownCount: 8562, ChangePercentage: -3.59, TradingVolume: 16688.8, Turnover: 138143.1773, ExchangeName: "東証１部", CategoryName: "情報・通信業"},
+				},
+			},
+			want: &kabuspb.TickRanking{
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking: []*kabuspb.TickRankingInfo{
+					{No: 1, Trend: kabuspb.RankingTrend_RANKING_TREND_RISE_OVER_20, AverageRanking: 22, SymbolCode: "2929", SymbolName: "ﾌｧｰﾏﾌｰｽﾞ", CurrentPrice: 2748, ChangeRatio: 99, TickCount: 40579, UpCount: 12722, DownCount: 12798, ChangePercentage: 3.73, TradingVolume: 16086.8, Turnover: 43810.0498, ExchangeName: "東証２部", IndustryName: "食料品"},
+					{No: 2, Trend: kabuspb.RankingTrend_RANKING_TREND_NO_CHANGE, AverageRanking: 2, SymbolCode: "9984", SymbolName: "ｿﾌﾄﾊﾞﾝｸG", CurrentPrice: 8285, ChangeRatio: -309, TickCount: 32219, UpCount: 8655, DownCount: 8562, ChangePercentage: -3.59, TradingVolume: 16688.8, Turnover: 138143.1773, ExchangeName: "東証１部", IndustryName: "情報・通信業"},
+				}}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{rankingWithContext1: test.rankingWithContext1, rankingWithContext2: test.rankingWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.TickRanking(context.Background(), "", &kabuspb.GetTickRankingRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_VolumeRanking(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                string
+		rankingWithContext1 *kabus.RankingResponse
+		rankingWithContext2 error
+		want                *kabuspb.VolumeRanking
+		hasError            bool
+	}{
+		{name: "errorを返されたらerrorを返す", rankingWithContext2: errors.New("error message"), hasError: true},
+		{name: "responseが返されたらresponseを変換して返す",
+			rankingWithContext1: &kabus.RankingResponse{
+				Type:             kabus.RankingTypeVolumeRapidIncrease,
+				ExchangeDivision: kabus.ExchangeDivisionALL,
+				VolumeRapidRanking: []kabus.VolumeRapidRanking{
+					{No: 1, Trend: kabus.RankingTrendRiseOver20, AverageRanking: 999, Symbol: "1490", SymbolName: "上場ﾍﾞｰﾀ/ETF", CurrentPrice: 7750, ChangeRatio: 40, RapidTradePercentage: 49900, TradingVolume: 1, CurrentPriceTime: kabus.HmString{Time: time.Date(0, 1, 1, 13, 20, 0, 0, time.Local)}, ChangePercentage: 0.51, ExchangeName: "東証ETF/ETN", CategoryName: "その他"},
+					{No: 2, Trend: kabus.RankingTrendRiseOver20, AverageRanking: 999, Symbol: "6907", SymbolName: "ｼﾞｵﾏﾃｯｸ", CurrentPrice: 1013, ChangeRatio: 358, RapidTradePercentage: 28189.47, TradingVolume: 3117.5, CurrentPriceTime: kabus.HmString{Time: time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)}, ChangePercentage: 54.65, ExchangeName: "東証JQS", CategoryName: "電気機器"},
+				},
+			},
+			want: &kabuspb.VolumeRanking{
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking: []*kabuspb.VolumeRankingInfo{
+					{No: 1, Trend: kabuspb.RankingTrend_RANKING_TREND_RISE_OVER_20, AverageRanking: 999, SymbolCode: "1490", SymbolName: "上場ﾍﾞｰﾀ/ETF", CurrentPrice: 7750, ChangeRatio: 40, RapidTradePercentage: 49900, TradingVolume: 1, CurrentPriceTime: timestamppb.New(time.Date(0, 1, 1, 13, 20, 0, 0, time.Local)), ChangePercentage: 0.51, ExchangeName: "東証ETF/ETN", IndustryName: "その他"},
+					{No: 2, Trend: kabuspb.RankingTrend_RANKING_TREND_RISE_OVER_20, AverageRanking: 999, SymbolCode: "6907", SymbolName: "ｼﾞｵﾏﾃｯｸ", CurrentPrice: 1013, ChangeRatio: 358, RapidTradePercentage: 28189.47, TradingVolume: 3117.5, CurrentPriceTime: timestamppb.New(time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)), ChangePercentage: 54.65, ExchangeName: "東証JQS", IndustryName: "電気機器"},
+				}}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{rankingWithContext1: test.rankingWithContext1, rankingWithContext2: test.rankingWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.VolumeRanking(context.Background(), "", &kabuspb.GetVolumeRankingRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_ValueRanking(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                string
+		rankingWithContext1 *kabus.RankingResponse
+		rankingWithContext2 error
+		want                *kabuspb.ValueRanking
+		hasError            bool
+	}{
+		{name: "errorを返されたらerrorを返す", rankingWithContext2: errors.New("error message"), hasError: true},
+		{name: "responseが返されたらresponseを変換して返す",
+			rankingWithContext1: &kabus.RankingResponse{
+				Type:             kabus.RankingTypeValueRapidIncrease,
+				ExchangeDivision: kabus.ExchangeDivisionALL,
+				ValueRapidRanking: []kabus.ValueRapidRanking{
+					{No: 1, Trend: kabus.RankingTrendRiseOver20, AverageRanking: 999, Symbol: "6907", SymbolName: "ｼﾞｵﾏﾃｯｸ", CurrentPrice: 1013, ChangeRatio: 358, RapidPaymentPercentage: 55381.47, Turnover: 3194.7121, CurrentPriceTime: kabus.HmString{Time: time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)}, ChangePercentage: 54.65, ExchangeName: "東証JQS", CategoryName: "電気機器"},
+					{No: 2, Trend: kabus.RankingTrendRiseOver20, AverageRanking: 999, Symbol: "1490", SymbolName: "上場ﾍﾞｰﾀ/ETF", CurrentPrice: 7750, ChangeRatio: 40, RapidPaymentPercentage: 50159.4, Turnover: 7.75, CurrentPriceTime: kabus.HmString{Time: time.Date(0, 1, 1, 13, 20, 0, 0, time.Local)}, ChangePercentage: 0.51, ExchangeName: "東証ETF/ETN", CategoryName: "その他"},
+				},
+			},
+			want: &kabuspb.ValueRanking{
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking: []*kabuspb.ValueRankingInfo{
+					{No: 1, Trend: kabuspb.RankingTrend_RANKING_TREND_RISE_OVER_20, AverageRanking: 999, SymbolCode: "6907", SymbolName: "ｼﾞｵﾏﾃｯｸ", CurrentPrice: 1013, ChangeRatio: 358, RapidPaymentPercentage: 55381.47, Turnover: 3194.7121, CurrentPriceTime: timestamppb.New(time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)), ChangePercentage: 54.65, ExchangeName: "東証JQS", IndustryName: "電気機器"},
+					{No: 2, Trend: kabuspb.RankingTrend_RANKING_TREND_RISE_OVER_20, AverageRanking: 999, SymbolCode: "1490", SymbolName: "上場ﾍﾞｰﾀ/ETF", CurrentPrice: 7750, ChangeRatio: 40, RapidPaymentPercentage: 50159.4, Turnover: 7.75, CurrentPriceTime: timestamppb.New(time.Date(0, 1, 1, 13, 20, 0, 0, time.Local)), ChangePercentage: 0.51, ExchangeName: "東証ETF/ETN", IndustryName: "その他"},
+				}}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{rankingWithContext1: test.rankingWithContext1, rankingWithContext2: test.rankingWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.ValueRanking(context.Background(), "", &kabuspb.GetValueRankingRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_MarginRanking(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                string
+		rankingWithContext1 *kabus.RankingResponse
+		rankingWithContext2 error
+		want                *kabuspb.MarginRanking
+		hasError            bool
+	}{
+		{name: "errorを返されたらerrorを返す", rankingWithContext2: errors.New("error message"), hasError: true},
+		{name: "responseが返されたらresponseを変換して返す",
+			rankingWithContext1: &kabus.RankingResponse{
+				Type:             kabus.RankingTypeMarginHighMagnification,
+				ExchangeDivision: kabus.ExchangeDivisionALL,
+				MarginRanking: []kabus.MarginRanking{
+					{No: 1, Symbol: "3150", SymbolName: "グリムス", Ratio: 14467, SellRapidPaymentPercentage: 0.1, SellLastWeekRatio: -0.5, BuyRapidPaymentPercentage: 1446.7, BuyLastWeekRatio: 139.7, ExchangeName: "東証１部", CategoryName: "卸売業"},
+					{No: 2, Symbol: "6955", SymbolName: "ＦＤＫ", Ratio: 10536.5, SellRapidPaymentPercentage: 0.2, SellLastWeekRatio: -0.8, BuyRapidPaymentPercentage: 2107.3, BuyLastWeekRatio: 121.6, ExchangeName: "東証２部", CategoryName: "電気機器"},
+				},
+			},
+			want: &kabuspb.MarginRanking{
+				Type:             kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_HIGH_MAGNIFICATION,
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking: []*kabuspb.MarginRankingInfo{
+					{No: 1, SymbolCode: "3150", SymbolName: "グリムス", Ratio: 14467, SellRapidPaymentPercentage: 0.1, SellLastWeekRatio: -0.5, BuyRapidPaymentPercentage: 1446.7, BuyLastWeekRatio: 139.7, ExchangeName: "東証１部", IndustryName: "卸売業"},
+					{No: 2, SymbolCode: "6955", SymbolName: "ＦＤＫ", Ratio: 10536.5, SellRapidPaymentPercentage: 0.2, SellLastWeekRatio: -0.8, BuyRapidPaymentPercentage: 2107.3, BuyLastWeekRatio: 121.6, ExchangeName: "東証２部", IndustryName: "電気機器"},
+				}}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{rankingWithContext1: test.rankingWithContext1, rankingWithContext2: test.rankingWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.MarginRanking(context.Background(), "", &kabuspb.GetMarginRankingRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_IndustryRanking(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                string
+		rankingWithContext1 *kabus.RankingResponse
+		rankingWithContext2 error
+		want                *kabuspb.IndustryRanking
+		hasError            bool
+	}{
+		{name: "errorを返されたらerrorを返す", rankingWithContext2: errors.New("error message"), hasError: true},
+		{name: "responseが返されたらresponseを変換して返す",
+			rankingWithContext1: &kabus.RankingResponse{
+				Type:             kabus.RankingTypePriceIncreaseRateByCategory,
+				ExchangeDivision: kabus.ExchangeDivisionALL,
+				CategoryPriceRanking: []kabus.CategoryPriceRanking{
+					{No: 1, Trend: kabus.RankingTrendRise, AverageRanking: 18, Category: "343", CategoryName: "IS 空運", CurrentPrice: 170.97, ChangeRatio: 6.72, CurrentPriceTime: kabus.HmString{Time: time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)}, ChangePercentage: 4.09},
+					{No: 2, Trend: kabus.RankingTrendRise, AverageRanking: 16, Category: "341", CategoryName: "IS 陸運", CurrentPrice: 1895.49, ChangeRatio: 15.41, CurrentPriceTime: kabus.HmString{Time: time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)}, ChangePercentage: 0.82},
+				},
+			},
+			want: &kabuspb.IndustryRanking{
+				Type:             kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_INCREASE_RATE,
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking: []*kabuspb.IndustryRankingInfo{
+					{No: 1, Trend: kabuspb.RankingTrend_RANKING_TREND_RISE, AverageRanking: 18, IndustryCode: "343", IndustryName: "IS 空運", CurrentPrice: 170.97, ChangeRatio: 6.72, CurrentPriceTime: timestamppb.New(time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)), ChangePercentage: 4.09},
+					{No: 2, Trend: kabuspb.RankingTrend_RANKING_TREND_RISE, AverageRanking: 16, IndustryCode: "341", IndustryName: "IS 陸運", CurrentPrice: 1895.49, ChangeRatio: 15.41, CurrentPriceTime: timestamppb.New(time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)), ChangePercentage: 0.82},
+				}}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{rankingWithContext1: test.rankingWithContext1, rankingWithContext2: test.rankingWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.IndustryRanking(context.Background(), "", &kabuspb.GetIndustryRankingRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}

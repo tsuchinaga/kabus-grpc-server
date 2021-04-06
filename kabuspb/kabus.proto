@@ -15,6 +15,12 @@ service KabusService {
   rpc GetPositions(GetPositionsRequest) returns (Positions); // 残高照会
   rpc GetFutureSymbolCodeInfo(GetFutureSymbolCodeInfoRequest) returns (SymbolCodeInfo); // 先物銘柄コード取得
   rpc GetOptionSymbolCodeInfo(GetOptionSymbolCodeInfoRequest) returns (SymbolCodeInfo); // オプション銘柄コード取得
+  rpc GetPriceRanking(GetPriceRankingRequest) returns (PriceRanking); // 株価ランキング
+  rpc GetTickRanking(GetTickRankingRequest) returns (TickRanking); // TICK回数ランキング
+  rpc GetVolumeRanking(GetVolumeRankingRequest) returns (VolumeRanking); // 売買高ランキング
+  rpc GetValueRanking(GetValueRankingRequest) returns (ValueRanking); // 売買代金ランキング
+  rpc GetMarginRanking(GetMarginRankingRequest) returns (MarginRanking); // 信用ランキング
+  rpc GetIndustryRanking(GetIndustryRankingRequest) returns (IndustryRanking); // 業種別ランキング
   rpc GetRegisteredSymbols(GetRegisteredSymbolsRequest) returns (RegisteredSymbols); // 登録銘柄一覧 ※直前で実行されたRegister, Unregister, UnregisterAllの結果を保持しているだけ
   rpc RegisterSymbols(RegisterSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録
   rpc UnregisterSymbols(UnregisterSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録解除
@@ -112,6 +118,57 @@ message GetOptionSymbolCodeInfoRequest{
   // 権利行使価格
   //   ゼロ値ならATMと同義
   int32 strike_price = 3;
+}
+
+// 株価ランキングリクエスト
+message GetPriceRankingRequest {
+  // 株価ランキング種別
+  PriceRankingType ranking_type = 1;
+
+  // 市場・上場部
+  ExchangeDivision exchange_division = 2;
+}
+
+// TICK回数ランキングリクエスト
+message GetTickRankingRequest {
+  // ランキング種別はTICK回数のみなので指定なし
+
+  // 市場・上場部
+  ExchangeDivision exchange_division = 2;
+}
+
+// 売買高ランキングリクエスト
+message GetVolumeRankingRequest {
+  // ランキング種別は売買高急増のみなので指定なし
+
+  // 市場・上場部
+  ExchangeDivision exchange_division = 2;
+}
+
+// 売買代金ランキングリクエスト
+message GetValueRankingRequest {
+  // ランキング種別は売買代金急増のみなので指定なし
+
+  // 市場・上場部
+  ExchangeDivision exchange_division = 2;
+}
+
+// 信用ランキングリクエスト
+message GetMarginRankingRequest {
+  // ランキング種別
+  MarginRankingType ranking_type = 1;
+
+  // 市場・上場部
+  ExchangeDivision exchange_division = 2;
+}
+
+// 業種別ランキングリクエスト
+message GetIndustryRankingRequest {
+  // ランキング種別
+  IndustryRankingType ranking_type = 1;
+
+  // 市場・上場部
+  ExchangeDivision exchange_division = 2;
 }
 
 // 登録銘柄一覧リクエスト
@@ -705,6 +762,321 @@ message RegisterSymbol {
   Exchange exchange = 2;
 }
 
+// 株価ランキング
+message PriceRanking {
+  // ランキング種別
+  PriceRankingType type = 1;
+
+  // 市場・上場部
+  ExchangeDivision exchange_division = 2;
+
+  // ランキング
+  repeated PriceRankingInfo ranking = 3;
+}
+
+// 株価ランキング詳細
+message PriceRankingInfo {
+  // 順位
+  int32 no = 1;
+
+  // トレンド
+  RankingTrend trend = 2;
+
+  // 平均順位
+  //   100位以下は「999」となります
+  double average_ranking = 3;
+
+  // 銘柄コード
+  string symbol_code = 4;
+
+  // 銘柄名称
+  string symbol_name = 5;
+
+  // 現在値
+  double current_price = 6;
+
+  // 前日比
+  double change_ratio = 7;
+
+  // 騰落率（%）
+  double change_percentage = 8;
+
+  // 時刻 HH:mm
+  //   日付は返しません
+  google.protobuf.Timestamp current_price_time = 9;
+
+  // 売買高
+  double trading_volume = 10;
+
+  // 売買代金
+  double turnover = 11;
+
+  // 市場名
+  string exchange_name = 12;
+
+  // 業種名
+  string industry_name = 13;
+}
+
+// TICK回数ランキング
+message TickRanking {
+  // ランキング種別はTICK回数のみなので指定なし
+
+  // 市場・上場部
+  ExchangeDivision exchange_division = 2;
+
+  // ランキング
+  repeated TickRankingInfo ranking = 3;
+}
+
+// TICK回数ランキング詳細
+message TickRankingInfo {
+  // 順位
+  int32 no = 1;
+
+  // トレンド
+  RankingTrend trend = 2;
+
+  // 平均順位
+  //   100位以下は「999」となります
+  double average_ranking = 3;
+
+  // 銘柄コード
+  string symbol_code = 4;
+
+  // 銘柄名称
+  string symbol_name = 5;
+
+  // 現在値
+  double current_price = 6;
+
+  // 前日比
+  double change_ratio = 7;
+
+  // TICK回数
+  int32 tick_count = 8;
+
+  // UP
+  int32 up_count = 9;
+
+  // DOWN
+  int32 down_count = 10;
+
+  // 騰落率（%）
+  double change_percentage = 11;
+
+  // 売買高
+  double trading_volume = 12;
+
+  // 売買代金
+  double turnover = 13;
+
+  // 市場名
+  string exchange_name = 14;
+
+  // 業種名
+  string industry_name = 15;
+}
+
+// 売買高ランキング
+message VolumeRanking {
+  // ランキング種別は売買高急増のみなので指定なし
+
+  // 市場・上場部
+  ExchangeDivision exchange_division = 2;
+
+  // ランキング
+  repeated VolumeRankingInfo ranking = 3;
+}
+
+// 売買高ランキング詳細
+message VolumeRankingInfo {
+  // 順位
+  int32 no = 1;
+
+  // トレンド
+  RankingTrend trend = 2;
+
+  // 平均順位
+  //   100位以下は「999」となります
+  double average_ranking = 3;
+
+  // 銘柄コード
+  string symbol_code = 4;
+
+  // 銘柄名称
+  string symbol_name = 5;
+
+  // 現在値
+  double current_price = 6;
+
+  // 前日比
+  double change_ratio = 7;
+
+  // 売買高急増（％）
+  double rapid_trade_percentage = 8;
+
+  // 売買高
+  double trading_volume = 9;
+
+  // 時刻 HH:mm
+  //   日付は返しません
+  google.protobuf.Timestamp current_price_time = 10;
+
+  // 騰落率（%）
+  double change_percentage = 11;
+
+  // 市場名
+  string exchange_name = 12;
+
+  // 業種名
+  string industry_name = 13;
+}
+
+// 売買代金ランキング
+message ValueRanking {
+  // ランキング種別は売買代金急増のみなので指定なし
+
+  // 市場・上場部
+  ExchangeDivision exchange_division = 2;
+
+  // ランキング
+  repeated ValueRankingInfo ranking = 3;
+}
+
+// 売買代金ランキング詳細
+message ValueRankingInfo {
+  // 順位
+  int32 no = 1;
+
+  // トレンド
+  RankingTrend trend = 2;
+
+  // 平均順位
+  //   100位以下は「999」となります
+  double average_ranking = 3;
+
+  // 銘柄コード
+  string symbol_code = 4;
+
+  // 銘柄名称
+  string symbol_name = 5;
+
+  // 現在値
+  double current_price = 6;
+
+  // 前日比
+  double change_ratio = 7;
+
+  // 代金急増（％）
+  double rapid_payment_percentage = 8;
+
+  // 売買代金
+  double turnover = 9;
+
+  // 時刻 HH:mm
+  //   日付は返しません
+  google.protobuf.Timestamp current_price_time = 10;
+
+  // 騰落率（%）
+  double change_percentage = 11;
+
+  // 市場名
+  string exchange_name = 12;
+
+  // 業種名
+  string industry_name = 13;
+}
+
+// 信用ランキング
+message MarginRanking {
+  // 信用ランキング種別
+  MarginRankingType type = 1;
+
+  // 市場・上場部
+  ExchangeDivision exchange_division = 2;
+
+  // ランキング
+  repeated MarginRankingInfo ranking = 3;
+}
+
+// 信用ランキング詳細
+message MarginRankingInfo {
+  // 順位
+  int32 no = 1;
+
+  // 銘柄コード
+  string symbol_code = 2;
+
+  // 銘柄名称
+  string symbol_name = 3;
+
+  // 売残（千株）
+  double sell_rapid_payment_percentage = 4;
+
+  // 売残前週比
+  double sell_last_week_ratio = 5;
+
+  // 買残（千株）
+  double buy_rapid_payment_percentage = 6;
+
+  // 買残前週比
+  double buy_last_week_ratio = 7;
+
+  // 倍率
+  double ratio = 8;
+
+  // 市場名
+  string exchange_name = 9;
+
+  // 業種名
+  string industry_name = 10;
+}
+
+// 業種別ランキング
+message IndustryRanking {
+  // 信用ランキング種別
+  IndustryRankingType type = 1;
+
+  // 市場・上場部
+  ExchangeDivision exchange_division = 2;
+
+  // ランキング
+  repeated IndustryRankingInfo ranking = 3;
+}
+
+// 業種別ランキング詳細
+message IndustryRankingInfo {
+  // 順位
+  int32 no = 1;
+
+  // トレンド
+  RankingTrend trend = 2;
+
+  // 平均順位
+  //   100位以下は「999」となります
+  double average_ranking = 3;
+
+  // 業種コード
+  string industry_code = 4;
+
+  // 業種名
+  string industry_name = 5;
+
+  // 現在値
+  double current_price = 6;
+
+  // 前日比
+  double change_ratio = 7;
+
+  // 時刻 HH:mm
+  //   日付は返しません
+  google.protobuf.Timestamp current_price_time = 8;
+
+  // 騰落率（%）
+  double change_percentage = 9;
+}
+
 // 市場
 enum Exchange {
   EXCHANGE_UNSPECIFIED = 0; // 指定なし
@@ -879,4 +1251,56 @@ enum SecurityType {
   SECURITY_TYPE_DOW = 144; // NYダウ先物
   SECURITY_TYPE_VI = 145; // 日経平均VI先物
   SECURITY_TYPE_CODE30 = 171; // TOPIX Core30先物
+}
+
+// 市場・上場部
+enum ExchangeDivision {
+  EXCHANGE_DIVISION_UNSPECIFIED = 0; // 未指定
+  EXCHANGE_DIVISION_ALL = 1; // 全市場
+  EXCHANGE_DIVISION_TOUSHOU_ALL = 2; // 東証全体
+  EXCHANGE_DIVISION_TOUSHOU_1 = 3; // 東証一部
+  EXCHANGE_DIVISION_TOUSHOU_2 = 4; // 東証二部
+  EXCHANGE_DIVISION_MOTHERS = 5; // 東証マザーズ
+  EXCHANGE_DIVISION_JASDAQ = 6; // JASDAQ
+  EXCHANGE_DIVISION_MEISHOU = 7; // 名証
+  EXCHANGE_DIVISION_FUKUSHOU = 8; // 福証
+  EXCHANGE_DIVISION_SATSUSHOU = 9; // 札証
+}
+
+// 株価ランキング種別
+enum PriceRankingType {
+  PRICE_RANKING_TYPE_UNSPECIFIED = 0; // 未指定
+  PRICE_RANKING_TYPE_INCREASE_RATE = 1; // 値上がり率
+  PRICE_RANKING_TYPE_DECREASE_RATE = 2; // 値下がり率
+  PRICE_RANKING_TYPE_VOLUME = 3; // 売買高上位
+  PRICE_RANKING_TYPE_VALUE = 4; // 売買代金上位
+}
+
+// 信用ランキング種別
+enum MarginRankingType {
+  MARGIN_RANKING_TYPE_UNSPECIFIED = 0; // 未指定
+  MARGIN_RANKING_TYPE_SELL_BALANCE_INCREASE = 1; // 信用売残増
+  MARGIN_RANKING_TYPE_SELL_BALANCE_DECREASE = 2; // 信用売残減
+  MARGIN_RANKING_TYPE_BUY_BALANCE_INCREASE = 3; // 信用買残増
+  MARGIN_RANKING_TYPE_BUY_BALANCE_DECREASE = 4; // 信用買残減
+  MARGIN_RANKING_TYPE_HIGH_MAGNIFICATION = 5; // 信用高倍率
+  MARGIN_RANKING_TYPE_LOW_MAGNIFICATION = 6; // 信用低倍率
+}
+
+// 業種別ランキング種別
+enum IndustryRankingType {
+  INDUSTRY_RANKING_TYPE_UNSPECIFIED = 0; // 未指定
+  INDUSTRY_RANKING_TYPE_INCREASE_RATE = 1; // 値上がり率
+  INDUSTRY_RANKING_TYPE_DECREASE_RATE = 2; // 値下がり率
+}
+
+// トレンド
+enum RankingTrend {
+  RANKING_TREND_UNSPECIFIED = 0; // 未指定
+  RANKING_TREND_NO_DATA = 1; // 対象データ無し
+  RANKING_TREND_RISE_OVER_20 = 2; // 過去10営業日より20位以上上昇
+  RANKING_TREND_RISE = 3; // 過去10営業日より1～19位上昇
+  RANKING_TREND_NO_CHANGE = 4; // 過去10営業日と変わらず
+  RANKING_TREND_DESCENT = 5; // 過去10営業日より1～19位下落
+  RANKING_TREND_DESCENT_OVER_20 = 6; // 過去10営業日より20位以上下落
 }

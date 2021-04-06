@@ -1362,3 +1362,597 @@ func Test_fromPositions(t *testing.T) {
 		})
 	}
 }
+
+func Test_toRankingTypeFromPriceRankingType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.PriceRankingType
+		want kabus.RankingType
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_UNSPECIFIED, want: kabus.RankingTypeUnspecified},
+		{name: "値上がり率 を変換できる", arg: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_INCREASE_RATE, want: kabus.RankingTypePriceIncreaseRate},
+		{name: "値下がり率 を変換できる", arg: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_DECREASE_RATE, want: kabus.RankingTypePriceDecreaseRate},
+		{name: "売買高上位 を変換できる", arg: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_VOLUME, want: kabus.RankingTypeVolume},
+		{name: "売買代金上位 を変換できる", arg: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_VALUE, want: kabus.RankingTypeValue},
+		{name: "未定義 を変換できる", arg: kabuspb.PriceRankingType(-1), want: kabus.RankingTypeUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toRankingTypeFromPriceRankingType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromRankingTypeToPriceRankingType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.RankingType
+		want kabuspb.PriceRankingType
+	}{
+		{name: "未指定 を変換できる", arg: kabus.RankingTypeUnspecified, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_UNSPECIFIED},
+		{name: "値上がり率 を変換できる", arg: kabus.RankingTypePriceIncreaseRate, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_INCREASE_RATE},
+		{name: "売買高上位 を変換できる", arg: kabus.RankingTypeVolume, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_VOLUME},
+		{name: "売買代金 を変換できる", arg: kabus.RankingTypeValue, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_VALUE},
+		{name: "TICK回数 を変換できる", arg: kabus.RankingTypeTickCount, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_UNSPECIFIED},
+		{name: "売買高急増 を変換できる", arg: kabus.RankingTypeVolumeRapidIncrease, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_UNSPECIFIED},
+		{name: "売買代金急増 を変換できる", arg: kabus.RankingTypeValueRapidIncrease, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_UNSPECIFIED},
+		{name: "信用売残増 を変換できる", arg: kabus.RankingTypeMarginSellBalanceIncrease, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_UNSPECIFIED},
+		{name: "信用売残減 を変換できる", arg: kabus.RankingTypeMarginSellBalanceDecrease, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_UNSPECIFIED},
+		{name: "信用買残増 を変換できる", arg: kabus.RankingTypeMarginBuyBalanceIncrease, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_UNSPECIFIED},
+		{name: "信用買残減 を変換できる", arg: kabus.RankingTypeMarginBuyBalanceDecrease, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_UNSPECIFIED},
+		{name: "信用高倍率 を変換できる", arg: kabus.RankingTypeMarginHighMagnification, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_UNSPECIFIED},
+		{name: "信用低倍率 を変換できる", arg: kabus.RankingTypeMarginLowMagnification, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_UNSPECIFIED},
+		{name: "業種別値上がり率 を変換できる", arg: kabus.RankingTypePriceIncreaseRateByCategory, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_UNSPECIFIED},
+		{name: "業種別値下がり率 を変換できる", arg: kabus.RankingTypePriceDecreaseRateByCategory, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_UNSPECIFIED},
+		{name: "未定義 を変換できる", arg: kabus.RankingType("-1"), want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromRankingTypeToPriceRankingType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toRankingTypeFromMarginRankingType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.MarginRankingType
+		want kabus.RankingType
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_UNSPECIFIED, want: kabus.RankingTypeUnspecified},
+		{name: "信用売残増 を変換できる", arg: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_SELL_BALANCE_INCREASE, want: kabus.RankingTypeMarginSellBalanceIncrease},
+		{name: "信用売残減 を変換できる", arg: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_SELL_BALANCE_DECREASE, want: kabus.RankingTypeMarginSellBalanceDecrease},
+		{name: "信用買残増 を変換できる", arg: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_BUY_BALANCE_INCREASE, want: kabus.RankingTypeMarginBuyBalanceIncrease},
+		{name: "信用買残減 を変換できる", arg: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_BUY_BALANCE_DECREASE, want: kabus.RankingTypeMarginBuyBalanceDecrease},
+		{name: "信用高倍率 を変換できる", arg: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_HIGH_MAGNIFICATION, want: kabus.RankingTypeMarginHighMagnification},
+		{name: "信用低倍率 を変換できる", arg: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_LOW_MAGNIFICATION, want: kabus.RankingTypeMarginLowMagnification},
+		{name: "未定義 を変換できる", arg: kabuspb.MarginRankingType(-1), want: kabus.RankingTypeUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toRankingTypeFromMarginRankingType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromRankingTypeToMarginRankingType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.RankingType
+		want kabuspb.MarginRankingType
+	}{
+		{name: "未指定 を変換できる", arg: kabus.RankingTypeUnspecified, want: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_UNSPECIFIED},
+		{name: "値上がり率 を変換できる", arg: kabus.RankingTypePriceIncreaseRate, want: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_UNSPECIFIED},
+		{name: "売買高上位 を変換できる", arg: kabus.RankingTypeVolume, want: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_UNSPECIFIED},
+		{name: "売買代金 を変換できる", arg: kabus.RankingTypeValue, want: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_UNSPECIFIED},
+		{name: "TICK回数 を変換できる", arg: kabus.RankingTypeTickCount, want: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_UNSPECIFIED},
+		{name: "売買高急増 を変換できる", arg: kabus.RankingTypeVolumeRapidIncrease, want: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_UNSPECIFIED},
+		{name: "売買代金急増 を変換できる", arg: kabus.RankingTypeValueRapidIncrease, want: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_UNSPECIFIED},
+		{name: "信用売残増 を変換できる", arg: kabus.RankingTypeMarginSellBalanceIncrease, want: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_SELL_BALANCE_INCREASE},
+		{name: "信用売残減 を変換できる", arg: kabus.RankingTypeMarginSellBalanceDecrease, want: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_SELL_BALANCE_DECREASE},
+		{name: "信用買残増 を変換できる", arg: kabus.RankingTypeMarginBuyBalanceIncrease, want: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_BUY_BALANCE_INCREASE},
+		{name: "信用買残減 を変換できる", arg: kabus.RankingTypeMarginBuyBalanceDecrease, want: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_BUY_BALANCE_DECREASE},
+		{name: "信用高倍率 を変換できる", arg: kabus.RankingTypeMarginHighMagnification, want: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_HIGH_MAGNIFICATION},
+		{name: "信用低倍率 を変換できる", arg: kabus.RankingTypeMarginLowMagnification, want: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_LOW_MAGNIFICATION},
+		{name: "業種別値上がり率 を変換できる", arg: kabus.RankingTypePriceIncreaseRateByCategory, want: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_UNSPECIFIED},
+		{name: "業種別値下がり率 を変換できる", arg: kabus.RankingTypePriceDecreaseRateByCategory, want: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_UNSPECIFIED},
+		{name: "未定義 を変換できる", arg: kabus.RankingType("-1"), want: kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromRankingTypeToMarginRankingType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toRankingTypeFromIndustryRankingType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.IndustryRankingType
+		want kabus.RankingType
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_UNSPECIFIED, want: kabus.RankingTypeUnspecified},
+		{name: "値上がり率 を変換できる", arg: kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_INCREASE_RATE, want: kabus.RankingTypePriceIncreaseRateByCategory},
+		{name: "値下がり率 を変換できる", arg: kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_DECREASE_RATE, want: kabus.RankingTypePriceDecreaseRateByCategory},
+		{name: "未定義 を変換できる", arg: kabuspb.IndustryRankingType(-1), want: kabus.RankingTypeUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toRankingTypeFromIndustryRankingType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromRankingTypeToIndustryRankingType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.RankingType
+		want kabuspb.IndustryRankingType
+	}{
+		{name: "未指定 を変換できる", arg: kabus.RankingTypeUnspecified, want: kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_UNSPECIFIED},
+		{name: "値上がり率 を変換できる", arg: kabus.RankingTypePriceIncreaseRate, want: kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_UNSPECIFIED},
+		{name: "売買高上位 を変換できる", arg: kabus.RankingTypeVolume, want: kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_UNSPECIFIED},
+		{name: "売買代金 を変換できる", arg: kabus.RankingTypeValue, want: kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_UNSPECIFIED},
+		{name: "TICK回数 を変換できる", arg: kabus.RankingTypeTickCount, want: kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_UNSPECIFIED},
+		{name: "売買高急増 を変換できる", arg: kabus.RankingTypeVolumeRapidIncrease, want: kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_UNSPECIFIED},
+		{name: "売買代金急増 を変換できる", arg: kabus.RankingTypeValueRapidIncrease, want: kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_UNSPECIFIED},
+		{name: "信用売残増 を変換できる", arg: kabus.RankingTypeMarginSellBalanceIncrease, want: kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_UNSPECIFIED},
+		{name: "信用売残減 を変換できる", arg: kabus.RankingTypeMarginSellBalanceDecrease, want: kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_UNSPECIFIED},
+		{name: "信用買残増 を変換できる", arg: kabus.RankingTypeMarginBuyBalanceIncrease, want: kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_UNSPECIFIED},
+		{name: "信用買残減 を変換できる", arg: kabus.RankingTypeMarginBuyBalanceDecrease, want: kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_UNSPECIFIED},
+		{name: "信用高倍率 を変換できる", arg: kabus.RankingTypeMarginHighMagnification, want: kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_UNSPECIFIED},
+		{name: "信用低倍率 を変換できる", arg: kabus.RankingTypeMarginLowMagnification, want: kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_UNSPECIFIED},
+		{name: "業種別値上がり率 を変換できる", arg: kabus.RankingTypePriceIncreaseRateByCategory, want: kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_INCREASE_RATE},
+		{name: "業種別値下がり率 を変換できる", arg: kabus.RankingTypePriceDecreaseRateByCategory, want: kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_DECREASE_RATE},
+		{name: "未定義 を変換できる", arg: kabus.RankingType("-1"), want: kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromRankingTypeToIndustryRankingType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toExchangeDivision(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.ExchangeDivision
+		want kabus.ExchangeDivision
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_UNSPECIFIED, want: kabus.ExchangeDivisionUnspecified},
+		{name: "全市場 を変換できる", arg: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL, want: kabus.ExchangeDivisionALL},
+		{name: "東証全体 を変換できる", arg: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_ALL, want: kabus.ExchangeDivisionToushou},
+		{name: "東証一部 を変換できる", arg: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_1, want: kabus.ExchangeDivisionToushou1},
+		{name: "東証二部 を変換できる", arg: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_2, want: kabus.ExchangeDivisionToushou2},
+		{name: "東証マザーズ を変換できる", arg: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_MOTHERS, want: kabus.ExchangeDivisionMothers},
+		{name: "JASDAQ を変換できる", arg: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_JASDAQ, want: kabus.ExchangeDivisionJASDAQ},
+		{name: "名証 を変換できる", arg: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_MEISHOU, want: kabus.ExchangeDivisionMeishou},
+		{name: "福証 を変換できる", arg: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_FUKUSHOU, want: kabus.ExchangeDivisionFukushou},
+		{name: "札証 を変換できる", arg: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_SATSUSHOU, want: kabus.ExchangeDivisionSatsushou},
+		{name: "未定義 を変換できる", arg: kabuspb.ExchangeDivision(-1), want: kabus.ExchangeDivisionUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toExchangeDivision(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromExchangeDivision(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.ExchangeDivision
+		want kabuspb.ExchangeDivision
+	}{
+		{name: "未指定 を変換できる", arg: kabus.ExchangeDivisionUnspecified, want: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_UNSPECIFIED},
+		{name: "全市場 を変換できる", arg: kabus.ExchangeDivisionALL, want: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL},
+		{name: "東証全体 を変換できる", arg: kabus.ExchangeDivisionToushou, want: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_ALL},
+		{name: "東証一部 を変換できる", arg: kabus.ExchangeDivisionToushou1, want: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_1},
+		{name: "東証二部 を変換できる", arg: kabus.ExchangeDivisionToushou2, want: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_2},
+		{name: "東証マザーズ を変換できる", arg: kabus.ExchangeDivisionMothers, want: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_MOTHERS},
+		{name: "JASDAQ を変換できる", arg: kabus.ExchangeDivisionJASDAQ, want: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_JASDAQ},
+		{name: "名証 を変換できる", arg: kabus.ExchangeDivisionMeishou, want: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_MEISHOU},
+		{name: "福証 を変換できる", arg: kabus.ExchangeDivisionFukushou, want: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_FUKUSHOU},
+		{name: "札証 を変換できる", arg: kabus.ExchangeDivisionSatsushou, want: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_SATSUSHOU},
+		{name: "未定義 を変換できる", arg: kabus.ExchangeDivision("-1"), want: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromExchangeDivision(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromTrend(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.RankingTrend
+		want kabuspb.RankingTrend
+	}{
+		{name: "未指定 を変換できる", arg: kabus.RankingTrendUnspecified, want: kabuspb.RankingTrend_RANKING_TREND_UNSPECIFIED},
+		{name: "対象データ無し を変換できる", arg: kabus.RankingTrendNoData, want: kabuspb.RankingTrend_RANKING_TREND_NO_DATA},
+		{name: "過去10営業日より20位以上上昇 を変換できる", arg: kabus.RankingTrendRiseOver20, want: kabuspb.RankingTrend_RANKING_TREND_RISE_OVER_20},
+		{name: "過去10営業日より1～19位上昇 を変換できる", arg: kabus.RankingTrendRise, want: kabuspb.RankingTrend_RANKING_TREND_RISE},
+		{name: "過去10営業日と変わらず を変換できる", arg: kabus.RankingTrendUnchanged, want: kabuspb.RankingTrend_RANKING_TREND_NO_CHANGE},
+		{name: "過去10営業日より1～19位下落 を変換できる", arg: kabus.RankingTrendDescent, want: kabuspb.RankingTrend_RANKING_TREND_DESCENT},
+		{name: "過去10営業日より20位以上下落 を変換できる", arg: kabus.RankingTrendDescentOver20, want: kabuspb.RankingTrend_RANKING_TREND_DESCENT_OVER_20},
+		{name: "未定義 を変換できる", arg: kabus.RankingTrend("-1"), want: kabuspb.RankingTrend_RANKING_TREND_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromTrend(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromRankingToPriceRanking(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  *kabus.RankingResponse
+		want *kabuspb.PriceRanking
+	}{
+		{name: "ランキングの配列がnilなら空の配列が返される",
+			arg: &kabus.RankingResponse{Type: kabus.RankingTypePriceIncreaseRate, ExchangeDivision: kabus.ExchangeDivisionALL},
+			want: &kabuspb.PriceRanking{
+				Type:             kabuspb.PriceRankingType_PRICE_RANKING_TYPE_INCREASE_RATE,
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking:          []*kabuspb.PriceRankingInfo{}}},
+		{name: "ランキングの配列が空なら空の配列が返される",
+			arg: &kabus.RankingResponse{
+				Type:             kabus.RankingTypePriceIncreaseRate,
+				ExchangeDivision: kabus.ExchangeDivisionALL,
+				PriceRanking:     []kabus.PriceRanking{},
+			},
+			want: &kabuspb.PriceRanking{
+				Type:             kabuspb.PriceRankingType_PRICE_RANKING_TYPE_INCREASE_RATE,
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking:          []*kabuspb.PriceRankingInfo{}}},
+		{name: "ランキングの配列に要素が2つあるなら要素が2つの配列が返される",
+			arg: &kabus.RankingResponse{
+				Type:             kabus.RankingTypePriceIncreaseRate,
+				ExchangeDivision: kabus.ExchangeDivisionALL,
+				PriceRanking: []kabus.PriceRanking{
+					{No: 1, Trend: kabus.RankingTrendRiseOver20, AverageRanking: 999, Symbol: "1689", SymbolName: "ガスETF/ETF(C)", CurrentPrice: 2, ChangeRatio: 1, ChangePercentage: 100, CurrentPriceTime: kabus.HmString{Time: time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)}, TradingVolume: 5722.4, Turnover: 10.4136, ExchangeName: "東証ETF/ETN", CategoryName: "その他"},
+					{No: 2, Trend: kabus.RankingTrendRiseOver20, AverageRanking: 999, Symbol: "6907", SymbolName: "ｼﾞｵﾏﾃｯｸ", CurrentPrice: 1013, ChangeRatio: 358, ChangePercentage: 54.65, CurrentPriceTime: kabus.HmString{Time: time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)}, TradingVolume: 3117.5, Turnover: 3194.7121, ExchangeName: "東証JQS", CategoryName: "電気機器"},
+				},
+			},
+			want: &kabuspb.PriceRanking{
+				Type:             kabuspb.PriceRankingType_PRICE_RANKING_TYPE_INCREASE_RATE,
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking: []*kabuspb.PriceRankingInfo{
+					{No: 1, Trend: kabuspb.RankingTrend_RANKING_TREND_RISE_OVER_20, AverageRanking: 999, SymbolCode: "1689", SymbolName: "ガスETF/ETF(C)", CurrentPrice: 2, ChangeRatio: 1, ChangePercentage: 100, CurrentPriceTime: timestamppb.New(time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)), TradingVolume: 5722.4, Turnover: 10.4136, ExchangeName: "東証ETF/ETN", IndustryName: "その他"},
+					{No: 2, Trend: kabuspb.RankingTrend_RANKING_TREND_RISE_OVER_20, AverageRanking: 999, SymbolCode: "6907", SymbolName: "ｼﾞｵﾏﾃｯｸ", CurrentPrice: 1013, ChangeRatio: 358, ChangePercentage: 54.65, CurrentPriceTime: timestamppb.New(time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)), TradingVolume: 3117.5, Turnover: 3194.7121, ExchangeName: "東証JQS", IndustryName: "電気機器"},
+				}}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromRankingToPriceRanking(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromRankingToTickRanking(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  *kabus.RankingResponse
+		want *kabuspb.TickRanking
+	}{
+		{name: "ランキングの配列がnilなら空の配列が返される",
+			arg: &kabus.RankingResponse{Type: kabus.RankingTypeTickCount, ExchangeDivision: kabus.ExchangeDivisionALL},
+			want: &kabuspb.TickRanking{
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking:          []*kabuspb.TickRankingInfo{}}},
+		{name: "ランキングの配列が空なら空の配列が返される",
+			arg: &kabus.RankingResponse{
+				Type:             kabus.RankingTypeTickCount,
+				ExchangeDivision: kabus.ExchangeDivisionALL,
+				PriceRanking:     []kabus.PriceRanking{},
+			},
+			want: &kabuspb.TickRanking{
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking:          []*kabuspb.TickRankingInfo{}}},
+		{name: "ランキングの配列に要素が2つあるなら要素が2つの配列が返される",
+			arg: &kabus.RankingResponse{
+				Type:             kabus.RankingTypeTickCount,
+				ExchangeDivision: kabus.ExchangeDivisionALL,
+				TickRanking: []kabus.TickRanking{
+					{No: 1, Trend: kabus.RankingTrendRiseOver20, AverageRanking: 22, Symbol: "2929", SymbolName: "ﾌｧｰﾏﾌｰｽﾞ", CurrentPrice: 2748, ChangeRatio: 99, TickCount: 40579, UpCount: 12722, DownCount: 12798, ChangePercentage: 3.73, TradingVolume: 16086.8, Turnover: 43810.0498, ExchangeName: "東証２部", CategoryName: "食料品"},
+					{No: 2, Trend: kabus.RankingTrendUnchanged, AverageRanking: 2, Symbol: "9984", SymbolName: "ｿﾌﾄﾊﾞﾝｸG", CurrentPrice: 8285, ChangeRatio: -309, TickCount: 32219, UpCount: 8655, DownCount: 8562, ChangePercentage: -3.59, TradingVolume: 16688.8, Turnover: 138143.1773, ExchangeName: "東証１部", CategoryName: "情報・通信業"},
+				},
+			},
+			want: &kabuspb.TickRanking{
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking: []*kabuspb.TickRankingInfo{
+					{No: 1, Trend: kabuspb.RankingTrend_RANKING_TREND_RISE_OVER_20, AverageRanking: 22, SymbolCode: "2929", SymbolName: "ﾌｧｰﾏﾌｰｽﾞ", CurrentPrice: 2748, ChangeRatio: 99, TickCount: 40579, UpCount: 12722, DownCount: 12798, ChangePercentage: 3.73, TradingVolume: 16086.8, Turnover: 43810.0498, ExchangeName: "東証２部", IndustryName: "食料品"},
+					{No: 2, Trend: kabuspb.RankingTrend_RANKING_TREND_NO_CHANGE, AverageRanking: 2, SymbolCode: "9984", SymbolName: "ｿﾌﾄﾊﾞﾝｸG", CurrentPrice: 8285, ChangeRatio: -309, TickCount: 32219, UpCount: 8655, DownCount: 8562, ChangePercentage: -3.59, TradingVolume: 16688.8, Turnover: 138143.1773, ExchangeName: "東証１部", IndustryName: "情報・通信業"},
+				}}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromRankingToTickRanking(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromRankingToVolumeRanking(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  *kabus.RankingResponse
+		want *kabuspb.VolumeRanking
+	}{
+		{name: "ランキングの配列がnilなら空の配列が返される",
+			arg: &kabus.RankingResponse{Type: kabus.RankingTypeVolumeRapidIncrease, ExchangeDivision: kabus.ExchangeDivisionALL},
+			want: &kabuspb.VolumeRanking{
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking:          []*kabuspb.VolumeRankingInfo{}}},
+		{name: "ランキングの配列が空なら空の配列が返される",
+			arg: &kabus.RankingResponse{
+				Type:             kabus.RankingTypeVolumeRapidIncrease,
+				ExchangeDivision: kabus.ExchangeDivisionALL,
+				PriceRanking:     []kabus.PriceRanking{},
+			},
+			want: &kabuspb.VolumeRanking{
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking:          []*kabuspb.VolumeRankingInfo{}}},
+		{name: "ランキングの配列に要素が2つあるなら要素が2つの配列が返される",
+			arg: &kabus.RankingResponse{
+				Type:             kabus.RankingTypeVolumeRapidIncrease,
+				ExchangeDivision: kabus.ExchangeDivisionALL,
+				VolumeRapidRanking: []kabus.VolumeRapidRanking{
+					{No: 1, Trend: kabus.RankingTrendRiseOver20, AverageRanking: 999, Symbol: "1490", SymbolName: "上場ﾍﾞｰﾀ/ETF", CurrentPrice: 7750, ChangeRatio: 40, RapidTradePercentage: 49900, TradingVolume: 1, CurrentPriceTime: kabus.HmString{Time: time.Date(0, 1, 1, 13, 20, 0, 0, time.Local)}, ChangePercentage: 0.51, ExchangeName: "東証ETF/ETN", CategoryName: "その他"},
+					{No: 2, Trend: kabus.RankingTrendRiseOver20, AverageRanking: 999, Symbol: "6907", SymbolName: "ｼﾞｵﾏﾃｯｸ", CurrentPrice: 1013, ChangeRatio: 358, RapidTradePercentage: 28189.47, TradingVolume: 3117.5, CurrentPriceTime: kabus.HmString{Time: time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)}, ChangePercentage: 54.65, ExchangeName: "東証JQS", CategoryName: "電気機器"},
+				},
+			},
+			want: &kabuspb.VolumeRanking{
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking: []*kabuspb.VolumeRankingInfo{
+					{No: 1, Trend: kabuspb.RankingTrend_RANKING_TREND_RISE_OVER_20, AverageRanking: 999, SymbolCode: "1490", SymbolName: "上場ﾍﾞｰﾀ/ETF", CurrentPrice: 7750, ChangeRatio: 40, RapidTradePercentage: 49900, TradingVolume: 1, CurrentPriceTime: timestamppb.New(time.Date(0, 1, 1, 13, 20, 0, 0, time.Local)), ChangePercentage: 0.51, ExchangeName: "東証ETF/ETN", IndustryName: "その他"},
+					{No: 2, Trend: kabuspb.RankingTrend_RANKING_TREND_RISE_OVER_20, AverageRanking: 999, SymbolCode: "6907", SymbolName: "ｼﾞｵﾏﾃｯｸ", CurrentPrice: 1013, ChangeRatio: 358, RapidTradePercentage: 28189.47, TradingVolume: 3117.5, CurrentPriceTime: timestamppb.New(time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)), ChangePercentage: 54.65, ExchangeName: "東証JQS", IndustryName: "電気機器"},
+				}}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromRankingToVolumeRanking(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromRankingToValueRanking(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  *kabus.RankingResponse
+		want *kabuspb.ValueRanking
+	}{
+		{name: "ランキングの配列がnilなら空の配列が返される",
+			arg: &kabus.RankingResponse{Type: kabus.RankingTypeValueRapidIncrease, ExchangeDivision: kabus.ExchangeDivisionALL},
+			want: &kabuspb.ValueRanking{
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking:          []*kabuspb.ValueRankingInfo{}}},
+		{name: "ランキングの配列が空なら空の配列が返される",
+			arg: &kabus.RankingResponse{
+				Type:             kabus.RankingTypeValueRapidIncrease,
+				ExchangeDivision: kabus.ExchangeDivisionALL,
+				PriceRanking:     []kabus.PriceRanking{},
+			},
+			want: &kabuspb.ValueRanking{
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking:          []*kabuspb.ValueRankingInfo{}}},
+		{name: "ランキングの配列に要素が2つあるなら要素が2つの配列が返される",
+			arg: &kabus.RankingResponse{
+				Type:             kabus.RankingTypeValueRapidIncrease,
+				ExchangeDivision: kabus.ExchangeDivisionALL,
+				ValueRapidRanking: []kabus.ValueRapidRanking{
+					{No: 1, Trend: kabus.RankingTrendRiseOver20, AverageRanking: 999, Symbol: "6907", SymbolName: "ｼﾞｵﾏﾃｯｸ", CurrentPrice: 1013, ChangeRatio: 358, RapidPaymentPercentage: 55381.47, Turnover: 3194.7121, CurrentPriceTime: kabus.HmString{Time: time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)}, ChangePercentage: 54.65, ExchangeName: "東証JQS", CategoryName: "電気機器"},
+					{No: 2, Trend: kabus.RankingTrendRiseOver20, AverageRanking: 999, Symbol: "1490", SymbolName: "上場ﾍﾞｰﾀ/ETF", CurrentPrice: 7750, ChangeRatio: 40, RapidPaymentPercentage: 50159.4, Turnover: 7.75, CurrentPriceTime: kabus.HmString{Time: time.Date(0, 1, 1, 13, 20, 0, 0, time.Local)}, ChangePercentage: 0.51, ExchangeName: "東証ETF/ETN", CategoryName: "その他"},
+				},
+			},
+			want: &kabuspb.ValueRanking{
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking: []*kabuspb.ValueRankingInfo{
+					{No: 1, Trend: kabuspb.RankingTrend_RANKING_TREND_RISE_OVER_20, AverageRanking: 999, SymbolCode: "6907", SymbolName: "ｼﾞｵﾏﾃｯｸ", CurrentPrice: 1013, ChangeRatio: 358, RapidPaymentPercentage: 55381.47, Turnover: 3194.7121, CurrentPriceTime: timestamppb.New(time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)), ChangePercentage: 54.65, ExchangeName: "東証JQS", IndustryName: "電気機器"},
+					{No: 2, Trend: kabuspb.RankingTrend_RANKING_TREND_RISE_OVER_20, AverageRanking: 999, SymbolCode: "1490", SymbolName: "上場ﾍﾞｰﾀ/ETF", CurrentPrice: 7750, ChangeRatio: 40, RapidPaymentPercentage: 50159.4, Turnover: 7.75, CurrentPriceTime: timestamppb.New(time.Date(0, 1, 1, 13, 20, 0, 0, time.Local)), ChangePercentage: 0.51, ExchangeName: "東証ETF/ETN", IndustryName: "その他"},
+				}}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromRankingToValueRanking(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromRankingToMarginRanking(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  *kabus.RankingResponse
+		want *kabuspb.MarginRanking
+	}{
+		{name: "ランキングの配列がnilなら空の配列が返される",
+			arg: &kabus.RankingResponse{Type: kabus.RankingTypeMarginHighMagnification, ExchangeDivision: kabus.ExchangeDivisionALL},
+			want: &kabuspb.MarginRanking{
+				Type:             kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_HIGH_MAGNIFICATION,
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking:          []*kabuspb.MarginRankingInfo{}}},
+		{name: "ランキングの配列が空なら空の配列が返される",
+			arg: &kabus.RankingResponse{
+				Type:             kabus.RankingTypeMarginHighMagnification,
+				ExchangeDivision: kabus.ExchangeDivisionALL,
+				PriceRanking:     []kabus.PriceRanking{},
+			},
+			want: &kabuspb.MarginRanking{
+				Type:             kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_HIGH_MAGNIFICATION,
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking:          []*kabuspb.MarginRankingInfo{}}},
+		{name: "ランキングの配列に要素が2つあるなら要素が2つの配列が返される",
+			arg: &kabus.RankingResponse{
+				Type:             kabus.RankingTypeMarginHighMagnification,
+				ExchangeDivision: kabus.ExchangeDivisionALL,
+				MarginRanking: []kabus.MarginRanking{
+					{No: 1, Symbol: "3150", SymbolName: "グリムス", Ratio: 14467, SellRapidPaymentPercentage: 0.1, SellLastWeekRatio: -0.5, BuyRapidPaymentPercentage: 1446.7, BuyLastWeekRatio: 139.7, ExchangeName: "東証１部", CategoryName: "卸売業"},
+					{No: 2, Symbol: "6955", SymbolName: "ＦＤＫ", Ratio: 10536.5, SellRapidPaymentPercentage: 0.2, SellLastWeekRatio: -0.8, BuyRapidPaymentPercentage: 2107.3, BuyLastWeekRatio: 121.6, ExchangeName: "東証２部", CategoryName: "電気機器"},
+				},
+			},
+			want: &kabuspb.MarginRanking{
+				Type:             kabuspb.MarginRankingType_MARGIN_RANKING_TYPE_HIGH_MAGNIFICATION,
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking: []*kabuspb.MarginRankingInfo{
+					{No: 1, SymbolCode: "3150", SymbolName: "グリムス", Ratio: 14467, SellRapidPaymentPercentage: 0.1, SellLastWeekRatio: -0.5, BuyRapidPaymentPercentage: 1446.7, BuyLastWeekRatio: 139.7, ExchangeName: "東証１部", IndustryName: "卸売業"},
+					{No: 2, SymbolCode: "6955", SymbolName: "ＦＤＫ", Ratio: 10536.5, SellRapidPaymentPercentage: 0.2, SellLastWeekRatio: -0.8, BuyRapidPaymentPercentage: 2107.3, BuyLastWeekRatio: 121.6, ExchangeName: "東証２部", IndustryName: "電気機器"},
+				}}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromRankingToMarginRanking(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromRankingToIndustryRanking(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  *kabus.RankingResponse
+		want *kabuspb.IndustryRanking
+	}{
+		{name: "ランキングの配列がnilなら空の配列が返される",
+			arg: &kabus.RankingResponse{Type: kabus.RankingTypePriceIncreaseRateByCategory, ExchangeDivision: kabus.ExchangeDivisionALL},
+			want: &kabuspb.IndustryRanking{
+				Type:             kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_INCREASE_RATE,
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking:          []*kabuspb.IndustryRankingInfo{}}},
+		{name: "ランキングの配列が空なら空の配列が返される",
+			arg: &kabus.RankingResponse{
+				Type:             kabus.RankingTypePriceIncreaseRateByCategory,
+				ExchangeDivision: kabus.ExchangeDivisionALL,
+				PriceRanking:     []kabus.PriceRanking{},
+			},
+			want: &kabuspb.IndustryRanking{
+				Type:             kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_INCREASE_RATE,
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking:          []*kabuspb.IndustryRankingInfo{}}},
+		{name: "ランキングの配列に要素が2つあるなら要素が2つの配列が返される",
+			arg: &kabus.RankingResponse{
+				Type:             kabus.RankingTypePriceIncreaseRateByCategory,
+				ExchangeDivision: kabus.ExchangeDivisionALL,
+				CategoryPriceRanking: []kabus.CategoryPriceRanking{
+					{No: 1, Trend: kabus.RankingTrendRise, AverageRanking: 18, Category: "343", CategoryName: "IS 空運", CurrentPrice: 170.97, ChangeRatio: 6.72, CurrentPriceTime: kabus.HmString{Time: time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)}, ChangePercentage: 4.09},
+					{No: 2, Trend: kabus.RankingTrendRise, AverageRanking: 16, Category: "341", CategoryName: "IS 陸運", CurrentPrice: 1895.49, ChangeRatio: 15.41, CurrentPriceTime: kabus.HmString{Time: time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)}, ChangePercentage: 0.82},
+				},
+			},
+			want: &kabuspb.IndustryRanking{
+				Type:             kabuspb.IndustryRankingType_INDUSTRY_RANKING_TYPE_INCREASE_RATE,
+				ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL,
+				Ranking: []*kabuspb.IndustryRankingInfo{
+					{No: 1, Trend: kabuspb.RankingTrend_RANKING_TREND_RISE, AverageRanking: 18, IndustryCode: "343", IndustryName: "IS 空運", CurrentPrice: 170.97, ChangeRatio: 6.72, CurrentPriceTime: timestamppb.New(time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)), ChangePercentage: 4.09},
+					{No: 2, Trend: kabuspb.RankingTrend_RANKING_TREND_RISE, AverageRanking: 16, IndustryCode: "341", IndustryName: "IS 陸運", CurrentPrice: 1895.49, ChangeRatio: 15.41, CurrentPriceTime: timestamppb.New(time.Date(0, 1, 1, 15, 0, 0, 0, time.Local)), ChangePercentage: 0.82},
+				}}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromRankingToIndustryRanking(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}

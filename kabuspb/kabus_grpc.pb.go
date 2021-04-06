@@ -25,6 +25,12 @@ type KabusServiceClient interface {
 	GetPositions(ctx context.Context, in *GetPositionsRequest, opts ...grpc.CallOption) (*Positions, error)
 	GetFutureSymbolCodeInfo(ctx context.Context, in *GetFutureSymbolCodeInfoRequest, opts ...grpc.CallOption) (*SymbolCodeInfo, error)
 	GetOptionSymbolCodeInfo(ctx context.Context, in *GetOptionSymbolCodeInfoRequest, opts ...grpc.CallOption) (*SymbolCodeInfo, error)
+	GetPriceRanking(ctx context.Context, in *GetPriceRankingRequest, opts ...grpc.CallOption) (*PriceRanking, error)
+	GetTickRanking(ctx context.Context, in *GetTickRankingRequest, opts ...grpc.CallOption) (*TickRanking, error)
+	GetVolumeRanking(ctx context.Context, in *GetVolumeRankingRequest, opts ...grpc.CallOption) (*VolumeRanking, error)
+	GetValueRanking(ctx context.Context, in *GetValueRankingRequest, opts ...grpc.CallOption) (*ValueRanking, error)
+	GetMarginRanking(ctx context.Context, in *GetMarginRankingRequest, opts ...grpc.CallOption) (*MarginRanking, error)
+	GetIndustryRanking(ctx context.Context, in *GetIndustryRankingRequest, opts ...grpc.CallOption) (*IndustryRanking, error)
 	GetRegisteredSymbols(ctx context.Context, in *GetRegisteredSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
 	RegisterSymbols(ctx context.Context, in *RegisterSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
 	UnregisterSymbols(ctx context.Context, in *UnregisterSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
@@ -111,6 +117,60 @@ func (c *kabusServiceClient) GetOptionSymbolCodeInfo(ctx context.Context, in *Ge
 	return out, nil
 }
 
+func (c *kabusServiceClient) GetPriceRanking(ctx context.Context, in *GetPriceRankingRequest, opts ...grpc.CallOption) (*PriceRanking, error) {
+	out := new(PriceRanking)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetPriceRanking", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) GetTickRanking(ctx context.Context, in *GetTickRankingRequest, opts ...grpc.CallOption) (*TickRanking, error) {
+	out := new(TickRanking)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetTickRanking", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) GetVolumeRanking(ctx context.Context, in *GetVolumeRankingRequest, opts ...grpc.CallOption) (*VolumeRanking, error) {
+	out := new(VolumeRanking)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetVolumeRanking", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) GetValueRanking(ctx context.Context, in *GetValueRankingRequest, opts ...grpc.CallOption) (*ValueRanking, error) {
+	out := new(ValueRanking)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetValueRanking", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) GetMarginRanking(ctx context.Context, in *GetMarginRankingRequest, opts ...grpc.CallOption) (*MarginRanking, error) {
+	out := new(MarginRanking)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetMarginRanking", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) GetIndustryRanking(ctx context.Context, in *GetIndustryRankingRequest, opts ...grpc.CallOption) (*IndustryRanking, error) {
+	out := new(IndustryRanking)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetIndustryRanking", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *kabusServiceClient) GetRegisteredSymbols(ctx context.Context, in *GetRegisteredSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error) {
 	out := new(RegisteredSymbols)
 	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetRegisteredSymbols", in, out, opts...)
@@ -159,6 +219,12 @@ type KabusServiceServer interface {
 	GetPositions(context.Context, *GetPositionsRequest) (*Positions, error)
 	GetFutureSymbolCodeInfo(context.Context, *GetFutureSymbolCodeInfoRequest) (*SymbolCodeInfo, error)
 	GetOptionSymbolCodeInfo(context.Context, *GetOptionSymbolCodeInfoRequest) (*SymbolCodeInfo, error)
+	GetPriceRanking(context.Context, *GetPriceRankingRequest) (*PriceRanking, error)
+	GetTickRanking(context.Context, *GetTickRankingRequest) (*TickRanking, error)
+	GetVolumeRanking(context.Context, *GetVolumeRankingRequest) (*VolumeRanking, error)
+	GetValueRanking(context.Context, *GetValueRankingRequest) (*ValueRanking, error)
+	GetMarginRanking(context.Context, *GetMarginRankingRequest) (*MarginRanking, error)
+	GetIndustryRanking(context.Context, *GetIndustryRankingRequest) (*IndustryRanking, error)
 	GetRegisteredSymbols(context.Context, *GetRegisteredSymbolsRequest) (*RegisteredSymbols, error)
 	RegisterSymbols(context.Context, *RegisterSymbolsRequest) (*RegisteredSymbols, error)
 	UnregisterSymbols(context.Context, *UnregisterSymbolsRequest) (*RegisteredSymbols, error)
@@ -193,6 +259,24 @@ func (UnimplementedKabusServiceServer) GetFutureSymbolCodeInfo(context.Context, 
 }
 func (UnimplementedKabusServiceServer) GetOptionSymbolCodeInfo(context.Context, *GetOptionSymbolCodeInfoRequest) (*SymbolCodeInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetOptionSymbolCodeInfo not implemented")
+}
+func (UnimplementedKabusServiceServer) GetPriceRanking(context.Context, *GetPriceRankingRequest) (*PriceRanking, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPriceRanking not implemented")
+}
+func (UnimplementedKabusServiceServer) GetTickRanking(context.Context, *GetTickRankingRequest) (*TickRanking, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTickRanking not implemented")
+}
+func (UnimplementedKabusServiceServer) GetVolumeRanking(context.Context, *GetVolumeRankingRequest) (*VolumeRanking, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetVolumeRanking not implemented")
+}
+func (UnimplementedKabusServiceServer) GetValueRanking(context.Context, *GetValueRankingRequest) (*ValueRanking, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetValueRanking not implemented")
+}
+func (UnimplementedKabusServiceServer) GetMarginRanking(context.Context, *GetMarginRankingRequest) (*MarginRanking, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMarginRanking not implemented")
+}
+func (UnimplementedKabusServiceServer) GetIndustryRanking(context.Context, *GetIndustryRankingRequest) (*IndustryRanking, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetIndustryRanking not implemented")
 }
 func (UnimplementedKabusServiceServer) GetRegisteredSymbols(context.Context, *GetRegisteredSymbolsRequest) (*RegisteredSymbols, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRegisteredSymbols not implemented")
@@ -363,6 +447,114 @@ func _KabusService_GetOptionSymbolCodeInfo_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _KabusService_GetPriceRanking_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPriceRankingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).GetPriceRanking(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/GetPriceRanking",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).GetPriceRanking(ctx, req.(*GetPriceRankingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_GetTickRanking_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTickRankingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).GetTickRanking(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/GetTickRanking",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).GetTickRanking(ctx, req.(*GetTickRankingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_GetVolumeRanking_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetVolumeRankingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).GetVolumeRanking(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/GetVolumeRanking",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).GetVolumeRanking(ctx, req.(*GetVolumeRankingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_GetValueRanking_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetValueRankingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).GetValueRanking(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/GetValueRanking",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).GetValueRanking(ctx, req.(*GetValueRankingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_GetMarginRanking_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMarginRankingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).GetMarginRanking(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/GetMarginRanking",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).GetMarginRanking(ctx, req.(*GetMarginRankingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_GetIndustryRanking_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetIndustryRankingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).GetIndustryRanking(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/GetIndustryRanking",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).GetIndustryRanking(ctx, req.(*GetIndustryRankingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _KabusService_GetRegisteredSymbols_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetRegisteredSymbolsRequest)
 	if err := dec(in); err != nil {
@@ -473,6 +665,30 @@ var KabusService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetOptionSymbolCodeInfo",
 			Handler:    _KabusService_GetOptionSymbolCodeInfo_Handler,
+		},
+		{
+			MethodName: "GetPriceRanking",
+			Handler:    _KabusService_GetPriceRanking_Handler,
+		},
+		{
+			MethodName: "GetTickRanking",
+			Handler:    _KabusService_GetTickRanking_Handler,
+		},
+		{
+			MethodName: "GetVolumeRanking",
+			Handler:    _KabusService_GetVolumeRanking_Handler,
+		},
+		{
+			MethodName: "GetValueRanking",
+			Handler:    _KabusService_GetValueRanking_Handler,
+		},
+		{
+			MethodName: "GetMarginRanking",
+			Handler:    _KabusService_GetMarginRanking_Handler,
+		},
+		{
+			MethodName: "GetIndustryRanking",
+			Handler:    _KabusService_GetIndustryRanking_Handler,
 		},
 		{
 			MethodName: "GetRegisteredSymbols",
