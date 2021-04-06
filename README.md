@@ -15,5 +15,6 @@ kabusapiを叩くためのgRPCサーバー
 
 `$ go run main.go -e=p -p=Password1234`
 
-* `e`: 環境。本番がp、検証がd
+* `e`: 環境。本番がp、検証がd。デフォルトd
 * `p`: パスワード。
+* `port`: ポート。デフォルト18082

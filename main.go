@@ -16,6 +16,7 @@ func main() {
 	// パスワード、本番か検証か
 	isProd := flag.String("e", "d", "environment d(develop) or p(production)")
 	password := flag.String("p", "", "password")
+	port := flag.String("port", "18082", "port")
 	flag.Parse()
 
 	if *password == "" {
@@ -27,7 +28,7 @@ func main() {
 	infra.InitSetting(*isProd == "p", *password)
 
 	// サーバーの起動
-	ln, err := net.Listen("tcp", ":18082")
+	ln, err := net.Listen("tcp", ":"+*port)
 	if err != nil {
 		log.Fatalln(err)
 	}
