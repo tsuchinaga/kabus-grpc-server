@@ -1399,6 +1399,7 @@ func Test_fromRankingTypeToPriceRankingType(t *testing.T) {
 	}{
 		{name: "未指定 を変換できる", arg: kabus.RankingTypeUnspecified, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_UNSPECIFIED},
 		{name: "値上がり率 を変換できる", arg: kabus.RankingTypePriceIncreaseRate, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_INCREASE_RATE},
+		{name: "値下がり率 を変換できる", arg: kabus.RankingTypePriceDecreaseRate, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_DECREASE_RATE},
 		{name: "売買高上位 を変換できる", arg: kabus.RankingTypeVolume, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_VOLUME},
 		{name: "売買代金 を変換できる", arg: kabus.RankingTypeValue, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_VALUE},
 		{name: "TICK回数 を変換できる", arg: kabus.RankingTypeTickCount, want: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_UNSPECIFIED},

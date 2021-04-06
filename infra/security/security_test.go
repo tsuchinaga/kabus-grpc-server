@@ -214,8 +214,8 @@ func Test_security_UnregisterAll(t *testing.T) {
 			unregisterAllWithContext2: errors.New("error message"),
 			hasError:                  true},
 		{name: "responseが返されたらresponseを変換して返す",
-			unregisterAllWithContext1: &kabus.UnregisterAllResponse{RegisterList: []kabus.RegisteredSymbol{}},
-			want:                      &kabuspb.RegisteredSymbols{Symbols: []*kabuspb.RegisterSymbol{}}},
+			unregisterAllWithContext1: &kabus.UnregisterAllResponse{RegisterList: []kabus.RegisteredSymbol{{Symbol: "1234", Exchange: kabus.ExchangeToushou}}},
+			want:                      &kabuspb.RegisteredSymbols{Symbols: []*kabuspb.RegisterSymbol{{Symbol: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}}},
 	}
 
 	for _, test := range tests {

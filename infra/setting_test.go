@@ -52,3 +52,13 @@ func Test_setting_IsProduction(t *testing.T) {
 		})
 	}
 }
+
+func Test_InitSetting_GetSetting(t *testing.T) {
+	t.Parallel()
+	InitSetting(false, "Password1234")
+	want := &setting{isProd: false, password: "Password1234"}
+	got := GetSetting()
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
+	}
+}
