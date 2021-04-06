@@ -1,5 +1,8 @@
 # kabus-grpc-server
 
+![pipeline.svg](https://gitlab.com/tsuchinaga/kabus-grpc-server/badges/master/pipeline.svg)
+![coverage.svg](https://gitlab.com/tsuchinaga/kabus-grpc-server/badges/master/coverage.svg)
+
 kabusapiを叩くためのgRPCサーバー
 
 複数ツールからkabusapiを利用するためにリクエストの受け口を一つにするために使う。
