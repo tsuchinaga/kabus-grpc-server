@@ -26,7 +26,7 @@ test-project:
     - go tool cover -func=cover.out
   coverage: '/^total:\s+\(statements\)\s+(\d+\.\d?%)\s*$/'
 
-document:
+pages:
   stage: deploy
   script:
     - apt update -y
