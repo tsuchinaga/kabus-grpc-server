@@ -36,6 +36,6 @@ document:
     - protoc --doc_out=./public --doc_opt=html,index.html kabuspb/*.proto
   artifacts:
     paths:
-      - doc
+      - public
   only:
     - master
