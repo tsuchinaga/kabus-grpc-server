@@ -33,7 +33,7 @@ document:
     - apt install -y protobuf-compiler
     - protoc --version
     - go get -u github.com/pseudomuto/protoc-gen-doc/cmd/protoc-gen-doc
-    - protoc --doc_out=./doc --doc_opt=html,index.html kabuspb/*.proto
+    - protoc --doc_out=./public --doc_opt=html,index.html kabuspb/*.proto
   artifacts:
     paths:
       - doc
