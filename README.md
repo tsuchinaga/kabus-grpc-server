@@ -22,6 +22,10 @@ kabusapiを叩くためのgRPCサーバー
 * `p`: パスワード。
 * `port`: ポート。デフォルト18082
 
+## 定義
+
+[https://tsuchinaga.gitlab.io/kabus-grpc-server/#kabuspb.KabusService](https://tsuchinaga.gitlab.io/kabus-grpc-server/#kabuspb.KabusService)
+
 ## 注意
 
 まだ開発中で全機能実装できていません。
