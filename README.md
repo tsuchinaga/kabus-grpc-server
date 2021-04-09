@@ -24,7 +24,9 @@ kabusapiを叩くためのgRPCサーバー
 
 ## 定義
 
-[https://tsuchinaga.gitlab.io/kabus-grpc-server/#kabuspb.KabusService](https://tsuchinaga.gitlab.io/kabus-grpc-server/#kabuspb.KabusService)
+[protobufファイル](./kabuspb/kabus.proto)
+
+[protobufドキュメント](https://tsuchinaga.gitlab.io/kabus-grpc-server/#kabuspb.KabusService)
 
 ## 注意
 

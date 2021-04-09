@@ -19,6 +19,10 @@ const _ = grpc.SupportPackageIsVersion7
 type KabusServiceClient interface {
 	GetToken(ctx context.Context, in *GetTokenRequest, opts ...grpc.CallOption) (*Token, error)
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*Token, error)
+	SendStockOrder(ctx context.Context, in *SendStockOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error)
+	SendMarginOrder(ctx context.Context, in *SendMarginOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error)
+	SendFutureOrder(ctx context.Context, in *SendFutureOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error)
+	SendOptionOrder(ctx context.Context, in *SendOptionOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error)
 	GetBoard(ctx context.Context, in *GetBoardRequest, opts ...grpc.CallOption) (*Board, error)
 	GetSymbol(ctx context.Context, in *GetSymbolRequest, opts ...grpc.CallOption) (*Symbol, error)
 	GetOrders(ctx context.Context, in *GetOrdersRequest, opts ...grpc.CallOption) (*Orders, error)
@@ -57,6 +61,42 @@ func (c *kabusServiceClient) GetToken(ctx context.Context, in *GetTokenRequest, 
 func (c *kabusServiceClient) RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*Token, error) {
 	out := new(Token)
 	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/RefreshToken", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) SendStockOrder(ctx context.Context, in *SendStockOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error) {
+	out := new(OrderResponse)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/SendStockOrder", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) SendMarginOrder(ctx context.Context, in *SendMarginOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error) {
+	out := new(OrderResponse)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/SendMarginOrder", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) SendFutureOrder(ctx context.Context, in *SendFutureOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error) {
+	out := new(OrderResponse)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/SendFutureOrder", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) SendOptionOrder(ctx context.Context, in *SendOptionOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error) {
+	out := new(OrderResponse)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/SendOptionOrder", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -213,6 +253,10 @@ func (c *kabusServiceClient) UnregisterAllSymbols(ctx context.Context, in *Unreg
 type KabusServiceServer interface {
 	GetToken(context.Context, *GetTokenRequest) (*Token, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*Token, error)
+	SendStockOrder(context.Context, *SendStockOrderRequest) (*OrderResponse, error)
+	SendMarginOrder(context.Context, *SendMarginOrderRequest) (*OrderResponse, error)
+	SendFutureOrder(context.Context, *SendFutureOrderRequest) (*OrderResponse, error)
+	SendOptionOrder(context.Context, *SendOptionOrderRequest) (*OrderResponse, error)
 	GetBoard(context.Context, *GetBoardRequest) (*Board, error)
 	GetSymbol(context.Context, *GetSymbolRequest) (*Symbol, error)
 	GetOrders(context.Context, *GetOrdersRequest) (*Orders, error)
@@ -241,6 +285,18 @@ func (UnimplementedKabusServiceServer) GetToken(context.Context, *GetTokenReques
 }
 func (UnimplementedKabusServiceServer) RefreshToken(context.Context, *RefreshTokenRequest) (*Token, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RefreshToken not implemented")
+}
+func (UnimplementedKabusServiceServer) SendStockOrder(context.Context, *SendStockOrderRequest) (*OrderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendStockOrder not implemented")
+}
+func (UnimplementedKabusServiceServer) SendMarginOrder(context.Context, *SendMarginOrderRequest) (*OrderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendMarginOrder not implemented")
+}
+func (UnimplementedKabusServiceServer) SendFutureOrder(context.Context, *SendFutureOrderRequest) (*OrderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendFutureOrder not implemented")
+}
+func (UnimplementedKabusServiceServer) SendOptionOrder(context.Context, *SendOptionOrderRequest) (*OrderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendOptionOrder not implemented")
 }
 func (UnimplementedKabusServiceServer) GetBoard(context.Context, *GetBoardRequest) (*Board, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBoard not implemented")
@@ -335,6 +391,78 @@ func _KabusService_RefreshToken_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KabusServiceServer).RefreshToken(ctx, req.(*RefreshTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_SendStockOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendStockOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).SendStockOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/SendStockOrder",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).SendStockOrder(ctx, req.(*SendStockOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_SendMarginOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendMarginOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).SendMarginOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/SendMarginOrder",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).SendMarginOrder(ctx, req.(*SendMarginOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_SendFutureOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendFutureOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).SendFutureOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/SendFutureOrder",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).SendFutureOrder(ctx, req.(*SendFutureOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_SendOptionOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SendOptionOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).SendOptionOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/SendOptionOrder",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).SendOptionOrder(ctx, req.(*SendOptionOrderRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -641,6 +769,22 @@ var KabusService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RefreshToken",
 			Handler:    _KabusService_RefreshToken_Handler,
+		},
+		{
+			MethodName: "SendStockOrder",
+			Handler:    _KabusService_SendStockOrder_Handler,
+		},
+		{
+			MethodName: "SendMarginOrder",
+			Handler:    _KabusService_SendMarginOrder_Handler,
+		},
+		{
+			MethodName: "SendFutureOrder",
+			Handler:    _KabusService_SendFutureOrder_Handler,
+		},
+		{
+			MethodName: "SendOptionOrder",
+			Handler:    _KabusService_SendOptionOrder_Handler,
 		},
 		{
 			MethodName: "GetBoard",

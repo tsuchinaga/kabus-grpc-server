@@ -11,8 +11,8 @@ import (
 	"gitlab.com/tsuchinaga/kabus-grpc-server/server/services"
 )
 
-func NewServer(security repositories.Security, tokenService services.TokenService, registerSymbolService services.RegisterSymbolService) kabuspb.KabusServiceServer {
-	return &server{security: security, tokenService: tokenService, registerSymbolService: registerSymbolService}
+func NewServer(security repositories.Security, tokenService services.TokenService, registerSymbolService services.RegisterSymbolService, setting repositories.Setting) kabuspb.KabusServiceServer {
+	return &server{security: security, tokenService: tokenService, registerSymbolService: registerSymbolService, setting: setting}
 }
 
 type server struct {
@@ -20,6 +20,7 @@ type server struct {
 	security              repositories.Security
 	tokenService          services.TokenService
 	registerSymbolService services.RegisterSymbolService
+	setting               repositories.Setting
 }
 
 func (s *server) GetToken(context.Context, *kabuspb.GetTokenRequest) (*kabuspb.Token, error) {
@@ -36,6 +37,42 @@ func (s *server) RefreshToken(context.Context, *kabuspb.RefreshTokenRequest) (*k
 		return nil, err
 	}
 	return &kabuspb.Token{Token: token, ExpiredAt: timestamppb.New(s.tokenService.GetExpiredAt())}, nil
+}
+
+func (s *server) SendStockOrder(ctx context.Context, req *kabuspb.SendStockOrderRequest) (*kabuspb.OrderResponse, error) {
+	token, err := s.tokenService.GetToken(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return s.security.SendOrderStock(ctx, token, req, s.setting.Password())
+}
+
+func (s *server) SendMarginOrder(ctx context.Context, req *kabuspb.SendMarginOrderRequest) (*kabuspb.OrderResponse, error) {
+	token, err := s.tokenService.GetToken(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return s.security.SendOrderMargin(ctx, token, req, s.setting.Password())
+}
+
+func (s *server) SendFutureOrder(ctx context.Context, req *kabuspb.SendFutureOrderRequest) (*kabuspb.OrderResponse, error) {
+	token, err := s.tokenService.GetToken(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return s.security.SendOrderFuture(ctx, token, req, s.setting.Password())
+}
+
+func (s *server) SendOptionOrder(ctx context.Context, req *kabuspb.SendOptionOrderRequest) (*kabuspb.OrderResponse, error) {
+	token, err := s.tokenService.GetToken(context.Background())
+	if err != nil {
+		return nil, err
+	}
+
+	return s.security.SendOrderOption(ctx, token, req, s.setting.Password())
 }
 
 func (s *server) GetBoard(ctx context.Context, req *kabuspb.GetBoardRequest) (*kabuspb.Board, error) {

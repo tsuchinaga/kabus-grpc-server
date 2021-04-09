@@ -1957,3 +1957,675 @@ func Test_fromRankingToIndustryRanking(t *testing.T) {
 		})
 	}
 }
+
+func Test_toStockExchange(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.StockExchange
+		want kabus.StockExchange
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.StockExchange_STOCK_EXCHANGE_UNSPECIFIED, want: kabus.StockExchangeUnspecified},
+		{name: "東証 を変換できる", arg: kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU, want: kabus.StockExchangeToushou},
+		{name: "名証 を変換できる", arg: kabuspb.StockExchange_STOCK_EXCHANGE_MEISHOU, want: kabus.StockExchangeMeishou},
+		{name: "福証 を変換できる", arg: kabuspb.StockExchange_STOCK_EXCHANGE_FUKUSHOU, want: kabus.StockExchangeFukushou},
+		{name: "札証 を変換できる", arg: kabuspb.StockExchange_STOCK_EXCHANGE_SATSUSHOU, want: kabus.StockExchangeSatsushou},
+		{name: "未定義 を変換できる", arg: kabuspb.StockExchange(-1), want: kabus.StockExchangeUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toStockExchange(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toMarginTradeType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.MarginTradeType
+		want kabus.MarginTradeType
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_UNSPECIFIED, want: kabus.MarginTradeTypeUnspecified},
+		{name: "制度信用 を変換できる", arg: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_SYSTEM, want: kabus.MarginTradeTypeSystem},
+		{name: "一般信用 を変換できる", arg: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_LONG, want: kabus.MarginTradeTypeGeneralLong},
+		{name: "一般信用(売短) を変換できる", arg: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_SHORT, want: kabus.MarginTradeTypeGeneralShort},
+		{name: "未定義 を変換できる", arg: kabuspb.MarginTradeType(-1), want: kabus.MarginTradeTypeUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toMarginTradeType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toDelivType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.DeliveryType
+		want kabus.DelivType
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.DeliveryType_DELIVERY_TYPE_UNSPECIFIED, want: kabus.DelivTypeUnspecified},
+		{name: "自動振替 を変換できる", arg: kabuspb.DeliveryType_DELIVERY_TYPE_AUTO, want: kabus.DelivTypeAuto},
+		{name: "お預り金 を変換できる", arg: kabuspb.DeliveryType_DELIVERY_TYPE_CASH, want: kabus.DelivTypeCash},
+		{name: "未定義 を変換できる", arg: kabuspb.DeliveryType(-1), want: kabus.DelivTypeUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toDelivType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toFundType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.FundType
+		want kabus.FundType
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.FundType_FUND_TYPE_UNSPECIFIED, want: kabus.FundTypeUnspecified},
+		{name: "保護 を変換できる", arg: kabuspb.FundType_FUND_TYPE_PROTECTED, want: kabus.FundTypeProtected},
+		{name: "信用代用 を変換できる", arg: kabuspb.FundType_FUND_TYPE_SUBSTITUTE_MARGIN, want: kabus.FundTypeTransferMargin},
+		{name: "信用取引 を変換できる", arg: kabuspb.FundType_FUND_TYPE_MARGIN_TRADING, want: kabus.FundTypeMarginTrading},
+		{name: "未定義 を変換できる", arg: kabuspb.FundType(-1), want: kabus.FundTypeUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toFundType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toAccountType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.AccountType
+		want kabus.AccountType
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.AccountType_ACCOUNT_TYPE_UNSPECIFIED, want: kabus.AccountTypeUnspecified},
+		{name: "一般 を変換できる", arg: kabuspb.AccountType_ACCOUNT_TYPE_GENERAL, want: kabus.AccountTypeGeneral},
+		{name: "特定 を変換できる", arg: kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC, want: kabus.AccountTypeSpecific},
+		{name: "法人 を変換できる", arg: kabuspb.AccountType_ACCOUNT_TYPE_CORPORATION, want: kabus.AccountTypeCorporation},
+		{name: "未定義 を変換できる", arg: kabuspb.AccountType(-1), want: kabus.AccountTypeUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toAccountType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toStockFrontOrderType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.StockOrderType
+		want kabus.StockFrontOrderType
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.StockOrderType_STOCK_ORDER_TYPE_UNSPECIFIED, want: kabus.StockFrontOrderTypeUnspecified},
+		{name: "成行 を変換できる", arg: kabuspb.StockOrderType_STOCK_ORDER_TYPE_MO, want: kabus.StockFrontOrderTypeMarket},
+		{name: "寄成（前場） を変換できる", arg: kabuspb.StockOrderType_STOCK_ORDER_TYPE_MOOM, want: kabus.StockFrontOrderTypeMOOM},
+		{name: "寄成（後場） を変換できる", arg: kabuspb.StockOrderType_STOCK_ORDER_TYPE_MOOA, want: kabus.StockFrontOrderTypeMOOA},
+		{name: "引成（前場） を変換できる", arg: kabuspb.StockOrderType_STOCK_ORDER_TYPE_MOCM, want: kabus.StockFrontOrderTypeMOCM},
+		{name: "引成（後場） を変換できる", arg: kabuspb.StockOrderType_STOCK_ORDER_TYPE_MOCA, want: kabus.StockFrontOrderTypeMOCA},
+		{name: "IOC成行 を変換できる", arg: kabuspb.StockOrderType_STOCK_ORDER_TYPE_IOC_MO, want: kabus.StockFrontOrderTypeIOCMarket},
+		{name: "指値 を変換できる", arg: kabuspb.StockOrderType_STOCK_ORDER_TYPE_LO, want: kabus.StockFrontOrderTypeLimit},
+		{name: "寄指（前場） を変換できる", arg: kabuspb.StockOrderType_STOCK_ORDER_TYPE_LOOM, want: kabus.StockFrontOrderTypeLOOM},
+		{name: "寄指（後場） を変換できる", arg: kabuspb.StockOrderType_STOCK_ORDER_TYPE_LOOA, want: kabus.StockFrontOrderTypeLOOA},
+		{name: "引指（前場） を変換できる", arg: kabuspb.StockOrderType_STOCK_ORDER_TYPE_LOCM, want: kabus.StockFrontOrderTypeLOCM},
+		{name: "引指（後場） を変換できる", arg: kabuspb.StockOrderType_STOCK_ORDER_TYPE_LOCA, want: kabus.StockFrontOrderTypeLOCA},
+		{name: "不成（前場） を変換できる", arg: kabuspb.StockOrderType_STOCK_ORDER_TYPE_FUNARI_M, want: kabus.StockFrontOrderTypeFunariM},
+		{name: "不成（後場） を変換できる", arg: kabuspb.StockOrderType_STOCK_ORDER_TYPE_FUNARI_A, want: kabus.StockFrontOrderTypeFunariA},
+		{name: "IOC指値 を変換できる", arg: kabuspb.StockOrderType_STOCK_ORDER_TYPE_IOC_LO, want: kabus.StockFrontOrderTypeIOCLimit},
+		{name: "未定義 を変換できる", arg: kabuspb.StockOrderType(-1), want: kabus.StockFrontOrderTypeUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toStockFrontOrderType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toExpireDay(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  *timestamppb.Timestamp
+		want kabus.YmdNUM
+	}{
+		{name: "nilならTodayが設定される", arg: nil, want: kabus.YmdNUMToday},
+		{name: "ゼロ値ならTodayが設定される", arg: timestamppb.New(time.Time{}), want: kabus.YmdNUMToday},
+		{name: "ゼロ値じゃなければ与えられた日付が設定される",
+			arg:  timestamppb.New(time.Date(2021, 4, 8, 14, 30, 0, 0, time.Local)),
+			want: kabus.NewYmdNUM(time.Date(2021, 4, 8, 14, 30, 0, 0, time.Local))},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toExpireDay(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toFutureExchange(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.FutureExchange
+		want kabus.FutureExchange
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.FutureExchange_FUTURE_EXCHANGE_UNSPECIFIED, want: kabus.FutureExchangeUnspecified},
+		{name: "日通し を変換できる", arg: kabuspb.FutureExchange_FUTURE_EXCHANGE_ALL_SESSION, want: kabus.FutureExchangeAll},
+		{name: "日中 を変換できる", arg: kabuspb.FutureExchange_FUTURE_EXCHANGE_DAY_SESSION, want: kabus.FutureExchangeDaytime},
+		{name: "夜間 を変換できる", arg: kabuspb.FutureExchange_FUTURE_EXCHANGE_NIGHT_SESSION, want: kabus.FutureExchangeEvening},
+		{name: "未定義 を変換できる", arg: kabuspb.FutureExchange(-1), want: kabus.FutureExchangeUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toFutureExchange(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toTradeType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.TradeType
+		want kabus.TradeType
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.TradeType_TRADE_TYPE_UNSPECIFIED, want: kabus.TradeTypeUnspecified},
+		{name: "新規 を変換できる", arg: kabuspb.TradeType_TRADE_TYPE_ENTRY, want: kabus.TradeTypeEntry},
+		{name: "返済 を変換できる", arg: kabuspb.TradeType_TRADE_TYPE_EXIT, want: kabus.TradeTypeExit},
+		{name: "未定義 を変換できる", arg: kabuspb.TradeType(-1), want: kabus.TradeTypeUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toTradeType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toTimeInForce(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.TimeInForce
+		want kabus.TimeInForce
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.TimeInForce_TIME_IN_FORCE_UNSPECIFIED, want: kabus.TimeInForceUnspecified},
+		{name: "FAS を変換できる", arg: kabuspb.TimeInForce_TIME_IN_FORCE_FAS, want: kabus.TimeInForceFAS},
+		{name: "FAK を変換できる", arg: kabuspb.TimeInForce_TIME_IN_FORCE_FAK, want: kabus.TimeInForceFAK},
+		{name: "FOK を変換できる", arg: kabuspb.TimeInForce_TIME_IN_FORCE_FOK, want: kabus.TimeInForceFOK},
+		{name: "未定義 を変換できる", arg: kabuspb.TimeInForce(-1), want: kabus.TimeInForceUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toTimeInForce(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toFutureFrontOrderType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.FutureOrderType
+		want kabus.FutureFrontOrderType
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.FutureOrderType_FUTURE_ORDER_TYPE_UNSPECIFIED, want: kabus.FutureFrontOrderTypeUnspecified},
+		{name: "成行 を変換できる", arg: kabuspb.FutureOrderType_FUTURE_ORDER_TYPE_MO, want: kabus.FutureFrontOrderTypeMarket},
+		{name: "引成（派生） を変換できる", arg: kabuspb.FutureOrderType_FUTURE_ORDER_TYPE_MOC, want: kabus.FutureFrontOrderTypeMarketClose},
+		{name: "指値 を変換できる", arg: kabuspb.FutureOrderType_FUTURE_ORDER_TYPE_LO, want: kabus.FutureFrontOrderTypeLimit},
+		{name: "引指（派生） を変換できる", arg: kabuspb.FutureOrderType_FUTURE_ORDER_TYPE_LOC, want: kabus.FutureFrontOrderTypeLimitClose},
+		{name: "未定義 を変換できる", arg: kabuspb.FutureOrderType(-1), want: kabus.FutureFrontOrderTypeUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toFutureFrontOrderType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toOptionExchange(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.OptionExchange
+		want kabus.OptionExchange
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.OptionExchange_OPTION_EXCHANGE_UNSPECIFIED, want: kabus.OptionExchangeUnspecified},
+		{name: "日通し を変換できる", arg: kabuspb.OptionExchange_OPTION_EXCHANGE_ALL_SESSION, want: kabus.OptionExchangeAll},
+		{name: "日中 を変換できる", arg: kabuspb.OptionExchange_OPTION_EXCHANGE_DAY_SESSION, want: kabus.OptionExchangeDaytime},
+		{name: "夜間 を変換できる", arg: kabuspb.OptionExchange_OPTION_EXCHANGE_NIGHT_SESSION, want: kabus.OptionExchangeEvening},
+		{name: "未定義 を変換できる", arg: kabuspb.OptionExchange(-1), want: kabus.OptionExchangeUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toOptionExchange(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toOptionFrontOrderType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.OptionOrderType
+		want kabus.OptionFrontOrderType
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.OptionOrderType_OPTION_ORDER_TYPE_UNSPECIFIED, want: kabus.OptionFrontOrderTypeUnspecified},
+		{name: "成行 を変換できる", arg: kabuspb.OptionOrderType_OPTION_ORDER_TYPE_MO, want: kabus.OptionFrontOrderTypeMarket},
+		{name: "引成（派生） を変換できる", arg: kabuspb.OptionOrderType_OPTION_ORDER_TYPE_MOC, want: kabus.OptionFrontOrderTypeMarketClose},
+		{name: "指値 を変換できる", arg: kabuspb.OptionOrderType_OPTION_ORDER_TYPE_LO, want: kabus.OptionFrontOrderTypeLimit},
+		{name: "引指（派生） を変換できる", arg: kabuspb.OptionOrderType_OPTION_ORDER_TYPE_LOC, want: kabus.OptionFrontOrderTypeLimitClose},
+		{name: "未定義 を変換できる", arg: kabuspb.OptionOrderType(-1), want: kabus.OptionFrontOrderTypeUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toOptionFrontOrderType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toClosePositions(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  []*kabuspb.ClosePosition
+		want []kabus.ClosePosition
+	}{
+		{name: "nilならnilを返す", arg: nil, want: nil},
+		{name: "空配列なら空配列を返す", arg: []*kabuspb.ClosePosition{}, want: []kabus.ClosePosition{}},
+		{name: "要素が2つの配列なら要素が2つの配列を返す", arg: []*kabuspb.ClosePosition{
+			{ExecutionId: "20200715A02N04738436", Quantity: 100},
+			{ExecutionId: "20200715A02N04738437", Quantity: 300},
+		}, want: []kabus.ClosePosition{
+			{HoldID: "20200715A02N04738436", Qty: 100},
+			{HoldID: "20200715A02N04738437", Qty: 300},
+		}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toClosePositions(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toSendOrderStockRequestFromSendStockOrderRequest(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg1 *kabuspb.SendStockOrderRequest
+		arg2 string
+		want kabus.SendOrderStockRequest
+	}{
+		{name: "現物買なら指定したDelivTypeが設定される",
+			arg1: &kabuspb.SendStockOrderRequest{
+				SymbolCode:   "1320",
+				Exchange:     kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU,
+				Side:         kabuspb.Side_SIDE_BUY,
+				DeliveryType: kabuspb.DeliveryType_DELIVERY_TYPE_CASH,
+				FundType:     kabuspb.FundType_FUND_TYPE_MARGIN_TRADING,
+				AccountType:  kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC,
+				Quantity:     3,
+				OrderType:    kabuspb.StockOrderType_STOCK_ORDER_TYPE_MO,
+				Price:        0,
+				ExpireDay:    nil,
+			},
+			arg2: "PASSWORD",
+			want: kabus.SendOrderStockRequest{
+				Password:        "PASSWORD",
+				Symbol:          "1320",
+				Exchange:        kabus.StockExchangeToushou,
+				SecurityType:    kabus.SecurityTypeStock,
+				Side:            kabus.SideBuy,
+				CashMargin:      kabus.CashMarginCash,
+				MarginTradeType: kabus.MarginTradeTypeUnspecified,
+				DelivType:       kabus.DelivTypeCash,
+				FundType:        kabus.FundTypeMarginTrading,
+				AccountType:     kabus.AccountTypeSpecific,
+				Qty:             3,
+				Price:           0,
+				ExpireDay:       kabus.YmdNUMToday,
+				FrontOrderType:  kabus.StockFrontOrderTypeMarket,
+			}},
+		{name: "現物売ならDelivTypeに未指定が設定される",
+			arg1: &kabuspb.SendStockOrderRequest{
+				SymbolCode:   "1320",
+				Exchange:     kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU,
+				Side:         kabuspb.Side_SIDE_SELL,
+				DeliveryType: kabuspb.DeliveryType_DELIVERY_TYPE_CASH,
+				FundType:     kabuspb.FundType_FUND_TYPE_MARGIN_TRADING,
+				AccountType:  kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC,
+				Quantity:     3,
+				OrderType:    kabuspb.StockOrderType_STOCK_ORDER_TYPE_MO,
+				Price:        0,
+				ExpireDay:    nil,
+			},
+			arg2: "PASSWORD",
+			want: kabus.SendOrderStockRequest{
+				Password:        "PASSWORD",
+				Symbol:          "1320",
+				Exchange:        kabus.StockExchangeToushou,
+				SecurityType:    kabus.SecurityTypeStock,
+				Side:            kabus.SideSell,
+				CashMargin:      kabus.CashMarginCash,
+				MarginTradeType: kabus.MarginTradeTypeUnspecified,
+				DelivType:       kabus.DelivTypeUnspecified,
+				FundType:        kabus.FundTypeUnspecified,
+				AccountType:     kabus.AccountTypeSpecific,
+				Qty:             3,
+				Price:           0,
+				ExpireDay:       kabus.YmdNUMToday,
+				FrontOrderType:  kabus.StockFrontOrderTypeMarket,
+			}},
+		{name: "現物買なら指定したFundTypeが設定される",
+			arg1: &kabuspb.SendStockOrderRequest{
+				SymbolCode:   "1320",
+				Exchange:     kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU,
+				Side:         kabuspb.Side_SIDE_BUY,
+				DeliveryType: kabuspb.DeliveryType_DELIVERY_TYPE_CASH,
+				FundType:     kabuspb.FundType_FUND_TYPE_MARGIN_TRADING,
+				AccountType:  kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC,
+				Quantity:     3,
+				OrderType:    kabuspb.StockOrderType_STOCK_ORDER_TYPE_MO,
+				Price:        0,
+				ExpireDay:    nil,
+			},
+			arg2: "PASSWORD",
+			want: kabus.SendOrderStockRequest{
+				Password:        "PASSWORD",
+				Symbol:          "1320",
+				Exchange:        kabus.StockExchangeToushou,
+				SecurityType:    kabus.SecurityTypeStock,
+				Side:            kabus.SideBuy,
+				CashMargin:      kabus.CashMarginCash,
+				MarginTradeType: kabus.MarginTradeTypeUnspecified,
+				DelivType:       kabus.DelivTypeCash,
+				FundType:        kabus.FundTypeMarginTrading,
+				AccountType:     kabus.AccountTypeSpecific,
+				Qty:             3,
+				Price:           0,
+				ExpireDay:       kabus.YmdNUMToday,
+				FrontOrderType:  kabus.StockFrontOrderTypeMarket,
+			}},
+		{name: "現物売ならFundTypeに未指定が設定される",
+			arg1: &kabuspb.SendStockOrderRequest{
+				SymbolCode:   "1320",
+				Exchange:     kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU,
+				Side:         kabuspb.Side_SIDE_SELL,
+				DeliveryType: kabuspb.DeliveryType_DELIVERY_TYPE_CASH,
+				FundType:     kabuspb.FundType_FUND_TYPE_MARGIN_TRADING,
+				AccountType:  kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC,
+				Quantity:     3,
+				OrderType:    kabuspb.StockOrderType_STOCK_ORDER_TYPE_MO,
+				Price:        0,
+				ExpireDay:    nil,
+			},
+			arg2: "PASSWORD",
+			want: kabus.SendOrderStockRequest{
+				Password:        "PASSWORD",
+				Symbol:          "1320",
+				Exchange:        kabus.StockExchangeToushou,
+				SecurityType:    kabus.SecurityTypeStock,
+				Side:            kabus.SideSell,
+				CashMargin:      kabus.CashMarginCash,
+				MarginTradeType: kabus.MarginTradeTypeUnspecified,
+				DelivType:       kabus.DelivTypeUnspecified,
+				FundType:        kabus.FundTypeUnspecified,
+				AccountType:     kabus.AccountTypeSpecific,
+				Qty:             3,
+				Price:           0,
+				ExpireDay:       kabus.YmdNUMToday,
+				FrontOrderType:  kabus.StockFrontOrderTypeMarket,
+			}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toSendOrderStockRequestFromSendStockOrderRequest(test.arg1, test.arg2)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toSendOrderStockRequestFromSendMarginOrderRequest(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg1 *kabuspb.SendMarginOrderRequest
+		arg2 string
+		want kabus.SendOrderStockRequest
+	}{
+		{name: "Exitなら指定したDelivTypeが設定される",
+			arg1: &kabuspb.SendMarginOrderRequest{
+				SymbolCode:      "1320",
+				Exchange:        kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU,
+				Side:            kabuspb.Side_SIDE_BUY,
+				TradeType:       kabuspb.TradeType_TRADE_TYPE_EXIT,
+				MarginTradeType: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_SYSTEM,
+				DeliveryType:    kabuspb.DeliveryType_DELIVERY_TYPE_CASH,
+				AccountType:     kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC,
+				Quantity:        3,
+				ClosePositions:  []*kabuspb.ClosePosition{{ExecutionId: "POSITION-ID", Quantity: 3}},
+				OrderType:       kabuspb.StockOrderType_STOCK_ORDER_TYPE_MO,
+				Price:           0,
+				ExpireDay:       nil,
+			},
+			arg2: "PASSWORD",
+			want: kabus.SendOrderStockRequest{
+				Password:        "PASSWORD",
+				Symbol:          "1320",
+				Exchange:        kabus.StockExchangeToushou,
+				SecurityType:    kabus.SecurityTypeStock,
+				Side:            kabus.SideBuy,
+				CashMargin:      kabus.CashMarginMarginExit,
+				MarginTradeType: kabus.MarginTradeTypeSystem,
+				DelivType:       kabus.DelivTypeCash,
+				AccountType:     kabus.AccountTypeSpecific,
+				Qty:             3,
+				ClosePositions:  []kabus.ClosePosition{{HoldID: "POSITION-ID", Qty: 3}},
+				Price:           0,
+				ExpireDay:       kabus.YmdNUMToday,
+				FrontOrderType:  kabus.StockFrontOrderTypeMarket,
+			}},
+		{name: "EntryならDelivTypeに未指定が設定される",
+			arg1: &kabuspb.SendMarginOrderRequest{
+				SymbolCode:      "1320",
+				Exchange:        kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU,
+				Side:            kabuspb.Side_SIDE_BUY,
+				TradeType:       kabuspb.TradeType_TRADE_TYPE_ENTRY,
+				MarginTradeType: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_SYSTEM,
+				DeliveryType:    kabuspb.DeliveryType_DELIVERY_TYPE_CASH,
+				AccountType:     kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC,
+				Quantity:        3,
+				ClosePositions:  []*kabuspb.ClosePosition{{ExecutionId: "POSITION-ID", Quantity: 3}},
+				OrderType:       kabuspb.StockOrderType_STOCK_ORDER_TYPE_MO,
+				Price:           0,
+				ExpireDay:       nil,
+			},
+			arg2: "PASSWORD",
+			want: kabus.SendOrderStockRequest{
+				Password:        "PASSWORD",
+				Symbol:          "1320",
+				Exchange:        kabus.StockExchangeToushou,
+				SecurityType:    kabus.SecurityTypeStock,
+				Side:            kabus.SideBuy,
+				CashMargin:      kabus.CashMarginMarginEntry,
+				MarginTradeType: kabus.MarginTradeTypeSystem,
+				DelivType:       kabus.DelivTypeUnspecified,
+				AccountType:     kabus.AccountTypeSpecific,
+				Qty:             3,
+				ClosePositions:  []kabus.ClosePosition{{HoldID: "POSITION-ID", Qty: 3}},
+				Price:           0,
+				ExpireDay:       kabus.YmdNUMToday,
+				FrontOrderType:  kabus.StockFrontOrderTypeMarket,
+			}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toSendOrderStockRequestFromSendMarginOrderRequest(test.arg1, test.arg2)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toSendOrderFutureRequest(t *testing.T) {
+	t.Parallel()
+	want := kabus.SendOrderFutureRequest{
+		Password:       "PASSWORD",
+		Symbol:         "165120018",
+		Exchange:       kabus.FutureExchangeAll,
+		TradeType:      kabus.TradeTypeExit,
+		TimeInForce:    kabus.TimeInForceFOK,
+		Side:           kabus.SideSell,
+		Qty:            3,
+		ClosePositions: []kabus.ClosePosition{{HoldID: "POSITION-ID", Qty: 3}},
+		FrontOrderType: kabus.FutureFrontOrderTypeMarket,
+		Price:          0,
+		ExpireDay:      kabus.YmdNUMToday,
+	}
+	got := toSendOrderFutureRequest(&kabuspb.SendFutureOrderRequest{
+		SymbolCode:     "165120018",
+		Exchange:       kabuspb.FutureExchange_FUTURE_EXCHANGE_ALL_SESSION,
+		TradeType:      kabuspb.TradeType_TRADE_TYPE_EXIT,
+		TimeInForce:    kabuspb.TimeInForce_TIME_IN_FORCE_FOK,
+		Side:           kabuspb.Side_SIDE_SELL,
+		Quantity:       3,
+		ClosePositions: []*kabuspb.ClosePosition{{ExecutionId: "POSITION-ID", Quantity: 3}},
+		OrderType:      kabuspb.FutureOrderType_FUTURE_ORDER_TYPE_MO,
+		Price:          0,
+		ExpireDay:      nil,
+	}, "PASSWORD")
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
+	}
+}
+
+func Test_toSendOrderOptionRequest(t *testing.T) {
+	t.Parallel()
+	want := kabus.SendOrderOptionRequest{
+		Password:       "PASSWORD",
+		Symbol:         "165120018",
+		Exchange:       kabus.OptionExchangeAll,
+		TradeType:      kabus.TradeTypeExit,
+		TimeInForce:    kabus.TimeInForceFOK,
+		Side:           kabus.SideSell,
+		Qty:            3,
+		ClosePositions: []kabus.ClosePosition{{HoldID: "POSITION-ID", Qty: 3}},
+		FrontOrderType: kabus.OptionFrontOrderTypeMarket,
+		Price:          0,
+		ExpireDay:      kabus.YmdNUMToday,
+	}
+	got := toSendOrderOptionRequest(&kabuspb.SendOptionOrderRequest{
+		SymbolCode:     "165120018",
+		Exchange:       kabuspb.OptionExchange_OPTION_EXCHANGE_ALL_SESSION,
+		TradeType:      kabuspb.TradeType_TRADE_TYPE_EXIT,
+		TimeInForce:    kabuspb.TimeInForce_TIME_IN_FORCE_FOK,
+		Side:           kabuspb.Side_SIDE_SELL,
+		Quantity:       3,
+		ClosePositions: []*kabuspb.ClosePosition{{ExecutionId: "POSITION-ID", Quantity: 3}},
+		OrderType:      kabuspb.OptionOrderType_OPTION_ORDER_TYPE_MO,
+		Price:          0,
+		ExpireDay:      nil,
+	}, "PASSWORD")
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
+	}
+}

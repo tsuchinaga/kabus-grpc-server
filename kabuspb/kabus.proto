@@ -9,6 +9,10 @@ import "google/protobuf/timestamp.proto";
 service KabusService {
   rpc GetToken(GetTokenRequest) returns (Token); // トークン取得
   rpc RefreshToken(RefreshTokenRequest) returns (Token); // トークン再取得
+  rpc SendStockOrder(SendStockOrderRequest) returns (OrderResponse); // 注文発注（現物）
+  rpc SendMarginOrder(SendMarginOrderRequest) returns (OrderResponse); // 注文発注（現物）
+  rpc SendFutureOrder(SendFutureOrderRequest) returns (OrderResponse); // 注文発注（先物）
+  rpc SendOptionOrder(SendOptionOrderRequest) returns (OrderResponse); // 注文発注（オプション）
   rpc GetBoard(GetBoardRequest) returns (Board); // 時価情報・板情報
   rpc GetSymbol(GetSymbolRequest) returns (Symbol); // 銘柄情報
   rpc GetOrders(GetOrdersRequest) returns (Orders); // 注文約定照会
@@ -33,6 +37,169 @@ message GetTokenRequest {}
 // トークン再取得リクエスト
 message RefreshTokenRequest {}
 
+// 注文発注（現物）リクエスト
+message SendStockOrderRequest {
+  // 銘柄コード
+  string symbol_code = 1;
+
+  // 市場コード
+  StockExchange exchange = 2;
+
+  // 売買区分
+  Side side = 3;
+
+  // 受渡区分
+  DeliveryType delivery_type = 4;
+
+  // 資産区分（預り区分）
+  FundType fund_type = 5;
+
+  // 口座種別
+  AccountType account_type = 6;
+
+  // 注文数量
+  double quantity = 7;
+
+  // 執行条件
+  StockOrderType order_type = 8;
+
+  // 注文価格
+  double price = 9;
+
+  // 注文有効期限
+  //   ゼロ値なら当日
+  //   引けまでの間 : 当日
+  //   引け後 : 翌取引所営業日
+  //   休前日 : 休日明けの取引所営業日
+  google.protobuf.Timestamp expire_day = 10;
+}
+
+// 注文発注（信用）リクエスト
+message SendMarginOrderRequest {
+  // 銘柄コード
+  string symbol_code = 1;
+
+  // 市場コード
+  StockExchange exchange = 2;
+
+  // 売買区分
+  Side side = 3;
+
+  // 取引区分
+  TradeType trade_type = 4;
+
+  // 信用取引区分
+  MarginTradeType margin_trade_type = 5;
+
+  // 受渡区分
+  DeliveryType delivery_type = 6;
+
+  // 口座種別
+  AccountType account_type = 7;
+
+  // 注文数量
+  double quantity = 8;
+
+  // 返済建玉指定
+  repeated ClosePosition close_positions = 9;
+
+  // 執行条件
+  StockOrderType order_type = 10;
+
+  // 注文価格
+  double price = 11;
+
+  // 注文有効期限
+  //   ゼロ値なら当日
+  //   引けまでの間 : 当日
+  //   引け後 : 翌取引所営業日
+  //   休前日 : 休日明けの取引所営業日
+  google.protobuf.Timestamp expire_day = 12;
+}
+
+// 注文発注（先物）リクエスト
+message SendFutureOrderRequest {
+  // 銘柄コード
+  string symbol_code = 1;
+
+  // 市場コード
+  FutureExchange exchange = 2;
+
+  // 取引区分
+  TradeType trade_type = 3;
+
+  // 有効期間条件
+  TimeInForce time_in_force = 4;
+
+  // 売買区分
+  Side side = 5;
+
+  // 注文数量
+  double quantity = 6;
+
+  // 返済建玉指定
+  repeated ClosePosition close_positions = 7;
+
+  // 執行条件
+  FutureOrderType order_type = 8;
+
+  // 注文価格
+  double price = 9;
+
+  // 注文有効期限
+  //   ゼロ値なら当日
+  //   引けまでの間 : 当日
+  //   引け後 : 翌取引所営業日
+  //   休前日 : 休日明けの取引所営業日
+  google.protobuf.Timestamp expire_day = 10;
+}
+
+// 注文発注（オプション）リクエスト
+message SendOptionOrderRequest {
+  // 銘柄コード
+  string symbol_code = 1;
+
+  // 市場コード
+  OptionExchange exchange = 2;
+
+  // 取引区分
+  TradeType trade_type = 3;
+
+  // 有効期間条件
+  TimeInForce time_in_force = 4;
+
+  // 売買区分
+  Side side = 5;
+
+  // 注文数量
+  double quantity = 6;
+
+  // 返済建玉指定
+  repeated ClosePosition close_positions = 7;
+
+  // 執行条件
+  OptionOrderType order_type = 8;
+
+  // 注文価格
+  double price = 9;
+
+  // 注文有効期限
+  //   ゼロ値なら当日
+  //   引けまでの間 : 当日
+  //   引け後 : 翌取引所営業日
+  //   休前日 : 休日明けの取引所営業日
+  google.protobuf.Timestamp expire_day = 10;
+}
+
+// 返済建玉指定
+message ClosePosition {
+  // 返済建玉ID
+  string execution_id = 1;
+
+  // 返済建玉数量
+  double quantity = 2;
+}
+
 // 時価情報・板情報リクエスト
 message GetBoardRequest {
   string symbol_code = 1;
@@ -51,13 +218,13 @@ message GetOrdersRequest {
   Product product = 1;
 
   // 注文番号
-  //   指定された注文番号と一致する注文のみレスポンスします。
-  //   指定された注文番号との比較では大文字小文字を区別しません。
-  //   複数の注文番号を指定することはできません。
+  //   指定された注文番号と一致する注文のみレスポンスします
+  //   指定された注文番号との比較では大文字小文字を区別しません
+  //   複数の注文番号を指定することはできません
   string id = 2;
 
   // 更新日時
-  //   指定された更新日時以降（指定日時含む）に更新された注文のみレスポンスします。
+  //   指定された更新日時以降（指定日時含む）に更新された注文のみレスポンスします
   //   複数の更新日時を指定することはできません
   google.protobuf.Timestamp update_time = 3;
 
@@ -65,23 +232,23 @@ message GetOrdersRequest {
   bool get_details = 4;
 
   // 銘柄コード
-  //   指定された銘柄コードと一致する注文のみレスポンスします。
-  //   複数の銘柄コードを指定することができません。
+  //   指定された銘柄コードと一致する注文のみレスポンスします
+  //   複数の銘柄コードを指定することができません
   string symbol = 5;
 
   // 状態
-  //   指定された状態と一致する注文のみレスポンスします。
-  //   複数の状態を指定することはできません。
+  //   指定された状態と一致する注文のみレスポンスします
+  //   複数の状態を指定することはできません
   OrderState state = 6;
 
   // 売買区分
-  //   指定された売買区分と一致する注文のみレスポンスします。
-  //   複数の売買区分を指定することができません。
+  //   指定された売買区分と一致する注文のみレスポンスします
+  //   複数の売買区分を指定することができません
   Side side = 7;
 
   // 取引区分
-  //   指定された取引区分と一致する注文のみレスポンスします。
-  //   複数の取引区分を指定することができません。
+  //   指定された取引区分と一致する注文のみレスポンスします
+  //   複数の取引区分を指定することができません
   TradeType tradeType = 8;
 }
 
@@ -623,8 +790,8 @@ message Order {
 // 注文詳細
 message OrderDetail {
   // シーケンスNo
-  //   注文明細レコードの生成順序です。
-  //   通番であるとは限りませんが、大小による順序は保たれています。
+  //   注文明細レコードの生成順序です
+  //   通番であるとは限りませんが、大小による順序は保たれています
   int32 sequence_number = 1;
 
   // 注文詳細番号
@@ -665,7 +832,7 @@ message OrderDetail {
   double commission = 13;
 
   // 手数料消費税
-  //   明細種別は約定の場合にのみ表示されます。
+  //   明細種別は約定の場合にのみ表示されます
   double commission_tax = 14;
 }
 
@@ -1077,6 +1244,17 @@ message IndustryRankingInfo {
   double change_percentage = 9;
 }
 
+// 注文発注レスポンス
+message OrderResponse {
+  // 結果コード
+  //   0が成功
+  //   それ以外はエラーコード
+  int32 result_code = 1;
+
+  // 受付注文番号
+  string order_id = 2;
+}
+
 // 市場
 enum Exchange {
   EXCHANGE_UNSPECIFIED = 0; // 指定なし
@@ -1091,6 +1269,31 @@ enum Exchange {
   EXCHANGE_ALL_SESSION = 2; // 日通し
   EXCHANGE_DAY_SESSION = 23; // 日中場
   EXCHANGE_NIGHT_SESSION = 24; // 夕場
+}
+
+// 株式市場
+enum StockExchange {
+  STOCK_EXCHANGE_UNSPECIFIED = 0; // 指定なし
+  STOCK_EXCHANGE_TOUSHOU = 1; // 東証
+  STOCK_EXCHANGE_MEISHOU = 3; // 名証
+  STOCK_EXCHANGE_FUKUSHOU = 5; // 福証
+  STOCK_EXCHANGE_SATSUSHOU = 6; // 札証
+}
+
+// 先物市場
+enum FutureExchange {
+  FUTURE_EXCHANGE_UNSPECIFIED = 0; // 指定なし
+  FUTURE_EXCHANGE_ALL_SESSION = 2; // 日通し
+  FUTURE_EXCHANGE_DAY_SESSION = 23; // 日中場
+  FUTURE_EXCHANGE_NIGHT_SESSION = 24; // 夕場
+}
+
+// オプション市場
+enum OptionExchange {
+  OPTION_EXCHANGE_UNSPECIFIED = 0; // 指定なし
+  OPTION_EXCHANGE_ALL_SESSION = 2; // 日通し
+  OPTION_EXCHANGE_DAY_SESSION = 23; // 日中場
+  OPTION_EXCHANGE_NIGHT_SESSION = 24; // 夕場
 }
 
 // 先物コード
@@ -1303,4 +1506,49 @@ enum RankingTrend {
   RANKING_TREND_NO_CHANGE = 4; // 過去10営業日と変わらず
   RANKING_TREND_DESCENT = 5; // 過去10営業日より1～19位下落
   RANKING_TREND_DESCENT_OVER_20 = 6; // 過去10営業日より20位以上下落
+}
+
+// 預かり区分
+enum FundType {
+  FUND_TYPE_UNSPECIFIED = 0; // 未指定
+  FUND_TYPE_PROTECTED = 1; // 保護
+  FUND_TYPE_SUBSTITUTE_MARGIN = 2; // 信用代用
+  FUND_TYPE_MARGIN_TRADING = 3; // 信用取引
+}
+
+// 株式執行条件
+enum StockOrderType {
+  STOCK_ORDER_TYPE_UNSPECIFIED = 0; // 未指定
+  STOCK_ORDER_TYPE_MO = 10; // 成行 Market Order
+  STOCK_ORDER_TYPE_MOOM = 13; // 寄成（前場） Market Order on Opening Morning
+  STOCK_ORDER_TYPE_MOOA = 14; // 寄成（後場） Market Order on Opening Afternoon
+  STOCK_ORDER_TYPE_MOCM = 15; // 引成（前場） Market Order on Closing Morning
+  STOCK_ORDER_TYPE_MOCA = 16; // 引成（後場） Market Order on Closing Afternoon
+  STOCK_ORDER_TYPE_IOC_MO = 17; // IOC成行 Immediate Or Cancel Market Order
+  STOCK_ORDER_TYPE_LO = 20; // 指値 Limit Order
+  STOCK_ORDER_TYPE_LOOM = 21; // 寄指（前場） Limit Order on Opening Morning
+  STOCK_ORDER_TYPE_LOOA = 22; // 寄指（後場） Limit Order on Opening Afternoon
+  STOCK_ORDER_TYPE_LOCM = 23; // 引指（前場） Limit Order on Closing Morning
+  STOCK_ORDER_TYPE_LOCA = 24; // 引指（後場） Limit Order on Closing Afternoon
+  STOCK_ORDER_TYPE_FUNARI_M = 25; // 不成（前場） Funari Mooning
+  STOCK_ORDER_TYPE_FUNARI_A = 26; // 不成（後場） Funari Afternoon
+  STOCK_ORDER_TYPE_IOC_LO = 27; // IOC指値 Immediate Or Cancel Limit Order
+}
+
+// 先物執行条件
+enum FutureOrderType {
+  FUTURE_ORDER_TYPE_UNSPECIFIED = 0; // 未指定
+  FUTURE_ORDER_TYPE_MO = 120; // 成行（マーケットオーダー） Market Order
+  FUTURE_ORDER_TYPE_MOC = 18; // 引成（派生） Market Order on Closing FAKのみ有効
+  FUTURE_ORDER_TYPE_LO = 20; // 指値 Limit Order
+  FUTURE_ORDER_TYPE_LOC = 28; // 引指（派生） Limit Order on Closing
+}
+
+// オプション執行条件
+enum OptionOrderType {
+  OPTION_ORDER_TYPE_UNSPECIFIED = 0; // 未指定
+  OPTION_ORDER_TYPE_MO = 120; // 成行（マーケットオーダー） Market Order
+  OPTION_ORDER_TYPE_MOC = 18; // 引成（派生） Market Order on Closing FAKのみ有効
+  OPTION_ORDER_TYPE_LO = 20; // 指値 Limit Order
+  OPTION_ORDER_TYPE_LOC = 28; // 引指（派生） Limit Order on Closing
 }

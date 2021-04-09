@@ -40,6 +40,12 @@ type testRESTClient struct {
 	positionsWithContext2        error
 	rankingWithContext1          *kabus.RankingResponse
 	rankingWithContext2          error
+	sendOrderStockWithContext1   *kabus.SendOrderStockResponse
+	sendOrderStockWithContext2   error
+	sendOrderFutureWithContext1  *kabus.SendOrderFutureResponse
+	sendOrderFutureWithContext2  error
+	sendOrderOptionWithContext1  *kabus.SendOrderOptionResponse
+	sendOrderOptionWithContext2  error
 }
 
 func (t *testRESTClient) TokenWithContext(context.Context, kabus.TokenRequest) (*kabus.TokenResponse, error) {
@@ -86,6 +92,18 @@ func (t *testRESTClient) PositionsWithContext(context.Context, string, kabus.Pos
 
 func (t *testRESTClient) RankingWithContext(context.Context, string, kabus.RankingRequest) (*kabus.RankingResponse, error) {
 	return t.rankingWithContext1, t.rankingWithContext2
+}
+
+func (t *testRESTClient) SendOrderStockWithContext(context.Context, string, kabus.SendOrderStockRequest) (*kabus.SendOrderStockResponse, error) {
+	return t.sendOrderStockWithContext1, t.sendOrderStockWithContext2
+}
+
+func (t *testRESTClient) SendOrderFutureWithContext(context.Context, string, kabus.SendOrderFutureRequest) (*kabus.SendOrderFutureResponse, error) {
+	return t.sendOrderFutureWithContext1, t.sendOrderFutureWithContext2
+}
+
+func (t *testRESTClient) SendOrderOptionWithContext(context.Context, string, kabus.SendOrderOptionRequest) (*kabus.SendOrderOptionResponse, error) {
+	return t.sendOrderOptionWithContext1, t.sendOrderOptionWithContext2
 }
 
 func Test_NewSecurity(t *testing.T) {
@@ -928,6 +946,122 @@ func Test_security_IndustryRanking(t *testing.T) {
 			restClient := &testRESTClient{rankingWithContext1: test.rankingWithContext1, rankingWithContext2: test.rankingWithContext2}
 			security := &security{restClient: restClient}
 			got1, got2 := security.IndustryRanking(context.Background(), "", &kabuspb.GetIndustryRankingRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_SendOrderStock(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                       string
+		sendOrderStockWithContext1 *kabus.SendOrderStockResponse
+		sendOrderStockWithContext2 error
+		want                       *kabuspb.OrderResponse
+		hasError                   bool
+	}{
+		{name: "errorを返されたらerrorを返す", sendOrderStockWithContext2: errors.New("error message"), hasError: true},
+		{name: "responseが返されたらresponseを変換して返す",
+			sendOrderStockWithContext1: &kabus.SendOrderStockResponse{Result: 0, OrderID: "ORDER-ID"},
+			want:                       &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{sendOrderStockWithContext1: test.sendOrderStockWithContext1, sendOrderStockWithContext2: test.sendOrderStockWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.SendOrderStock(context.Background(), "", &kabuspb.SendStockOrderRequest{}, "")
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_SendOrderMargin(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                       string
+		sendOrderStockWithContext1 *kabus.SendOrderStockResponse
+		sendOrderStockWithContext2 error
+		want                       *kabuspb.OrderResponse
+		hasError                   bool
+	}{
+		{name: "errorを返されたらerrorを返す", sendOrderStockWithContext2: errors.New("error message"), hasError: true},
+		{name: "responseが返されたらresponseを変換して返す",
+			sendOrderStockWithContext1: &kabus.SendOrderStockResponse{Result: 0, OrderID: "ORDER-ID"},
+			want:                       &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{sendOrderStockWithContext1: test.sendOrderStockWithContext1, sendOrderStockWithContext2: test.sendOrderStockWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.SendOrderMargin(context.Background(), "", &kabuspb.SendMarginOrderRequest{}, "")
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_SendOrderFuture(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                        string
+		sendOrderFutureWithContext1 *kabus.SendOrderFutureResponse
+		sendOrderFutureWithContext2 error
+		want                        *kabuspb.OrderResponse
+		hasError                    bool
+	}{
+		{name: "errorを返されたらerrorを返す", sendOrderFutureWithContext2: errors.New("error message"), hasError: true},
+		{name: "responseが返されたらresponseを変換して返す",
+			sendOrderFutureWithContext1: &kabus.SendOrderFutureResponse{Result: 0, OrderID: "ORDER-ID"},
+			want:                        &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{sendOrderFutureWithContext1: test.sendOrderFutureWithContext1, sendOrderFutureWithContext2: test.sendOrderFutureWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.SendOrderFuture(context.Background(), "", &kabuspb.SendFutureOrderRequest{}, "")
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_SendOrderOption(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                        string
+		sendOrderOptionWithContext1 *kabus.SendOrderOptionResponse
+		sendOrderOptionWithContext2 error
+		want                        *kabuspb.OrderResponse
+		hasError                    bool
+	}{
+		{name: "errorを返されたらerrorを返す", sendOrderOptionWithContext2: errors.New("error message"), hasError: true},
+		{name: "responseが返されたらresponseを変換して返す",
+			sendOrderOptionWithContext1: &kabus.SendOrderOptionResponse{Result: 0, OrderID: "ORDER-ID"},
+			want:                        &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{sendOrderOptionWithContext1: test.sendOrderOptionWithContext1, sendOrderOptionWithContext2: test.sendOrderOptionWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.SendOrderOption(context.Background(), "", &kabuspb.SendOptionOrderRequest{}, "")
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}

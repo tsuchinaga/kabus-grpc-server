@@ -296,3 +296,35 @@ func (s *security) IndustryRanking(ctx context.Context, token string, req *kabus
 	}
 	return fromRankingToIndustryRanking(res), nil
 }
+
+func (s *security) SendOrderStock(ctx context.Context, token string, req *kabuspb.SendStockOrderRequest, password string) (*kabuspb.OrderResponse, error) {
+	res, err := s.restClient.SendOrderStockWithContext(ctx, token, toSendOrderStockRequestFromSendStockOrderRequest(req, password))
+	if err != nil {
+		return nil, err
+	}
+	return &kabuspb.OrderResponse{ResultCode: int32(res.Result), OrderId: res.OrderID}, nil
+}
+
+func (s *security) SendOrderMargin(ctx context.Context, token string, req *kabuspb.SendMarginOrderRequest, password string) (*kabuspb.OrderResponse, error) {
+	res, err := s.restClient.SendOrderStockWithContext(ctx, token, toSendOrderStockRequestFromSendMarginOrderRequest(req, password))
+	if err != nil {
+		return nil, err
+	}
+	return &kabuspb.OrderResponse{ResultCode: int32(res.Result), OrderId: res.OrderID}, nil
+}
+
+func (s *security) SendOrderFuture(ctx context.Context, token string, req *kabuspb.SendFutureOrderRequest, password string) (*kabuspb.OrderResponse, error) {
+	res, err := s.restClient.SendOrderFutureWithContext(ctx, token, toSendOrderFutureRequest(req, password))
+	if err != nil {
+		return nil, err
+	}
+	return &kabuspb.OrderResponse{ResultCode: int32(res.Result), OrderId: res.OrderID}, nil
+}
+
+func (s *security) SendOrderOption(ctx context.Context, token string, req *kabuspb.SendOptionOrderRequest, password string) (*kabuspb.OrderResponse, error) {
+	res, err := s.restClient.SendOrderOptionWithContext(ctx, token, toSendOrderOptionRequest(req, password))
+	if err != nil {
+		return nil, err
+	}
+	return &kabuspb.OrderResponse{ResultCode: int32(res.Result), OrderId: res.OrderID}, nil
+}

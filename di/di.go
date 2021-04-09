@@ -22,5 +22,6 @@ func InjectedServer() kabuspb.KabusServiceServer {
 			infra.NewClock(),
 			setting),
 		services.NewRegisterSymbolService(
-			stores.GetRegisterSymbolStore()))
+			stores.GetRegisterSymbolStore()),
+		setting)
 }

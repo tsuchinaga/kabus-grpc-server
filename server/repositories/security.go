@@ -23,4 +23,8 @@ type Security interface {
 	ValueRanking(ctx context.Context, token string, req *kabuspb.GetValueRankingRequest) (*kabuspb.ValueRanking, error)
 	MarginRanking(ctx context.Context, token string, req *kabuspb.GetMarginRankingRequest) (*kabuspb.MarginRanking, error)
 	IndustryRanking(ctx context.Context, token string, req *kabuspb.GetIndustryRankingRequest) (*kabuspb.IndustryRanking, error)
+	SendOrderStock(ctx context.Context, token string, req *kabuspb.SendStockOrderRequest, password string) (*kabuspb.OrderResponse, error)
+	SendOrderMargin(ctx context.Context, token string, req *kabuspb.SendMarginOrderRequest, password string) (*kabuspb.OrderResponse, error)
+	SendOrderFuture(ctx context.Context, token string, req *kabuspb.SendFutureOrderRequest, password string) (*kabuspb.OrderResponse, error)
+	SendOrderOption(ctx context.Context, token string, req *kabuspb.SendOptionOrderRequest, password string) (*kabuspb.OrderResponse, error)
 }

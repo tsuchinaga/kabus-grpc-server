@@ -989,3 +989,279 @@ func fromCategoryRanking(rank kabus.CategoryPriceRanking) *kabuspb.IndustryRanki
 		ChangePercentage: rank.ChangePercentage,
 	}
 }
+
+func toSendOrderStockRequestFromSendStockOrderRequest(req *kabuspb.SendStockOrderRequest, password string) kabus.SendOrderStockRequest {
+	delivType := kabus.DelivTypeUnspecified
+	if req.Side == kabuspb.Side_SIDE_BUY {
+		delivType = toDelivType(req.DeliveryType)
+	}
+
+	fundType := kabus.FundTypeUnspecified
+	if req.Side == kabuspb.Side_SIDE_BUY {
+		fundType = toFundType(req.FundType)
+	}
+
+	return kabus.SendOrderStockRequest{
+		Password:        password,
+		Symbol:          req.SymbolCode,
+		Exchange:        toStockExchange(req.Exchange),
+		SecurityType:    kabus.SecurityTypeStock, // 株式 固定値
+		Side:            toSide(req.Side),
+		CashMargin:      kabus.CashMarginCash,             // 現物 固定値
+		MarginTradeType: kabus.MarginTradeTypeUnspecified, // 未指定 固定値
+		DelivType:       delivType,
+		FundType:        fundType,
+		AccountType:     toAccountType(req.AccountType),
+		Qty:             int(req.Quantity),
+		Price:           req.Price,
+		ExpireDay:       toExpireDay(req.ExpireDay),
+		FrontOrderType:  toStockFrontOrderType(req.OrderType),
+	}
+}
+
+func toSendOrderStockRequestFromSendMarginOrderRequest(req *kabuspb.SendMarginOrderRequest, password string) kabus.SendOrderStockRequest {
+	delivType := kabus.DelivTypeUnspecified
+	if req.TradeType == kabuspb.TradeType_TRADE_TYPE_EXIT {
+		delivType = toDelivType(req.DeliveryType)
+	}
+
+	return kabus.SendOrderStockRequest{
+		Password:        password,
+		Symbol:          req.SymbolCode,
+		Exchange:        toStockExchange(req.Exchange),
+		SecurityType:    kabus.SecurityTypeStock, // 株式 固定値
+		Side:            toSide(req.Side),
+		CashMargin:      toCashMargin(req.TradeType),
+		MarginTradeType: toMarginTradeType(req.MarginTradeType),
+		DelivType:       delivType,
+		AccountType:     toAccountType(req.AccountType),
+		Qty:             int(req.Quantity),
+		ClosePositions:  toClosePositions(req.ClosePositions),
+		Price:           req.Price,
+		ExpireDay:       toExpireDay(req.ExpireDay),
+		FrontOrderType:  toStockFrontOrderType(req.OrderType),
+	}
+}
+
+func toSendOrderFutureRequest(req *kabuspb.SendFutureOrderRequest, password string) kabus.SendOrderFutureRequest {
+	return kabus.SendOrderFutureRequest{
+		Password:           password,
+		Symbol:             req.SymbolCode,
+		Exchange:           toFutureExchange(req.Exchange),
+		TradeType:          toTradeType(req.TradeType),
+		TimeInForce:        toTimeInForce(req.TimeInForce),
+		Side:               toSide(req.Side),
+		Qty:                int(req.Quantity),
+		ClosePositionOrder: 0,
+		ClosePositions:     toClosePositions(req.ClosePositions),
+		FrontOrderType:     toFutureFrontOrderType(req.OrderType),
+		Price:              req.Price,
+		ExpireDay:          toExpireDay(req.ExpireDay),
+	}
+}
+
+func toSendOrderOptionRequest(req *kabuspb.SendOptionOrderRequest, password string) kabus.SendOrderOptionRequest {
+	return kabus.SendOrderOptionRequest{
+		Password:           password,
+		Symbol:             req.SymbolCode,
+		Exchange:           toOptionExchange(req.Exchange),
+		TradeType:          toTradeType(req.TradeType),
+		TimeInForce:        toTimeInForce(req.TimeInForce),
+		Side:               toSide(req.Side),
+		Qty:                int(req.Quantity),
+		ClosePositionOrder: 0,
+		ClosePositions:     toClosePositions(req.ClosePositions),
+		FrontOrderType:     toOptionFrontOrderType(req.OrderType),
+		Price:              req.Price,
+		ExpireDay:          toExpireDay(req.ExpireDay),
+	}
+}
+
+func toStockExchange(exchange kabuspb.StockExchange) kabus.StockExchange {
+	switch exchange {
+	case kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU:
+		return kabus.StockExchangeToushou
+	case kabuspb.StockExchange_STOCK_EXCHANGE_MEISHOU:
+		return kabus.StockExchangeMeishou
+	case kabuspb.StockExchange_STOCK_EXCHANGE_FUKUSHOU:
+		return kabus.StockExchangeFukushou
+	case kabuspb.StockExchange_STOCK_EXCHANGE_SATSUSHOU:
+		return kabus.StockExchangeSatsushou
+	}
+	return kabus.StockExchangeUnspecified
+}
+
+func toMarginTradeType(tradeType kabuspb.MarginTradeType) kabus.MarginTradeType {
+	switch tradeType {
+	case kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_SYSTEM:
+		return kabus.MarginTradeTypeSystem
+	case kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_LONG:
+		return kabus.MarginTradeTypeGeneralLong
+	case kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_SHORT:
+		return kabus.MarginTradeTypeGeneralShort
+	}
+	return kabus.MarginTradeTypeUnspecified
+}
+
+func toDelivType(deliveryType kabuspb.DeliveryType) kabus.DelivType {
+	switch deliveryType {
+	case kabuspb.DeliveryType_DELIVERY_TYPE_AUTO:
+		return kabus.DelivTypeAuto
+	case kabuspb.DeliveryType_DELIVERY_TYPE_CASH:
+		return kabus.DelivTypeCash
+	}
+	return kabus.DelivTypeUnspecified
+}
+
+func toFundType(fundType kabuspb.FundType) kabus.FundType {
+	switch fundType {
+	case kabuspb.FundType_FUND_TYPE_PROTECTED:
+		return kabus.FundTypeProtected
+	case kabuspb.FundType_FUND_TYPE_SUBSTITUTE_MARGIN:
+		return kabus.FundTypeTransferMargin
+	case kabuspb.FundType_FUND_TYPE_MARGIN_TRADING:
+		return kabus.FundTypeMarginTrading
+	}
+	return kabus.FundTypeUnspecified
+}
+
+func toAccountType(accountType kabuspb.AccountType) kabus.AccountType {
+	switch accountType {
+	case kabuspb.AccountType_ACCOUNT_TYPE_GENERAL:
+		return kabus.AccountTypeGeneral
+	case kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC:
+		return kabus.AccountTypeSpecific
+	case kabuspb.AccountType_ACCOUNT_TYPE_CORPORATION:
+		return kabus.AccountTypeCorporation
+	}
+	return kabus.AccountTypeUnspecified
+}
+
+func toStockFrontOrderType(orderType kabuspb.StockOrderType) kabus.StockFrontOrderType {
+	switch orderType {
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_MO:
+		return kabus.StockFrontOrderTypeMarket
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_MOOM:
+		return kabus.StockFrontOrderTypeMOOM
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_MOOA:
+		return kabus.StockFrontOrderTypeMOOA
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_MOCM:
+		return kabus.StockFrontOrderTypeMOCM
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_MOCA:
+		return kabus.StockFrontOrderTypeMOCA
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_IOC_MO:
+		return kabus.StockFrontOrderTypeIOCMarket
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_LO:
+		return kabus.StockFrontOrderTypeLimit
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_LOOM:
+		return kabus.StockFrontOrderTypeLOOM
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_LOOA:
+		return kabus.StockFrontOrderTypeLOOA
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_LOCM:
+		return kabus.StockFrontOrderTypeLOCM
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_LOCA:
+		return kabus.StockFrontOrderTypeLOCA
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_FUNARI_M:
+		return kabus.StockFrontOrderTypeFunariM
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_FUNARI_A:
+		return kabus.StockFrontOrderTypeFunariA
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_IOC_LO:
+		return kabus.StockFrontOrderTypeIOCLimit
+	}
+	return kabus.StockFrontOrderTypeUnspecified
+}
+
+func toExpireDay(expireDay *timestamppb.Timestamp) kabus.YmdNUM {
+	if expireDay == nil || expireDay.AsTime().IsZero() {
+		return kabus.YmdNUMToday
+	}
+	return kabus.NewYmdNUM(expireDay.AsTime().In(time.Local))
+}
+
+func toClosePositions(closePositions []*kabuspb.ClosePosition) []kabus.ClosePosition {
+	if closePositions == nil {
+		return nil
+	}
+
+	res := make([]kabus.ClosePosition, len(closePositions))
+
+	for i, cp := range closePositions {
+		res[i] = kabus.ClosePosition{HoldID: cp.ExecutionId, Qty: int(cp.Quantity)}
+	}
+
+	return res
+}
+
+func toFutureExchange(exchange kabuspb.FutureExchange) kabus.FutureExchange {
+	switch exchange {
+	case kabuspb.FutureExchange_FUTURE_EXCHANGE_ALL_SESSION:
+		return kabus.FutureExchangeAll
+	case kabuspb.FutureExchange_FUTURE_EXCHANGE_DAY_SESSION:
+		return kabus.FutureExchangeDaytime
+	case kabuspb.FutureExchange_FUTURE_EXCHANGE_NIGHT_SESSION:
+		return kabus.FutureExchangeEvening
+	}
+	return kabus.FutureExchangeUnspecified
+}
+
+func toTradeType(tradeType kabuspb.TradeType) kabus.TradeType {
+	switch tradeType {
+	case kabuspb.TradeType_TRADE_TYPE_ENTRY:
+		return kabus.TradeTypeEntry
+	case kabuspb.TradeType_TRADE_TYPE_EXIT:
+		return kabus.TradeTypeExit
+	}
+	return kabus.TradeTypeUnspecified
+}
+
+func toTimeInForce(timeInForce kabuspb.TimeInForce) kabus.TimeInForce {
+	switch timeInForce {
+	case kabuspb.TimeInForce_TIME_IN_FORCE_FAS:
+		return kabus.TimeInForceFAS
+	case kabuspb.TimeInForce_TIME_IN_FORCE_FAK:
+		return kabus.TimeInForceFAK
+	case kabuspb.TimeInForce_TIME_IN_FORCE_FOK:
+		return kabus.TimeInForceFOK
+	}
+	return kabus.TimeInForceUnspecified
+}
+
+func toFutureFrontOrderType(orderType kabuspb.FutureOrderType) kabus.FutureFrontOrderType {
+	switch orderType {
+	case kabuspb.FutureOrderType_FUTURE_ORDER_TYPE_MO:
+		return kabus.FutureFrontOrderTypeMarket
+	case kabuspb.FutureOrderType_FUTURE_ORDER_TYPE_MOC:
+		return kabus.FutureFrontOrderTypeMarketClose
+	case kabuspb.FutureOrderType_FUTURE_ORDER_TYPE_LO:
+		return kabus.FutureFrontOrderTypeLimit
+	case kabuspb.FutureOrderType_FUTURE_ORDER_TYPE_LOC:
+		return kabus.FutureFrontOrderTypeLimitClose
+	}
+	return kabus.FutureFrontOrderTypeUnspecified
+}
+
+func toOptionExchange(exchange kabuspb.OptionExchange) kabus.OptionExchange {
+	switch exchange {
+	case kabuspb.OptionExchange_OPTION_EXCHANGE_ALL_SESSION:
+		return kabus.OptionExchangeAll
+	case kabuspb.OptionExchange_OPTION_EXCHANGE_DAY_SESSION:
+		return kabus.OptionExchangeDaytime
+	case kabuspb.OptionExchange_OPTION_EXCHANGE_NIGHT_SESSION:
+		return kabus.OptionExchangeEvening
+	}
+	return kabus.OptionExchangeUnspecified
+}
+
+func toOptionFrontOrderType(orderType kabuspb.OptionOrderType) kabus.OptionFrontOrderType {
+	switch orderType {
+	case kabuspb.OptionOrderType_OPTION_ORDER_TYPE_MO:
+		return kabus.OptionFrontOrderTypeMarket
+	case kabuspb.OptionOrderType_OPTION_ORDER_TYPE_MOC:
+		return kabus.OptionFrontOrderTypeMarketClose
+	case kabuspb.OptionOrderType_OPTION_ORDER_TYPE_LO:
+		return kabus.OptionFrontOrderTypeLimit
+	case kabuspb.OptionOrderType_OPTION_ORDER_TYPE_LOC:
+		return kabus.OptionFrontOrderTypeLimitClose
+	}
+	return kabus.OptionFrontOrderTypeUnspecified
+}
