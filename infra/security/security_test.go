@@ -16,38 +16,54 @@ import (
 
 type testRESTClient struct {
 	kabus.RESTClient
-	tokenWithContext1            *kabus.TokenResponse
-	tokenWithContext2            error
-	symbolNameFutureWithContext1 *kabus.SymbolNameFutureResponse
-	symbolNameFutureWithContext2 error
-	symbolNameOptionWithContext1 *kabus.SymbolNameOptionResponse
-	symbolNameOptionWithContext2 error
-	registerWithContext1         *kabus.RegisterResponse
-	registerWithContext2         error
-	lastRegisterWithContext      kabus.RegisterRequest
-	unregisterWithContext1       *kabus.UnregisterResponse
-	unregisterWithContext2       error
-	lastUnregisterWithContext    kabus.UnregisterRequest
-	unregisterAllWithContext1    *kabus.UnregisterAllResponse
-	unregisterAllWithContext2    error
-	boardWithContext1            *kabus.BoardResponse
-	boardWithContext2            error
-	symbolWithContext1           *kabus.SymbolResponse
-	symbolWithContext2           error
-	ordersWithContext1           *kabus.OrdersResponse
-	ordersWithContext2           error
-	positionsWithContext1        *kabus.PositionsResponse
-	positionsWithContext2        error
-	rankingWithContext1          *kabus.RankingResponse
-	rankingWithContext2          error
-	sendOrderStockWithContext1   *kabus.SendOrderStockResponse
-	sendOrderStockWithContext2   error
-	sendOrderFutureWithContext1  *kabus.SendOrderFutureResponse
-	sendOrderFutureWithContext2  error
-	sendOrderOptionWithContext1  *kabus.SendOrderOptionResponse
-	sendOrderOptionWithContext2  error
-	cancelOrderWithContext1      *kabus.CancelOrderResponse
-	cancelOrderWithContext2      error
+	tokenWithContext1              *kabus.TokenResponse
+	tokenWithContext2              error
+	symbolNameFutureWithContext1   *kabus.SymbolNameFutureResponse
+	symbolNameFutureWithContext2   error
+	symbolNameOptionWithContext1   *kabus.SymbolNameOptionResponse
+	symbolNameOptionWithContext2   error
+	registerWithContext1           *kabus.RegisterResponse
+	registerWithContext2           error
+	lastRegisterWithContext        kabus.RegisterRequest
+	unregisterWithContext1         *kabus.UnregisterResponse
+	unregisterWithContext2         error
+	lastUnregisterWithContext      kabus.UnregisterRequest
+	unregisterAllWithContext1      *kabus.UnregisterAllResponse
+	unregisterAllWithContext2      error
+	boardWithContext1              *kabus.BoardResponse
+	boardWithContext2              error
+	symbolWithContext1             *kabus.SymbolResponse
+	symbolWithContext2             error
+	ordersWithContext1             *kabus.OrdersResponse
+	ordersWithContext2             error
+	positionsWithContext1          *kabus.PositionsResponse
+	positionsWithContext2          error
+	rankingWithContext1            *kabus.RankingResponse
+	rankingWithContext2            error
+	sendOrderStockWithContext1     *kabus.SendOrderStockResponse
+	sendOrderStockWithContext2     error
+	sendOrderFutureWithContext1    *kabus.SendOrderFutureResponse
+	sendOrderFutureWithContext2    error
+	sendOrderOptionWithContext1    *kabus.SendOrderOptionResponse
+	sendOrderOptionWithContext2    error
+	cancelOrderWithContext1        *kabus.CancelOrderResponse
+	cancelOrderWithContext2        error
+	walletCashWithContext1         *kabus.WalletCashResponse
+	walletCashWithContext2         error
+	walletCashSymbolWithContext1   *kabus.WalletCashResponse
+	walletCashSymbolWithContext2   error
+	walletMarginWithContext1       *kabus.WalletMarginResponse
+	walletMarginWithContext2       error
+	walletMarginSymbolWithContext1 *kabus.WalletMarginResponse
+	walletMarginSymbolWithContext2 error
+	walletFutureWithContext1       *kabus.WalletFutureResponse
+	walletFutureWithContext2       error
+	walletFutureSymbolWithContext1 *kabus.WalletFutureResponse
+	walletFutureSymbolWithContext2 error
+	walletOptionWithContext1       *kabus.WalletOptionResponse
+	walletOptionWithContext2       error
+	walletOptionSymbolWithContext1 *kabus.WalletOptionResponse
+	walletOptionSymbolWithContext2 error
 }
 
 func (t *testRESTClient) TokenWithContext(context.Context, kabus.TokenRequest) (*kabus.TokenResponse, error) {
@@ -110,6 +126,38 @@ func (t *testRESTClient) SendOrderOptionWithContext(context.Context, string, kab
 
 func (t *testRESTClient) CancelOrderWithContext(context.Context, string, kabus.CancelOrderRequest) (*kabus.CancelOrderResponse, error) {
 	return t.cancelOrderWithContext1, t.cancelOrderWithContext2
+}
+
+func (t *testRESTClient) WalletCashWithContext(context.Context, string) (*kabus.WalletCashResponse, error) {
+	return t.walletCashWithContext1, t.walletCashWithContext2
+}
+
+func (t *testRESTClient) WalletCashSymbolWithContext(context.Context, string, kabus.WalletCashSymbolRequest) (*kabus.WalletCashResponse, error) {
+	return t.walletCashSymbolWithContext1, t.walletCashSymbolWithContext2
+}
+
+func (t *testRESTClient) WalletMarginWithContext(context.Context, string) (*kabus.WalletMarginResponse, error) {
+	return t.walletMarginWithContext1, t.walletMarginWithContext2
+}
+
+func (t *testRESTClient) WalletMarginSymbolWithContext(context.Context, string, kabus.WalletMarginSymbolRequest) (*kabus.WalletMarginResponse, error) {
+	return t.walletMarginSymbolWithContext1, t.walletMarginSymbolWithContext2
+}
+
+func (t *testRESTClient) WalletFutureWithContext(context.Context, string) (*kabus.WalletFutureResponse, error) {
+	return t.walletFutureWithContext1, t.walletFutureWithContext2
+}
+
+func (t *testRESTClient) WalletFutureSymbolWithContext(context.Context, string, kabus.WalletFutureSymbolRequest) (*kabus.WalletFutureResponse, error) {
+	return t.walletFutureSymbolWithContext1, t.walletFutureSymbolWithContext2
+}
+
+func (t *testRESTClient) WalletOptionWithContext(context.Context, string) (*kabus.WalletOptionResponse, error) {
+	return t.walletOptionWithContext1, t.walletOptionWithContext2
+}
+
+func (t *testRESTClient) WalletOptionSymbolWithContext(context.Context, string, kabus.WalletOptionSymbolRequest) (*kabus.WalletOptionResponse, error) {
+	return t.walletOptionSymbolWithContext1, t.walletOptionSymbolWithContext2
 }
 
 func Test_NewSecurity(t *testing.T) {
@@ -1097,6 +1145,166 @@ func Test_security_CancelOrder(t *testing.T) {
 			restClient := &testRESTClient{cancelOrderWithContext1: test.cancelOrderWithContext1, cancelOrderWithContext2: test.cancelOrderWithContext2}
 			security := &security{restClient: restClient}
 			got1, got2 := security.CancelOrder(context.Background(), "", &kabuspb.CancelOrderRequest{}, "")
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_GetStockWallet(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                         string
+		req                          *kabuspb.GetStockWalletRequest
+		walletCashWithContext1       *kabus.WalletCashResponse
+		walletCashWithContext2       error
+		walletCashSymbolWithContext1 *kabus.WalletCashResponse
+		walletCashSymbolWithContext2 error
+		want                         *kabuspb.StockWallet
+		hasError                     bool
+	}{
+		{name: "symbolが空でerrorを返されたらerrorを返す", req: &kabuspb.GetStockWalletRequest{}, walletCashWithContext2: errors.New("error message"), hasError: true},
+		{name: "symbolが空じゃなくてerrorを返されたらerrorを返す", req: &kabuspb.GetStockWalletRequest{SymbolCode: "1320"}, walletCashSymbolWithContext2: errors.New("error message"), hasError: true},
+		{name: "symbolが空でresponseが返されたらresponseを変換して返す",
+			req:                    &kabuspb.GetStockWalletRequest{},
+			walletCashWithContext1: &kabus.WalletCashResponse{StockAccountWallet: 30000},
+			want:                   &kabuspb.StockWallet{StockAccountWallet: 30000}},
+		{name: "symbolが空じゃなくてresponseが返されたらresponseを変換して返す",
+			req:                          &kabuspb.GetStockWalletRequest{SymbolCode: "1320"},
+			walletCashSymbolWithContext1: &kabus.WalletCashResponse{StockAccountWallet: 30000},
+			want:                         &kabuspb.StockWallet{StockAccountWallet: 30000}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{
+				walletCashWithContext1: test.walletCashWithContext1, walletCashWithContext2: test.walletCashWithContext2,
+				walletCashSymbolWithContext1: test.walletCashSymbolWithContext1, walletCashSymbolWithContext2: test.walletCashSymbolWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.GetStockWallet(context.Background(), "", test.req)
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_GetMarginWallet(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                           string
+		req                            *kabuspb.GetMarginWalletRequest
+		walletMarginWithContext1       *kabus.WalletMarginResponse
+		walletMarginWithContext2       error
+		walletMarginSymbolWithContext1 *kabus.WalletMarginResponse
+		walletMarginSymbolWithContext2 error
+		want                           *kabuspb.MarginWallet
+		hasError                       bool
+	}{
+		{name: "symbolが空でerrorを返されたらerrorを返す", req: &kabuspb.GetMarginWalletRequest{}, walletMarginWithContext2: errors.New("error message"), hasError: true},
+		{name: "symbolが空じゃなくてerrorを返されたらerrorを返す", req: &kabuspb.GetMarginWalletRequest{SymbolCode: "1320"}, walletMarginSymbolWithContext2: errors.New("error message"), hasError: true},
+		{name: "symbolが空でresponseが返されたらresponseを変換して返す",
+			req:                      &kabuspb.GetMarginWalletRequest{},
+			walletMarginWithContext1: &kabus.WalletMarginResponse{MarginAccountWallet: 30000},
+			want:                     &kabuspb.MarginWallet{MarginAccountWallet: 30000}},
+		{name: "symbolが空じゃなくてresponseが返されたらresponseを変換して返す",
+			req:                            &kabuspb.GetMarginWalletRequest{SymbolCode: "1320"},
+			walletMarginSymbolWithContext1: &kabus.WalletMarginResponse{MarginAccountWallet: 30000},
+			want:                           &kabuspb.MarginWallet{MarginAccountWallet: 30000}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{
+				walletMarginWithContext1: test.walletMarginWithContext1, walletMarginWithContext2: test.walletMarginWithContext2,
+				walletMarginSymbolWithContext1: test.walletMarginSymbolWithContext1, walletMarginSymbolWithContext2: test.walletMarginSymbolWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.GetMarginWallet(context.Background(), "", test.req)
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_GetFutureWallet(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                           string
+		req                            *kabuspb.GetFutureWalletRequest
+		walletFutureWithContext1       *kabus.WalletFutureResponse
+		walletFutureWithContext2       error
+		walletFutureSymbolWithContext1 *kabus.WalletFutureResponse
+		walletFutureSymbolWithContext2 error
+		want                           *kabuspb.FutureWallet
+		hasError                       bool
+	}{
+		{name: "symbolが空でerrorを返されたらerrorを返す", req: &kabuspb.GetFutureWalletRequest{}, walletFutureWithContext2: errors.New("error message"), hasError: true},
+		{name: "symbolが空じゃなくてerrorを返されたらerrorを返す", req: &kabuspb.GetFutureWalletRequest{SymbolCode: "1320"}, walletFutureSymbolWithContext2: errors.New("error message"), hasError: true},
+		{name: "symbolが空でresponseが返されたらresponseを変換して返す",
+			req:                      &kabuspb.GetFutureWalletRequest{},
+			walletFutureWithContext1: &kabus.WalletFutureResponse{FutureTradeLimit: 300000, MarginRequirement: 0},
+			want:                     &kabuspb.FutureWallet{FutureTradeLimit: 300000, MarginRequirement: 0}},
+		{name: "symbolが空じゃなくてresponseが返されたらresponseを変換して返す",
+			req:                            &kabuspb.GetFutureWalletRequest{SymbolCode: "1320"},
+			walletFutureSymbolWithContext1: &kabus.WalletFutureResponse{FutureTradeLimit: 900000, MarginRequirement: 300000},
+			want:                           &kabuspb.FutureWallet{FutureTradeLimit: 900000, MarginRequirement: 300000}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{
+				walletFutureWithContext1: test.walletFutureWithContext1, walletFutureWithContext2: test.walletFutureWithContext2,
+				walletFutureSymbolWithContext1: test.walletFutureSymbolWithContext1, walletFutureSymbolWithContext2: test.walletFutureSymbolWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.GetFutureWallet(context.Background(), "", test.req)
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_GetOptionWallet(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                           string
+		req                            *kabuspb.GetOptionWalletRequest
+		walletOptionWithContext1       *kabus.WalletOptionResponse
+		walletOptionWithContext2       error
+		walletOptionSymbolWithContext1 *kabus.WalletOptionResponse
+		walletOptionSymbolWithContext2 error
+		want                           *kabuspb.OptionWallet
+		hasError                       bool
+	}{
+		{name: "symbolが空でerrorを返されたらerrorを返す", req: &kabuspb.GetOptionWalletRequest{}, walletOptionWithContext2: errors.New("error message"), hasError: true},
+		{name: "symbolが空じゃなくてerrorを返されたらerrorを返す", req: &kabuspb.GetOptionWalletRequest{SymbolCode: "1320"}, walletOptionSymbolWithContext2: errors.New("error message"), hasError: true},
+		{name: "symbolが空でresponseが返されたらresponseを変換して返す",
+			req:                      &kabuspb.GetOptionWalletRequest{},
+			walletOptionWithContext1: &kabus.WalletOptionResponse{OptionBuyTradeLimit: 300000, OptionSellTradeLimit: 300000, MarginRequirement: 0},
+			want:                     &kabuspb.OptionWallet{OptionBuyTradeLimit: 300000, OptionSellTradeLimit: 300000, MarginRequirement: 0}},
+		{name: "symbolが空じゃなくてresponseが返されたらresponseを変換して返す",
+			req:                            &kabuspb.GetOptionWalletRequest{SymbolCode: "1320"},
+			walletOptionSymbolWithContext1: &kabus.WalletOptionResponse{OptionBuyTradeLimit: 900000, OptionSellTradeLimit: 900000, MarginRequirement: 300000},
+			want:                           &kabuspb.OptionWallet{OptionBuyTradeLimit: 900000, OptionSellTradeLimit: 900000, MarginRequirement: 300000}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{
+				walletOptionWithContext1: test.walletOptionWithContext1, walletOptionWithContext2: test.walletOptionWithContext2,
+				walletOptionSymbolWithContext1: test.walletOptionSymbolWithContext1, walletOptionSymbolWithContext2: test.walletOptionSymbolWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.GetOptionWallet(context.Background(), "", test.req)
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}

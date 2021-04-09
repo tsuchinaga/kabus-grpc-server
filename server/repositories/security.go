@@ -28,4 +28,8 @@ type Security interface {
 	SendOrderFuture(ctx context.Context, token string, req *kabuspb.SendFutureOrderRequest, password string) (*kabuspb.OrderResponse, error)
 	SendOrderOption(ctx context.Context, token string, req *kabuspb.SendOptionOrderRequest, password string) (*kabuspb.OrderResponse, error)
 	CancelOrder(ctx context.Context, token string, req *kabuspb.CancelOrderRequest, password string) (*kabuspb.OrderResponse, error)
+	GetStockWallet(ctx context.Context, token string, req *kabuspb.GetStockWalletRequest) (*kabuspb.StockWallet, error)
+	GetMarginWallet(ctx context.Context, token string, req *kabuspb.GetMarginWalletRequest) (*kabuspb.MarginWallet, error)
+	GetFutureWallet(ctx context.Context, token string, req *kabuspb.GetFutureWalletRequest) (*kabuspb.FutureWallet, error)
+	GetOptionWallet(ctx context.Context, token string, req *kabuspb.GetOptionWalletRequest) (*kabuspb.OptionWallet, error)
 }

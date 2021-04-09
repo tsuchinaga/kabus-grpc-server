@@ -84,6 +84,42 @@ func (s *server) CancelOrder(ctx context.Context, req *kabuspb.CancelOrderReques
 	return s.security.CancelOrder(ctx, token, req, s.setting.Password())
 }
 
+func (s *server) GetStockWallet(ctx context.Context, req *kabuspb.GetStockWalletRequest) (*kabuspb.StockWallet, error) {
+	token, err := s.tokenService.GetToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.security.GetStockWallet(ctx, token, req)
+}
+
+func (s *server) GetMarginWallet(ctx context.Context, req *kabuspb.GetMarginWalletRequest) (*kabuspb.MarginWallet, error) {
+	token, err := s.tokenService.GetToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.security.GetMarginWallet(ctx, token, req)
+}
+
+func (s *server) GetFutureWallet(ctx context.Context, req *kabuspb.GetFutureWalletRequest) (*kabuspb.FutureWallet, error) {
+	token, err := s.tokenService.GetToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.security.GetFutureWallet(ctx, token, req)
+}
+
+func (s *server) GetOptionWallet(ctx context.Context, req *kabuspb.GetOptionWalletRequest) (*kabuspb.OptionWallet, error) {
+	token, err := s.tokenService.GetToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.security.GetOptionWallet(ctx, token, req)
+}
+
 func (s *server) GetBoard(ctx context.Context, req *kabuspb.GetBoardRequest) (*kabuspb.Board, error) {
 	token, err := s.tokenService.GetToken(ctx)
 	if err != nil {

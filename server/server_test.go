@@ -58,6 +58,14 @@ type testSecurity struct {
 	sendOrderOption2  error
 	cancelOrder1      *kabuspb.OrderResponse
 	cancelOrder2      error
+	getStockWallet1   *kabuspb.StockWallet
+	getStockWallet2   error
+	getMarginWallet1  *kabuspb.MarginWallet
+	getMarginWallet2  error
+	getFutureWallet1  *kabuspb.FutureWallet
+	getFutureWallet2  error
+	getOptionWallet1  *kabuspb.OptionWallet
+	getOptionWallet2  error
 }
 
 func (t *testSecurity) RegisterSymbols(context.Context, string, *kabuspb.RegisterSymbolsRequest) (*kabuspb.RegisteredSymbols, error) {
@@ -138,6 +146,22 @@ func (t *testSecurity) SendOrderOption(context.Context, string, *kabuspb.SendOpt
 
 func (t *testSecurity) CancelOrder(context.Context, string, *kabuspb.CancelOrderRequest, string) (*kabuspb.OrderResponse, error) {
 	return t.cancelOrder1, t.cancelOrder2
+}
+
+func (t *testSecurity) GetStockWallet(context.Context, string, *kabuspb.GetStockWalletRequest) (*kabuspb.StockWallet, error) {
+	return t.getStockWallet1, t.getStockWallet2
+}
+
+func (t *testSecurity) GetMarginWallet(context.Context, string, *kabuspb.GetMarginWalletRequest) (*kabuspb.MarginWallet, error) {
+	return t.getMarginWallet1, t.getMarginWallet2
+}
+
+func (t *testSecurity) GetFutureWallet(context.Context, string, *kabuspb.GetFutureWalletRequest) (*kabuspb.FutureWallet, error) {
+	return t.getFutureWallet1, t.getFutureWallet2
+}
+
+func (t *testSecurity) GetOptionWallet(context.Context, string, *kabuspb.GetOptionWalletRequest) (*kabuspb.OptionWallet, error) {
+	return t.getOptionWallet1, t.getOptionWallet2
 }
 
 type testTokenService struct {
@@ -1074,6 +1098,166 @@ func Test_server_CancelOrder(t *testing.T) {
 				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
 				setting:      &testSetting{password: "PASSWORD"}}
 			got1, got2 := server.CancelOrder(context.Background(), &kabuspb.CancelOrderRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_server_GetStockWallet(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name            string
+		getToken1       string
+		getToken2       error
+		getStockWallet1 *kabuspb.StockWallet
+		getStockWallet2 error
+		want            *kabuspb.StockWallet
+		hasError        bool
+	}{
+		{name: "token取得でエラーがあればエラーを返す",
+			getToken2: errors.New("get token error message"),
+			hasError:  true},
+		{name: "エラーがあればエラーを返す",
+			getToken1:       "TOKEN_STRING",
+			getStockWallet2: errors.New("register error message"),
+			hasError:        true},
+		{name: "エラーがなければ結果を返す",
+			getToken1:       "TOKEN_STRING",
+			getStockWallet1: &kabuspb.StockWallet{StockAccountWallet: 300000},
+			want:            &kabuspb.StockWallet{StockAccountWallet: 300000}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{
+				security:     &testSecurity{getStockWallet1: test.getStockWallet1, getStockWallet2: test.getStockWallet2},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
+				setting:      &testSetting{password: "PASSWORD"}}
+			got1, got2 := server.GetStockWallet(context.Background(), &kabuspb.GetStockWalletRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_server_GetMarginWallet(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name             string
+		getToken1        string
+		getToken2        error
+		getMarginWallet1 *kabuspb.MarginWallet
+		getMarginWallet2 error
+		want             *kabuspb.MarginWallet
+		hasError         bool
+	}{
+		{name: "token取得でエラーがあればエラーを返す",
+			getToken2: errors.New("get token error message"),
+			hasError:  true},
+		{name: "エラーがあればエラーを返す",
+			getToken1:        "TOKEN_STRING",
+			getMarginWallet2: errors.New("register error message"),
+			hasError:         true},
+		{name: "エラーがなければ結果を返す",
+			getToken1:        "TOKEN_STRING",
+			getMarginWallet1: &kabuspb.MarginWallet{MarginAccountWallet: 300000},
+			want:             &kabuspb.MarginWallet{MarginAccountWallet: 300000}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{
+				security:     &testSecurity{getMarginWallet1: test.getMarginWallet1, getMarginWallet2: test.getMarginWallet2},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
+				setting:      &testSetting{password: "PASSWORD"}}
+			got1, got2 := server.GetMarginWallet(context.Background(), &kabuspb.GetMarginWalletRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_server_GetFutureWallet(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name             string
+		getToken1        string
+		getToken2        error
+		getFutureWallet1 *kabuspb.FutureWallet
+		getFutureWallet2 error
+		want             *kabuspb.FutureWallet
+		hasError         bool
+	}{
+		{name: "token取得でエラーがあればエラーを返す",
+			getToken2: errors.New("get token error message"),
+			hasError:  true},
+		{name: "エラーがあればエラーを返す",
+			getToken1:        "TOKEN_STRING",
+			getFutureWallet2: errors.New("register error message"),
+			hasError:         true},
+		{name: "エラーがなければ結果を返す",
+			getToken1:        "TOKEN_STRING",
+			getFutureWallet1: &kabuspb.FutureWallet{FutureTradeLimit: 300000, MarginRequirement: 0},
+			want:             &kabuspb.FutureWallet{FutureTradeLimit: 300000, MarginRequirement: 0}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{
+				security:     &testSecurity{getFutureWallet1: test.getFutureWallet1, getFutureWallet2: test.getFutureWallet2},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
+				setting:      &testSetting{password: "PASSWORD"}}
+			got1, got2 := server.GetFutureWallet(context.Background(), &kabuspb.GetFutureWalletRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_server_GetOptionWallet(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name             string
+		getToken1        string
+		getToken2        error
+		getOptionWallet1 *kabuspb.OptionWallet
+		getOptionWallet2 error
+		want             *kabuspb.OptionWallet
+		hasError         bool
+	}{
+		{name: "token取得でエラーがあればエラーを返す",
+			getToken2: errors.New("get token error message"),
+			hasError:  true},
+		{name: "エラーがあればエラーを返す",
+			getToken1:        "TOKEN_STRING",
+			getOptionWallet2: errors.New("register error message"),
+			hasError:         true},
+		{name: "エラーがなければ結果を返す",
+			getToken1:        "TOKEN_STRING",
+			getOptionWallet1: &kabuspb.OptionWallet{OptionBuyTradeLimit: 300000, OptionSellTradeLimit: 300000, MarginRequirement: 0},
+			want:             &kabuspb.OptionWallet{OptionBuyTradeLimit: 300000, OptionSellTradeLimit: 300000, MarginRequirement: 0}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{
+				security:     &testSecurity{getOptionWallet1: test.getOptionWallet1, getOptionWallet2: test.getOptionWallet2},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
+				setting:      &testSetting{password: "PASSWORD"}}
+			got1, got2 := server.GetOptionWallet(context.Background(), &kabuspb.GetOptionWalletRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}

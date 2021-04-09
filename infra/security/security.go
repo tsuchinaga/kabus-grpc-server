@@ -336,3 +336,77 @@ func (s *security) CancelOrder(ctx context.Context, token string, req *kabuspb.C
 	}
 	return &kabuspb.OrderResponse{ResultCode: int32(res.Result), OrderId: res.OrderID}, nil
 }
+
+func (s *security) GetStockWallet(ctx context.Context, token string, req *kabuspb.GetStockWalletRequest) (*kabuspb.StockWallet, error) {
+	var (
+		res *kabus.WalletCashResponse
+		err error
+	)
+	if req.SymbolCode == "" {
+		res, err = s.restClient.WalletCashWithContext(ctx, token)
+	} else {
+		res, err = s.restClient.WalletCashSymbolWithContext(ctx, token, toWalletCashSymbolRequest(req))
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	return &kabuspb.StockWallet{StockAccountWallet: res.StockAccountWallet}, nil
+}
+func (s *security) GetMarginWallet(ctx context.Context, token string, req *kabuspb.GetMarginWalletRequest) (*kabuspb.MarginWallet, error) {
+	var (
+		res *kabus.WalletMarginResponse
+		err error
+	)
+	if req.SymbolCode == "" {
+		res, err = s.restClient.WalletMarginWithContext(ctx, token)
+	} else {
+		res, err = s.restClient.WalletMarginSymbolWithContext(ctx, token, toWalletMarginSymbolRequest(req))
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	return &kabuspb.MarginWallet{
+		MarginAccountWallet:          res.MarginAccountWallet,
+		DepositKeepRate:              res.DepositkeepRate,
+		ConsignmentDepositRate:       res.ConsignmentDepositRate,
+		CashOfConsignmentDepositRate: res.CashOfConsignmentDepositRate,
+	}, nil
+}
+func (s *security) GetFutureWallet(ctx context.Context, token string, req *kabuspb.GetFutureWalletRequest) (*kabuspb.FutureWallet, error) {
+	var (
+		res *kabus.WalletFutureResponse
+		err error
+	)
+	if req.SymbolCode == "" {
+		res, err = s.restClient.WalletFutureWithContext(ctx, token)
+	} else {
+		res, err = s.restClient.WalletFutureSymbolWithContext(ctx, token, toWalletFutureSymbolRequest(req))
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	return &kabuspb.FutureWallet{FutureTradeLimit: res.FutureTradeLimit, MarginRequirement: res.MarginRequirement}, nil
+}
+func (s *security) GetOptionWallet(ctx context.Context, token string, req *kabuspb.GetOptionWalletRequest) (*kabuspb.OptionWallet, error) {
+	var (
+		res *kabus.WalletOptionResponse
+		err error
+	)
+	if req.SymbolCode == "" {
+		res, err = s.restClient.WalletOptionWithContext(ctx, token)
+	} else {
+		res, err = s.restClient.WalletOptionSymbolWithContext(ctx, token, toWalletOptionSymbolRequest(req))
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	return &kabuspb.OptionWallet{
+		OptionBuyTradeLimit:  res.OptionBuyTradeLimit,
+		OptionSellTradeLimit: res.OptionSellTradeLimit,
+		MarginRequirement:    res.MarginRequirement,
+	}, nil
+}

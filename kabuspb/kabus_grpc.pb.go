@@ -24,6 +24,10 @@ type KabusServiceClient interface {
 	SendFutureOrder(ctx context.Context, in *SendFutureOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error)
 	SendOptionOrder(ctx context.Context, in *SendOptionOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error)
 	CancelOrder(ctx context.Context, in *CancelOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error)
+	GetStockWallet(ctx context.Context, in *GetStockWalletRequest, opts ...grpc.CallOption) (*StockWallet, error)
+	GetMarginWallet(ctx context.Context, in *GetMarginWalletRequest, opts ...grpc.CallOption) (*MarginWallet, error)
+	GetFutureWallet(ctx context.Context, in *GetFutureWalletRequest, opts ...grpc.CallOption) (*FutureWallet, error)
+	GetOptionWallet(ctx context.Context, in *GetOptionWalletRequest, opts ...grpc.CallOption) (*OptionWallet, error)
 	GetBoard(ctx context.Context, in *GetBoardRequest, opts ...grpc.CallOption) (*Board, error)
 	GetSymbol(ctx context.Context, in *GetSymbolRequest, opts ...grpc.CallOption) (*Symbol, error)
 	GetOrders(ctx context.Context, in *GetOrdersRequest, opts ...grpc.CallOption) (*Orders, error)
@@ -107,6 +111,42 @@ func (c *kabusServiceClient) SendOptionOrder(ctx context.Context, in *SendOption
 func (c *kabusServiceClient) CancelOrder(ctx context.Context, in *CancelOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error) {
 	out := new(OrderResponse)
 	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/CancelOrder", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) GetStockWallet(ctx context.Context, in *GetStockWalletRequest, opts ...grpc.CallOption) (*StockWallet, error) {
+	out := new(StockWallet)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetStockWallet", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) GetMarginWallet(ctx context.Context, in *GetMarginWalletRequest, opts ...grpc.CallOption) (*MarginWallet, error) {
+	out := new(MarginWallet)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetMarginWallet", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) GetFutureWallet(ctx context.Context, in *GetFutureWalletRequest, opts ...grpc.CallOption) (*FutureWallet, error) {
+	out := new(FutureWallet)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetFutureWallet", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) GetOptionWallet(ctx context.Context, in *GetOptionWalletRequest, opts ...grpc.CallOption) (*OptionWallet, error) {
+	out := new(OptionWallet)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetOptionWallet", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -268,6 +308,10 @@ type KabusServiceServer interface {
 	SendFutureOrder(context.Context, *SendFutureOrderRequest) (*OrderResponse, error)
 	SendOptionOrder(context.Context, *SendOptionOrderRequest) (*OrderResponse, error)
 	CancelOrder(context.Context, *CancelOrderRequest) (*OrderResponse, error)
+	GetStockWallet(context.Context, *GetStockWalletRequest) (*StockWallet, error)
+	GetMarginWallet(context.Context, *GetMarginWalletRequest) (*MarginWallet, error)
+	GetFutureWallet(context.Context, *GetFutureWalletRequest) (*FutureWallet, error)
+	GetOptionWallet(context.Context, *GetOptionWalletRequest) (*OptionWallet, error)
 	GetBoard(context.Context, *GetBoardRequest) (*Board, error)
 	GetSymbol(context.Context, *GetSymbolRequest) (*Symbol, error)
 	GetOrders(context.Context, *GetOrdersRequest) (*Orders, error)
@@ -311,6 +355,18 @@ func (UnimplementedKabusServiceServer) SendOptionOrder(context.Context, *SendOpt
 }
 func (UnimplementedKabusServiceServer) CancelOrder(context.Context, *CancelOrderRequest) (*OrderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CancelOrder not implemented")
+}
+func (UnimplementedKabusServiceServer) GetStockWallet(context.Context, *GetStockWalletRequest) (*StockWallet, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetStockWallet not implemented")
+}
+func (UnimplementedKabusServiceServer) GetMarginWallet(context.Context, *GetMarginWalletRequest) (*MarginWallet, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMarginWallet not implemented")
+}
+func (UnimplementedKabusServiceServer) GetFutureWallet(context.Context, *GetFutureWalletRequest) (*FutureWallet, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFutureWallet not implemented")
+}
+func (UnimplementedKabusServiceServer) GetOptionWallet(context.Context, *GetOptionWalletRequest) (*OptionWallet, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetOptionWallet not implemented")
 }
 func (UnimplementedKabusServiceServer) GetBoard(context.Context, *GetBoardRequest) (*Board, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBoard not implemented")
@@ -495,6 +551,78 @@ func _KabusService_CancelOrder_Handler(srv interface{}, ctx context.Context, dec
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KabusServiceServer).CancelOrder(ctx, req.(*CancelOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_GetStockWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetStockWalletRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).GetStockWallet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/GetStockWallet",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).GetStockWallet(ctx, req.(*GetStockWalletRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_GetMarginWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMarginWalletRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).GetMarginWallet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/GetMarginWallet",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).GetMarginWallet(ctx, req.(*GetMarginWalletRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_GetFutureWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFutureWalletRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).GetFutureWallet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/GetFutureWallet",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).GetFutureWallet(ctx, req.(*GetFutureWalletRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_GetOptionWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetOptionWalletRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).GetOptionWallet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/GetOptionWallet",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).GetOptionWallet(ctx, req.(*GetOptionWalletRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -821,6 +949,22 @@ var KabusService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CancelOrder",
 			Handler:    _KabusService_CancelOrder_Handler,
+		},
+		{
+			MethodName: "GetStockWallet",
+			Handler:    _KabusService_GetStockWallet_Handler,
+		},
+		{
+			MethodName: "GetMarginWallet",
+			Handler:    _KabusService_GetMarginWallet_Handler,
+		},
+		{
+			MethodName: "GetFutureWallet",
+			Handler:    _KabusService_GetFutureWallet_Handler,
+		},
+		{
+			MethodName: "GetOptionWallet",
+			Handler:    _KabusService_GetOptionWallet_Handler,
 		},
 		{
 			MethodName: "GetBoard",

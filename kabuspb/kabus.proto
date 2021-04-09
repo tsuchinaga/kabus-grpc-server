@@ -14,6 +14,10 @@ service KabusService {
   rpc SendFutureOrder(SendFutureOrderRequest) returns (OrderResponse); // 注文発注（先物）
   rpc SendOptionOrder(SendOptionOrderRequest) returns (OrderResponse); // 注文発注（オプション）
   rpc CancelOrder(CancelOrderRequest) returns (OrderResponse); // 注文取消
+  rpc GetStockWallet(GetStockWalletRequest) returns (StockWallet); // 取引余力（現物）
+  rpc GetMarginWallet(GetMarginWalletRequest) returns (MarginWallet); // 取引余力（信用）
+  rpc GetFutureWallet(GetFutureWalletRequest) returns (FutureWallet); // 取引余力（先物）
+  rpc GetOptionWallet(GetOptionWalletRequest) returns (OptionWallet); // 取引余力（オプション）
   rpc GetBoard(GetBoardRequest) returns (Board); // 時価情報・板情報
   rpc GetSymbol(GetSymbolRequest) returns (Symbol); // 銘柄情報
   rpc GetOrders(GetOrdersRequest) returns (Orders); // 注文約定照会
@@ -205,6 +209,46 @@ message ClosePosition {
 message CancelOrderRequest {
   // 注文番号
   string order_id = 1;
+}
+
+// 取引余力（現物）リクエスト
+message GetStockWalletRequest {
+  // 銘柄コード
+  //   銘柄コードが空なら銘柄指定せずに取得する
+  string symbol_code = 1;
+
+  // 市場コード
+  StockExchange exchange = 2;
+}
+
+// 取引余力（信用）リクエスト
+message GetMarginWalletRequest {
+  // 銘柄コード
+  //   銘柄コードが空なら銘柄指定せずに取得する
+  string symbol_code = 1;
+
+  // 市場コード
+  StockExchange exchange = 2;
+}
+
+// 取引余力（先物）リクエスト
+message GetFutureWalletRequest {
+  // 銘柄コード
+  //   銘柄コードが空なら銘柄指定せずに取得する
+  string symbol_code = 1;
+
+  // 市場コード
+  FutureExchange exchange = 2;
+}
+
+// 取引余力（オプション）リクエスト
+message GetOptionWalletRequest {
+  // 銘柄コード
+  //   銘柄コードが空なら銘柄指定せずに取得する
+  string symbol_code = 1;
+
+  // 市場コード
+  OptionExchange exchange = 2;
 }
 
 // 時価情報・板情報リクエスト
@@ -1260,6 +1304,52 @@ message OrderResponse {
 
   // 受付注文番号
   string order_id = 2;
+}
+
+// 取引余力（現物）
+message StockWallet {
+  // 現物買付可能額
+  double stock_account_wallet = 1;
+}
+
+// 取引余力（信用）
+message MarginWallet {
+  // 信用新規可能額
+  double margin_account_wallet = 1;
+
+  // 保証金維持率
+  //   銘柄指定の場合のみ
+  double deposit_keep_rate = 2;
+
+  // 委託保証金率
+  //   銘柄指定の場合のみ
+  double consignment_deposit_rate = 3;
+
+  // 現金委託保証金率
+  //   銘柄指定の場合のみ
+  double cash_of_consignment_deposit_rate = 4;
+}
+
+// 取引余力（先物）
+message FutureWallet {
+  // 新規建玉可能額
+  double future_trade_limit = 1;
+
+  // 必要証拠金額
+  //   銘柄指定の場合のみ。
+  double margin_requirement = 2;
+}
+
+// 取引余力（オプション）
+message OptionWallet {
+  // 買新規建玉可能額
+  double option_buy_trade_limit = 1;
+  // 売新規建玉可能額
+  double option_sell_trade_limit = 2;
+
+  // 必要証拠金額
+  //   銘柄指定の場合のみ。
+  double margin_requirement = 3;
 }
 
 // 市場

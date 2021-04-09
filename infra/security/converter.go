@@ -1272,3 +1272,31 @@ func toCancelOrderRequest(req *kabuspb.CancelOrderRequest, password string) kabu
 		Password: password,
 	}
 }
+
+func toWalletCashSymbolRequest(req *kabuspb.GetStockWalletRequest) kabus.WalletCashSymbolRequest {
+	return kabus.WalletCashSymbolRequest{
+		Symbol:   req.SymbolCode,
+		Exchange: toStockExchange(req.Exchange),
+	}
+}
+
+func toWalletMarginSymbolRequest(req *kabuspb.GetMarginWalletRequest) kabus.WalletMarginSymbolRequest {
+	return kabus.WalletMarginSymbolRequest{
+		Symbol:   req.SymbolCode,
+		Exchange: toStockExchange(req.Exchange),
+	}
+}
+
+func toWalletFutureSymbolRequest(req *kabuspb.GetFutureWalletRequest) kabus.WalletFutureSymbolRequest {
+	return kabus.WalletFutureSymbolRequest{
+		Symbol:   req.SymbolCode,
+		Exchange: toFutureExchange(req.Exchange),
+	}
+}
+
+func toWalletOptionSymbolRequest(req *kabuspb.GetOptionWalletRequest) kabus.WalletOptionSymbolRequest {
+	return kabus.WalletOptionSymbolRequest{
+		Symbol:   req.SymbolCode,
+		Exchange: toOptionExchange(req.Exchange),
+	}
+}

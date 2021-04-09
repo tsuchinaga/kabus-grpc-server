@@ -2638,3 +2638,39 @@ func Test_toCancelOrderRequest(t *testing.T) {
 		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
 	}
 }
+
+func Test_toWalletCashSymbolRequest(t *testing.T) {
+	t.Parallel()
+	got := toWalletCashSymbolRequest(&kabuspb.GetStockWalletRequest{SymbolCode: "1320", Exchange: kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU})
+	want := kabus.WalletCashSymbolRequest{Symbol: "1320", Exchange: kabus.StockExchangeToushou}
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
+	}
+}
+
+func Test_toWalletMarginSymbolRequest(t *testing.T) {
+	t.Parallel()
+	got := toWalletMarginSymbolRequest(&kabuspb.GetMarginWalletRequest{SymbolCode: "1320", Exchange: kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU})
+	want := kabus.WalletMarginSymbolRequest{Symbol: "1320", Exchange: kabus.StockExchangeToushou}
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
+	}
+}
+
+func Test_toWalletFutureSymbolRequest(t *testing.T) {
+	t.Parallel()
+	got := toWalletFutureSymbolRequest(&kabuspb.GetFutureWalletRequest{SymbolCode: "1320", Exchange: kabuspb.FutureExchange_FUTURE_EXCHANGE_ALL_SESSION})
+	want := kabus.WalletFutureSymbolRequest{Symbol: "1320", Exchange: kabus.FutureExchangeAll}
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
+	}
+}
+
+func Test_toWalletOptionSymbolRequest(t *testing.T) {
+	t.Parallel()
+	got := toWalletOptionSymbolRequest(&kabuspb.GetOptionWalletRequest{SymbolCode: "1320", Exchange: kabuspb.OptionExchange_OPTION_EXCHANGE_ALL_SESSION})
+	want := kabus.WalletOptionSymbolRequest{Symbol: "1320", Exchange: kabus.OptionExchangeAll}
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
+	}
+}
