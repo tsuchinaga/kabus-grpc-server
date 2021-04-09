@@ -27,4 +27,5 @@ type Security interface {
 	SendOrderMargin(ctx context.Context, token string, req *kabuspb.SendMarginOrderRequest, password string) (*kabuspb.OrderResponse, error)
 	SendOrderFuture(ctx context.Context, token string, req *kabuspb.SendFutureOrderRequest, password string) (*kabuspb.OrderResponse, error)
 	SendOrderOption(ctx context.Context, token string, req *kabuspb.SendOptionOrderRequest, password string) (*kabuspb.OrderResponse, error)
+	CancelOrder(ctx context.Context, token string, req *kabuspb.CancelOrderRequest, password string) (*kabuspb.OrderResponse, error)
 }

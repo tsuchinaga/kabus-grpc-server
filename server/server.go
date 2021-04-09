@@ -75,6 +75,15 @@ func (s *server) SendOptionOrder(ctx context.Context, req *kabuspb.SendOptionOrd
 	return s.security.SendOrderOption(ctx, token, req, s.setting.Password())
 }
 
+func (s *server) CancelOrder(ctx context.Context, req *kabuspb.CancelOrderRequest) (*kabuspb.OrderResponse, error) {
+	token, err := s.tokenService.GetToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.security.CancelOrder(ctx, token, req, s.setting.Password())
+}
+
 func (s *server) GetBoard(ctx context.Context, req *kabuspb.GetBoardRequest) (*kabuspb.Board, error) {
 	token, err := s.tokenService.GetToken(ctx)
 	if err != nil {

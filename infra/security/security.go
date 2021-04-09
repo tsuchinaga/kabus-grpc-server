@@ -328,3 +328,11 @@ func (s *security) SendOrderOption(ctx context.Context, token string, req *kabus
 	}
 	return &kabuspb.OrderResponse{ResultCode: int32(res.Result), OrderId: res.OrderID}, nil
 }
+
+func (s *security) CancelOrder(ctx context.Context, token string, req *kabuspb.CancelOrderRequest, password string) (*kabuspb.OrderResponse, error) {
+	res, err := s.restClient.CancelOrderWithContext(ctx, token, toCancelOrderRequest(req, password))
+	if err != nil {
+		return nil, err
+	}
+	return &kabuspb.OrderResponse{ResultCode: int32(res.Result), OrderId: res.OrderID}, nil
+}

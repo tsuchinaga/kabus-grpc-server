@@ -1265,3 +1265,10 @@ func toOptionFrontOrderType(orderType kabuspb.OptionOrderType) kabus.OptionFront
 	}
 	return kabus.OptionFrontOrderTypeUnspecified
 }
+
+func toCancelOrderRequest(req *kabuspb.CancelOrderRequest, password string) kabus.CancelOrderRequest {
+	return kabus.CancelOrderRequest{
+		OrderID:  req.OrderId,
+		Password: password,
+	}
+}

@@ -23,6 +23,7 @@ type KabusServiceClient interface {
 	SendMarginOrder(ctx context.Context, in *SendMarginOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error)
 	SendFutureOrder(ctx context.Context, in *SendFutureOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error)
 	SendOptionOrder(ctx context.Context, in *SendOptionOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error)
+	CancelOrder(ctx context.Context, in *CancelOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error)
 	GetBoard(ctx context.Context, in *GetBoardRequest, opts ...grpc.CallOption) (*Board, error)
 	GetSymbol(ctx context.Context, in *GetSymbolRequest, opts ...grpc.CallOption) (*Symbol, error)
 	GetOrders(ctx context.Context, in *GetOrdersRequest, opts ...grpc.CallOption) (*Orders, error)
@@ -97,6 +98,15 @@ func (c *kabusServiceClient) SendFutureOrder(ctx context.Context, in *SendFuture
 func (c *kabusServiceClient) SendOptionOrder(ctx context.Context, in *SendOptionOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error) {
 	out := new(OrderResponse)
 	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/SendOptionOrder", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) CancelOrder(ctx context.Context, in *CancelOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error) {
+	out := new(OrderResponse)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/CancelOrder", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -257,6 +267,7 @@ type KabusServiceServer interface {
 	SendMarginOrder(context.Context, *SendMarginOrderRequest) (*OrderResponse, error)
 	SendFutureOrder(context.Context, *SendFutureOrderRequest) (*OrderResponse, error)
 	SendOptionOrder(context.Context, *SendOptionOrderRequest) (*OrderResponse, error)
+	CancelOrder(context.Context, *CancelOrderRequest) (*OrderResponse, error)
 	GetBoard(context.Context, *GetBoardRequest) (*Board, error)
 	GetSymbol(context.Context, *GetSymbolRequest) (*Symbol, error)
 	GetOrders(context.Context, *GetOrdersRequest) (*Orders, error)
@@ -297,6 +308,9 @@ func (UnimplementedKabusServiceServer) SendFutureOrder(context.Context, *SendFut
 }
 func (UnimplementedKabusServiceServer) SendOptionOrder(context.Context, *SendOptionOrderRequest) (*OrderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendOptionOrder not implemented")
+}
+func (UnimplementedKabusServiceServer) CancelOrder(context.Context, *CancelOrderRequest) (*OrderResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CancelOrder not implemented")
 }
 func (UnimplementedKabusServiceServer) GetBoard(context.Context, *GetBoardRequest) (*Board, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBoard not implemented")
@@ -463,6 +477,24 @@ func _KabusService_SendOptionOrder_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KabusServiceServer).SendOptionOrder(ctx, req.(*SendOptionOrderRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_CancelOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelOrderRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).CancelOrder(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/CancelOrder",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).CancelOrder(ctx, req.(*CancelOrderRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -785,6 +817,10 @@ var KabusService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendOptionOrder",
 			Handler:    _KabusService_SendOptionOrder_Handler,
+		},
+		{
+			MethodName: "CancelOrder",
+			Handler:    _KabusService_CancelOrder_Handler,
 		},
 		{
 			MethodName: "GetBoard",

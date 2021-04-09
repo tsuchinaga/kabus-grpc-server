@@ -2629,3 +2629,12 @@ func Test_toSendOrderOptionRequest(t *testing.T) {
 		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
 	}
 }
+
+func Test_toCancelOrderRequest(t *testing.T) {
+	t.Parallel()
+	got := toCancelOrderRequest(&kabuspb.CancelOrderRequest{OrderId: "ORDER-ID"}, "PASSWORD")
+	want := kabus.CancelOrderRequest{OrderID: "ORDER-ID", Password: "PASSWORD"}
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
+	}
+}

@@ -10,9 +10,10 @@ service KabusService {
   rpc GetToken(GetTokenRequest) returns (Token); // トークン取得
   rpc RefreshToken(RefreshTokenRequest) returns (Token); // トークン再取得
   rpc SendStockOrder(SendStockOrderRequest) returns (OrderResponse); // 注文発注（現物）
-  rpc SendMarginOrder(SendMarginOrderRequest) returns (OrderResponse); // 注文発注（現物）
+  rpc SendMarginOrder(SendMarginOrderRequest) returns (OrderResponse); // 注文発注（信用）
   rpc SendFutureOrder(SendFutureOrderRequest) returns (OrderResponse); // 注文発注（先物）
   rpc SendOptionOrder(SendOptionOrderRequest) returns (OrderResponse); // 注文発注（オプション）
+  rpc CancelOrder(CancelOrderRequest) returns (OrderResponse); // 注文取消
   rpc GetBoard(GetBoardRequest) returns (Board); // 時価情報・板情報
   rpc GetSymbol(GetSymbolRequest) returns (Symbol); // 銘柄情報
   rpc GetOrders(GetOrdersRequest) returns (Orders); // 注文約定照会
@@ -198,6 +199,12 @@ message ClosePosition {
 
   // 返済建玉数量
   double quantity = 2;
+}
+
+// 注文取消
+message CancelOrderRequest {
+  // 注文番号
+  string order_id = 1;
 }
 
 // 時価情報・板情報リクエスト
