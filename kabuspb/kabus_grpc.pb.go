@@ -17,8 +17,6 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type KabusServiceClient interface {
-	GetToken(ctx context.Context, in *GetTokenRequest, opts ...grpc.CallOption) (*Token, error)
-	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*Token, error)
 	SendStockOrder(ctx context.Context, in *SendStockOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error)
 	SendMarginOrder(ctx context.Context, in *SendMarginOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error)
 	SendFutureOrder(ctx context.Context, in *SendFutureOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error)
@@ -52,24 +50,6 @@ type kabusServiceClient struct {
 
 func NewKabusServiceClient(cc grpc.ClientConnInterface) KabusServiceClient {
 	return &kabusServiceClient{cc}
-}
-
-func (c *kabusServiceClient) GetToken(ctx context.Context, in *GetTokenRequest, opts ...grpc.CallOption) (*Token, error) {
-	out := new(Token)
-	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetToken", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *kabusServiceClient) RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*Token, error) {
-	out := new(Token)
-	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/RefreshToken", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *kabusServiceClient) SendStockOrder(ctx context.Context, in *SendStockOrderRequest, opts ...grpc.CallOption) (*OrderResponse, error) {
@@ -301,8 +281,6 @@ func (c *kabusServiceClient) UnregisterAllSymbols(ctx context.Context, in *Unreg
 // All implementations must embed UnimplementedKabusServiceServer
 // for forward compatibility
 type KabusServiceServer interface {
-	GetToken(context.Context, *GetTokenRequest) (*Token, error)
-	RefreshToken(context.Context, *RefreshTokenRequest) (*Token, error)
 	SendStockOrder(context.Context, *SendStockOrderRequest) (*OrderResponse, error)
 	SendMarginOrder(context.Context, *SendMarginOrderRequest) (*OrderResponse, error)
 	SendFutureOrder(context.Context, *SendFutureOrderRequest) (*OrderResponse, error)
@@ -335,12 +313,6 @@ type KabusServiceServer interface {
 type UnimplementedKabusServiceServer struct {
 }
 
-func (UnimplementedKabusServiceServer) GetToken(context.Context, *GetTokenRequest) (*Token, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetToken not implemented")
-}
-func (UnimplementedKabusServiceServer) RefreshToken(context.Context, *RefreshTokenRequest) (*Token, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RefreshToken not implemented")
-}
 func (UnimplementedKabusServiceServer) SendStockOrder(context.Context, *SendStockOrderRequest) (*OrderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendStockOrder not implemented")
 }
@@ -427,42 +399,6 @@ type UnsafeKabusServiceServer interface {
 
 func RegisterKabusServiceServer(s grpc.ServiceRegistrar, srv KabusServiceServer) {
 	s.RegisterService(&KabusService_ServiceDesc, srv)
-}
-
-func _KabusService_GetToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetTokenRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(KabusServiceServer).GetToken(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/kabuspb.KabusService/GetToken",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KabusServiceServer).GetToken(ctx, req.(*GetTokenRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _KabusService_RefreshToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RefreshTokenRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(KabusServiceServer).RefreshToken(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/kabuspb.KabusService/RefreshToken",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KabusServiceServer).RefreshToken(ctx, req.(*RefreshTokenRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _KabusService_SendStockOrder_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -922,14 +858,6 @@ var KabusService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "kabuspb.KabusService",
 	HandlerType: (*KabusServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "GetToken",
-			Handler:    _KabusService_GetToken_Handler,
-		},
-		{
-			MethodName: "RefreshToken",
-			Handler:    _KabusService_RefreshToken_Handler,
-		},
 		{
 			MethodName: "SendStockOrder",
 			Handler:    _KabusService_SendStockOrder_Handler,

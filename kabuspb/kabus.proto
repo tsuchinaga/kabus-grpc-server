@@ -7,8 +7,6 @@ option go_package = ".;kabuspb";
 import "google/protobuf/timestamp.proto";
 
 service KabusService {
-  rpc GetToken(GetTokenRequest) returns (Token); // トークン取得
-  rpc RefreshToken(RefreshTokenRequest) returns (Token); // トークン再取得
   rpc SendStockOrder(SendStockOrderRequest) returns (OrderResponse); // 注文発注（現物）
   rpc SendMarginOrder(SendMarginOrderRequest) returns (OrderResponse); // 注文発注（信用）
   rpc SendFutureOrder(SendFutureOrderRequest) returns (OrderResponse); // 注文発注（先物）
