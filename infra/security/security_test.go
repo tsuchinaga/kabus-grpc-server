@@ -1028,7 +1028,7 @@ func Test_security_SendOrderStock(t *testing.T) {
 			t.Parallel()
 			restClient := &testRESTClient{sendOrderStockWithContext1: test.sendOrderStockWithContext1, sendOrderStockWithContext2: test.sendOrderStockWithContext2}
 			security := &security{restClient: restClient}
-			got1, got2 := security.SendOrderStock(context.Background(), "", &kabuspb.SendStockOrderRequest{}, "")
+			got1, got2 := security.SendOrderStock(context.Background(), "", &kabuspb.SendStockOrderRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}
@@ -1057,7 +1057,7 @@ func Test_security_SendOrderMargin(t *testing.T) {
 			t.Parallel()
 			restClient := &testRESTClient{sendOrderStockWithContext1: test.sendOrderStockWithContext1, sendOrderStockWithContext2: test.sendOrderStockWithContext2}
 			security := &security{restClient: restClient}
-			got1, got2 := security.SendOrderMargin(context.Background(), "", &kabuspb.SendMarginOrderRequest{}, "")
+			got1, got2 := security.SendOrderMargin(context.Background(), "", &kabuspb.SendMarginOrderRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}
@@ -1086,7 +1086,7 @@ func Test_security_SendOrderFuture(t *testing.T) {
 			t.Parallel()
 			restClient := &testRESTClient{sendOrderFutureWithContext1: test.sendOrderFutureWithContext1, sendOrderFutureWithContext2: test.sendOrderFutureWithContext2}
 			security := &security{restClient: restClient}
-			got1, got2 := security.SendOrderFuture(context.Background(), "", &kabuspb.SendFutureOrderRequest{}, "")
+			got1, got2 := security.SendOrderFuture(context.Background(), "", &kabuspb.SendFutureOrderRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}
@@ -1115,7 +1115,7 @@ func Test_security_SendOrderOption(t *testing.T) {
 			t.Parallel()
 			restClient := &testRESTClient{sendOrderOptionWithContext1: test.sendOrderOptionWithContext1, sendOrderOptionWithContext2: test.sendOrderOptionWithContext2}
 			security := &security{restClient: restClient}
-			got1, got2 := security.SendOrderOption(context.Background(), "", &kabuspb.SendOptionOrderRequest{}, "")
+			got1, got2 := security.SendOrderOption(context.Background(), "", &kabuspb.SendOptionOrderRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}
@@ -1144,7 +1144,7 @@ func Test_security_CancelOrder(t *testing.T) {
 			t.Parallel()
 			restClient := &testRESTClient{cancelOrderWithContext1: test.cancelOrderWithContext1, cancelOrderWithContext2: test.cancelOrderWithContext2}
 			security := &security{restClient: restClient}
-			got1, got2 := security.CancelOrder(context.Background(), "", &kabuspb.CancelOrderRequest{}, "")
+			got1, got2 := security.CancelOrder(context.Background(), "", &kabuspb.CancelOrderRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}

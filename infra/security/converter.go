@@ -990,7 +990,7 @@ func fromCategoryRanking(rank kabus.CategoryPriceRanking) *kabuspb.IndustryRanki
 	}
 }
 
-func toSendOrderStockRequestFromSendStockOrderRequest(req *kabuspb.SendStockOrderRequest, password string) kabus.SendOrderStockRequest {
+func toSendOrderStockRequestFromSendStockOrderRequest(req *kabuspb.SendStockOrderRequest) kabus.SendOrderStockRequest {
 	delivType := kabus.DelivTypeUnspecified
 	if req.Side == kabuspb.Side_SIDE_BUY {
 		delivType = toDelivType(req.DeliveryType)
@@ -1002,7 +1002,7 @@ func toSendOrderStockRequestFromSendStockOrderRequest(req *kabuspb.SendStockOrde
 	}
 
 	return kabus.SendOrderStockRequest{
-		Password:        password,
+		Password:        req.Password,
 		Symbol:          req.SymbolCode,
 		Exchange:        toStockExchange(req.Exchange),
 		SecurityType:    kabus.SecurityTypeStock, // 株式 固定値
@@ -1019,14 +1019,14 @@ func toSendOrderStockRequestFromSendStockOrderRequest(req *kabuspb.SendStockOrde
 	}
 }
 
-func toSendOrderStockRequestFromSendMarginOrderRequest(req *kabuspb.SendMarginOrderRequest, password string) kabus.SendOrderStockRequest {
+func toSendOrderStockRequestFromSendMarginOrderRequest(req *kabuspb.SendMarginOrderRequest) kabus.SendOrderStockRequest {
 	delivType := kabus.DelivTypeUnspecified
 	if req.TradeType == kabuspb.TradeType_TRADE_TYPE_EXIT {
 		delivType = toDelivType(req.DeliveryType)
 	}
 
 	return kabus.SendOrderStockRequest{
-		Password:        password,
+		Password:        req.Password,
 		Symbol:          req.SymbolCode,
 		Exchange:        toStockExchange(req.Exchange),
 		SecurityType:    kabus.SecurityTypeStock, // 株式 固定値
@@ -1043,9 +1043,9 @@ func toSendOrderStockRequestFromSendMarginOrderRequest(req *kabuspb.SendMarginOr
 	}
 }
 
-func toSendOrderFutureRequest(req *kabuspb.SendFutureOrderRequest, password string) kabus.SendOrderFutureRequest {
+func toSendOrderFutureRequest(req *kabuspb.SendFutureOrderRequest) kabus.SendOrderFutureRequest {
 	return kabus.SendOrderFutureRequest{
-		Password:           password,
+		Password:           req.Password,
 		Symbol:             req.SymbolCode,
 		Exchange:           toFutureExchange(req.Exchange),
 		TradeType:          toTradeType(req.TradeType),
@@ -1060,9 +1060,9 @@ func toSendOrderFutureRequest(req *kabuspb.SendFutureOrderRequest, password stri
 	}
 }
 
-func toSendOrderOptionRequest(req *kabuspb.SendOptionOrderRequest, password string) kabus.SendOrderOptionRequest {
+func toSendOrderOptionRequest(req *kabuspb.SendOptionOrderRequest) kabus.SendOrderOptionRequest {
 	return kabus.SendOrderOptionRequest{
-		Password:           password,
+		Password:           req.Password,
 		Symbol:             req.SymbolCode,
 		Exchange:           toOptionExchange(req.Exchange),
 		TradeType:          toTradeType(req.TradeType),
@@ -1266,10 +1266,10 @@ func toOptionFrontOrderType(orderType kabuspb.OptionOrderType) kabus.OptionFront
 	return kabus.OptionFrontOrderTypeUnspecified
 }
 
-func toCancelOrderRequest(req *kabuspb.CancelOrderRequest, password string) kabus.CancelOrderRequest {
+func toCancelOrderRequest(req *kabuspb.CancelOrderRequest) kabus.CancelOrderRequest {
 	return kabus.CancelOrderRequest{
+		Password: req.Password,
 		OrderID:  req.OrderId,
-		Password: password,
 	}
 }
 

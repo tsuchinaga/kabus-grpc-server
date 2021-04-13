@@ -23,7 +23,6 @@ func InjectedServer() kabuspb.KabusServiceServer {
 			setting),
 		services.NewRegisterSymbolService(
 			stores.GetRegisterSymbolStore()),
-		setting,
 		services.NewBoardStreamService(
 			stores.GetBoardStreamStore(),
 			security.GetBoardWS(setting.IsProduction())))

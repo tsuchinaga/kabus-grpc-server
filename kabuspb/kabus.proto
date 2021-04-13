@@ -45,60 +45,23 @@ message RefreshTokenRequest {}
 
 // 注文発注（現物）リクエスト
 message SendStockOrderRequest {
+  // パスワード
+  string password = 1;
+
   // 銘柄コード
-  string symbol_code = 1;
+  string symbol_code = 2;
 
   // 市場コード
-  StockExchange exchange = 2;
+  StockExchange exchange = 3;
 
   // 売買区分
-  Side side = 3;
+  Side side = 4;
 
   // 受渡区分
-  DeliveryType delivery_type = 4;
+  DeliveryType delivery_type = 5;
 
   // 資産区分（預り区分）
-  FundType fund_type = 5;
-
-  // 口座種別
-  AccountType account_type = 6;
-
-  // 注文数量
-  double quantity = 7;
-
-  // 執行条件
-  StockOrderType order_type = 8;
-
-  // 注文価格
-  double price = 9;
-
-  // 注文有効期限
-  //   ゼロ値なら当日
-  //   引けまでの間 : 当日
-  //   引け後 : 翌取引所営業日
-  //   休前日 : 休日明けの取引所営業日
-  google.protobuf.Timestamp expire_day = 10;
-}
-
-// 注文発注（信用）リクエスト
-message SendMarginOrderRequest {
-  // 銘柄コード
-  string symbol_code = 1;
-
-  // 市場コード
-  StockExchange exchange = 2;
-
-  // 売買区分
-  Side side = 3;
-
-  // 取引区分
-  TradeType trade_type = 4;
-
-  // 信用取引区分
-  MarginTradeType margin_trade_type = 5;
-
-  // 受渡区分
-  DeliveryType delivery_type = 6;
+  FundType fund_type = 6;
 
   // 口座種別
   AccountType account_type = 7;
@@ -106,95 +69,144 @@ message SendMarginOrderRequest {
   // 注文数量
   double quantity = 8;
 
-  // 返済建玉指定
-  repeated ClosePosition close_positions = 9;
-
   // 執行条件
-  StockOrderType order_type = 10;
+  StockOrderType order_type = 9;
 
   // 注文価格
-  double price = 11;
+  double price = 10;
 
   // 注文有効期限
   //   ゼロ値なら当日
   //   引けまでの間 : 当日
   //   引け後 : 翌取引所営業日
   //   休前日 : 休日明けの取引所営業日
-  google.protobuf.Timestamp expire_day = 12;
+  google.protobuf.Timestamp expire_day = 11;
+}
+
+// 注文発注（信用）リクエスト
+message SendMarginOrderRequest {
+  // パスワード
+  string password = 1;
+
+  // 銘柄コード
+  string symbol_code = 2;
+
+  // 市場コード
+  StockExchange exchange = 3;
+
+  // 売買区分
+  Side side = 4;
+
+  // 取引区分
+  TradeType trade_type = 5;
+
+  // 信用取引区分
+  MarginTradeType margin_trade_type = 6;
+
+  // 受渡区分
+  DeliveryType delivery_type = 7;
+
+  // 口座種別
+  AccountType account_type = 8;
+
+  // 注文数量
+  double quantity = 9;
+
+  // 返済建玉指定
+  repeated ClosePosition close_positions = 10;
+
+  // 執行条件
+  StockOrderType order_type = 11;
+
+  // 注文価格
+  double price = 12;
+
+  // 注文有効期限
+  //   ゼロ値なら当日
+  //   引けまでの間 : 当日
+  //   引け後 : 翌取引所営業日
+  //   休前日 : 休日明けの取引所営業日
+  google.protobuf.Timestamp expire_day = 13;
 }
 
 // 注文発注（先物）リクエスト
 message SendFutureOrderRequest {
+  // パスワード
+  string password = 1;
+
   // 銘柄コード
-  string symbol_code = 1;
+  string symbol_code = 2;
 
   // 市場コード
-  FutureExchange exchange = 2;
+  FutureExchange exchange = 3;
 
   // 取引区分
-  TradeType trade_type = 3;
+  TradeType trade_type = 4;
 
   // 有効期間条件
-  TimeInForce time_in_force = 4;
+  TimeInForce time_in_force = 5;
 
   // 売買区分
-  Side side = 5;
+  Side side = 6;
 
   // 注文数量
-  double quantity = 6;
+  double quantity = 7;
 
   // 返済建玉指定
-  repeated ClosePosition close_positions = 7;
+  repeated ClosePosition close_positions = 8;
 
   // 執行条件
-  FutureOrderType order_type = 8;
+  FutureOrderType order_type = 9;
 
   // 注文価格
-  double price = 9;
+  double price = 10;
 
   // 注文有効期限
   //   ゼロ値なら当日
   //   引けまでの間 : 当日
   //   引け後 : 翌取引所営業日
   //   休前日 : 休日明けの取引所営業日
-  google.protobuf.Timestamp expire_day = 10;
+  google.protobuf.Timestamp expire_day = 11;
 }
 
 // 注文発注（オプション）リクエスト
 message SendOptionOrderRequest {
+  // パスワード
+  string password = 1;
+
   // 銘柄コード
-  string symbol_code = 1;
+  string symbol_code = 2;
 
   // 市場コード
-  OptionExchange exchange = 2;
+  OptionExchange exchange = 3;
 
   // 取引区分
-  TradeType trade_type = 3;
+  TradeType trade_type = 4;
 
   // 有効期間条件
-  TimeInForce time_in_force = 4;
+  TimeInForce time_in_force = 5;
 
   // 売買区分
-  Side side = 5;
+  Side side = 6;
 
   // 注文数量
-  double quantity = 6;
+  double quantity = 7;
 
   // 返済建玉指定
-  repeated ClosePosition close_positions = 7;
+  repeated ClosePosition close_positions = 8;
 
   // 執行条件
-  OptionOrderType order_type = 8;
+  OptionOrderType order_type = 9;
 
   // 注文価格
-  double price = 9;
+  double price = 10;
 
   // 注文有効期限
   //   ゼロ値なら当日
   //   引けまでの間 : 当日
   //   引け後 : 翌取引所営業日
   //   休前日 : 休日明けの取引所営業日
-  google.protobuf.Timestamp expire_day = 10;
+  google.protobuf.Timestamp expire_day = 11;
 }
 
 // 返済建玉指定
@@ -208,8 +220,11 @@ message ClosePosition {
 
 // 注文取消
 message CancelOrderRequest {
+  // パスワード
+  string password = 1;
+
   // 注文番号
-  string order_id = 1;
+  string order_id = 2;
 }
 
 // 取引余力（現物）リクエスト

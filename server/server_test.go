@@ -128,23 +128,23 @@ func (t *testSecurity) IndustryRanking(context.Context, string, *kabuspb.GetIndu
 	return t.industryRanking1, t.industryRanking2
 }
 
-func (t *testSecurity) SendOrderStock(context.Context, string, *kabuspb.SendStockOrderRequest, string) (*kabuspb.OrderResponse, error) {
+func (t *testSecurity) SendOrderStock(context.Context, string, *kabuspb.SendStockOrderRequest) (*kabuspb.OrderResponse, error) {
 	return t.sendOrderStock1, t.sendOrderStock2
 }
 
-func (t *testSecurity) SendOrderMargin(context.Context, string, *kabuspb.SendMarginOrderRequest, string) (*kabuspb.OrderResponse, error) {
+func (t *testSecurity) SendOrderMargin(context.Context, string, *kabuspb.SendMarginOrderRequest) (*kabuspb.OrderResponse, error) {
 	return t.sendOrderMargin1, t.sendOrderMargin2
 }
 
-func (t *testSecurity) SendOrderFuture(context.Context, string, *kabuspb.SendFutureOrderRequest, string) (*kabuspb.OrderResponse, error) {
+func (t *testSecurity) SendOrderFuture(context.Context, string, *kabuspb.SendFutureOrderRequest) (*kabuspb.OrderResponse, error) {
 	return t.sendOrderFuture1, t.sendOrderFuture2
 }
 
-func (t *testSecurity) SendOrderOption(context.Context, string, *kabuspb.SendOptionOrderRequest, string) (*kabuspb.OrderResponse, error) {
+func (t *testSecurity) SendOrderOption(context.Context, string, *kabuspb.SendOptionOrderRequest) (*kabuspb.OrderResponse, error) {
 	return t.sendOrderOption1, t.sendOrderOption2
 }
 
-func (t *testSecurity) CancelOrder(context.Context, string, *kabuspb.CancelOrderRequest, string) (*kabuspb.OrderResponse, error) {
+func (t *testSecurity) CancelOrder(context.Context, string, *kabuspb.CancelOrderRequest) (*kabuspb.OrderResponse, error) {
 	return t.cancelOrder1, t.cancelOrder2
 }
 
@@ -190,13 +190,6 @@ func (t *testRegisterSymbolService) Set(registeredList []*kabuspb.RegisterSymbol
 	t.lastSet = registeredList
 }
 
-type testSetting struct {
-	repositories.Setting
-	password string
-}
-
-func (t *testSetting) Password() string { return t.password }
-
 type testBoardStreamService struct {
 	services.BoardStreamService
 	connect error
@@ -210,10 +203,9 @@ func Test_NewServer(t *testing.T) {
 	security := &testSecurity{}
 	tokenService := &testTokenService{}
 	registerSymbolService := &testRegisterSymbolService{}
-	setting := &testSetting{}
 	boardStreamService := &testBoardStreamService{}
-	got := NewServer(security, tokenService, registerSymbolService, setting, boardStreamService)
-	want := &server{security: security, tokenService: tokenService, registerSymbolService: registerSymbolService, setting: setting, boardStreamService: boardStreamService}
+	got := NewServer(security, tokenService, registerSymbolService, boardStreamService)
+	want := &server{security: security, tokenService: tokenService, registerSymbolService: registerSymbolService, boardStreamService: boardStreamService}
 	t.Parallel()
 	if !reflect.DeepEqual(want, got) {
 		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
@@ -881,8 +873,7 @@ func Test_server_SendStockOrder(t *testing.T) {
 			t.Parallel()
 			server := &server{
 				security:     &testSecurity{sendOrderStock1: test.sendOrderStock1, sendOrderStock2: test.sendOrderStock2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
-				setting:      &testSetting{password: "PASSWORD"}}
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
 			got1, got2 := server.SendStockOrder(context.Background(), &kabuspb.SendStockOrderRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -921,8 +912,7 @@ func Test_server_SendMarginOrder(t *testing.T) {
 			t.Parallel()
 			server := &server{
 				security:     &testSecurity{sendOrderMargin1: test.sendOrderMargin1, sendOrderMargin2: test.sendOrderMargin2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
-				setting:      &testSetting{password: "PASSWORD"}}
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
 			got1, got2 := server.SendMarginOrder(context.Background(), &kabuspb.SendMarginOrderRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -961,8 +951,7 @@ func Test_server_SendFutureOrder(t *testing.T) {
 			t.Parallel()
 			server := &server{
 				security:     &testSecurity{sendOrderFuture1: test.sendOrderFuture1, sendOrderFuture2: test.sendOrderFuture2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
-				setting:      &testSetting{password: "PASSWORD"}}
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
 			got1, got2 := server.SendFutureOrder(context.Background(), &kabuspb.SendFutureOrderRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -1001,8 +990,7 @@ func Test_server_SendOptionOrder(t *testing.T) {
 			t.Parallel()
 			server := &server{
 				security:     &testSecurity{sendOrderOption1: test.sendOrderOption1, sendOrderOption2: test.sendOrderOption2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
-				setting:      &testSetting{password: "PASSWORD"}}
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
 			got1, got2 := server.SendOptionOrder(context.Background(), &kabuspb.SendOptionOrderRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -1041,8 +1029,7 @@ func Test_server_CancelOrder(t *testing.T) {
 			t.Parallel()
 			server := &server{
 				security:     &testSecurity{cancelOrder1: test.cancelOrder1, cancelOrder2: test.cancelOrder2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
-				setting:      &testSetting{password: "PASSWORD"}}
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
 			got1, got2 := server.CancelOrder(context.Background(), &kabuspb.CancelOrderRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -1081,8 +1068,7 @@ func Test_server_GetStockWallet(t *testing.T) {
 			t.Parallel()
 			server := &server{
 				security:     &testSecurity{getStockWallet1: test.getStockWallet1, getStockWallet2: test.getStockWallet2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
-				setting:      &testSetting{password: "PASSWORD"}}
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
 			got1, got2 := server.GetStockWallet(context.Background(), &kabuspb.GetStockWalletRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -1121,8 +1107,7 @@ func Test_server_GetMarginWallet(t *testing.T) {
 			t.Parallel()
 			server := &server{
 				security:     &testSecurity{getMarginWallet1: test.getMarginWallet1, getMarginWallet2: test.getMarginWallet2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
-				setting:      &testSetting{password: "PASSWORD"}}
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
 			got1, got2 := server.GetMarginWallet(context.Background(), &kabuspb.GetMarginWalletRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -1161,8 +1146,7 @@ func Test_server_GetFutureWallet(t *testing.T) {
 			t.Parallel()
 			server := &server{
 				security:     &testSecurity{getFutureWallet1: test.getFutureWallet1, getFutureWallet2: test.getFutureWallet2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
-				setting:      &testSetting{password: "PASSWORD"}}
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
 			got1, got2 := server.GetFutureWallet(context.Background(), &kabuspb.GetFutureWalletRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -1201,8 +1185,7 @@ func Test_server_GetOptionWallet(t *testing.T) {
 			t.Parallel()
 			server := &server{
 				security:     &testSecurity{getOptionWallet1: test.getOptionWallet1, getOptionWallet2: test.getOptionWallet2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
-				setting:      &testSetting{password: "PASSWORD"}}
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
 			got1, got2 := server.GetOptionWallet(context.Background(), &kabuspb.GetOptionWalletRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)

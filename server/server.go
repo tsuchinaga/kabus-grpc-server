@@ -13,9 +13,8 @@ func NewServer(
 	security repositories.Security,
 	tokenService services.TokenService,
 	registerSymbolService services.RegisterSymbolService,
-	setting repositories.Setting,
 	boardStreamService services.BoardStreamService) kabuspb.KabusServiceServer {
-	return &server{security: security, tokenService: tokenService, registerSymbolService: registerSymbolService, setting: setting, boardStreamService: boardStreamService}
+	return &server{security: security, tokenService: tokenService, registerSymbolService: registerSymbolService, boardStreamService: boardStreamService}
 }
 
 type server struct {
@@ -23,7 +22,6 @@ type server struct {
 	security              repositories.Security
 	tokenService          services.TokenService
 	registerSymbolService services.RegisterSymbolService
-	setting               repositories.Setting
 	boardStreamService    services.BoardStreamService
 }
 
@@ -33,7 +31,7 @@ func (s *server) SendStockOrder(ctx context.Context, req *kabuspb.SendStockOrder
 		return nil, err
 	}
 
-	return s.security.SendOrderStock(ctx, token, req, s.setting.Password())
+	return s.security.SendOrderStock(ctx, token, req)
 }
 
 func (s *server) SendMarginOrder(ctx context.Context, req *kabuspb.SendMarginOrderRequest) (*kabuspb.OrderResponse, error) {
@@ -42,7 +40,7 @@ func (s *server) SendMarginOrder(ctx context.Context, req *kabuspb.SendMarginOrd
 		return nil, err
 	}
 
-	return s.security.SendOrderMargin(ctx, token, req, s.setting.Password())
+	return s.security.SendOrderMargin(ctx, token, req)
 }
 
 func (s *server) SendFutureOrder(ctx context.Context, req *kabuspb.SendFutureOrderRequest) (*kabuspb.OrderResponse, error) {
@@ -51,7 +49,7 @@ func (s *server) SendFutureOrder(ctx context.Context, req *kabuspb.SendFutureOrd
 		return nil, err
 	}
 
-	return s.security.SendOrderFuture(ctx, token, req, s.setting.Password())
+	return s.security.SendOrderFuture(ctx, token, req)
 }
 
 func (s *server) SendOptionOrder(ctx context.Context, req *kabuspb.SendOptionOrderRequest) (*kabuspb.OrderResponse, error) {
@@ -60,7 +58,7 @@ func (s *server) SendOptionOrder(ctx context.Context, req *kabuspb.SendOptionOrd
 		return nil, err
 	}
 
-	return s.security.SendOrderOption(ctx, token, req, s.setting.Password())
+	return s.security.SendOrderOption(ctx, token, req)
 }
 
 func (s *server) CancelOrder(ctx context.Context, req *kabuspb.CancelOrderRequest) (*kabuspb.OrderResponse, error) {
@@ -69,7 +67,7 @@ func (s *server) CancelOrder(ctx context.Context, req *kabuspb.CancelOrderReques
 		return nil, err
 	}
 
-	return s.security.CancelOrder(ctx, token, req, s.setting.Password())
+	return s.security.CancelOrder(ctx, token, req)
 }
 
 func (s *server) GetStockWallet(ctx context.Context, req *kabuspb.GetStockWalletRequest) (*kabuspb.StockWallet, error) {

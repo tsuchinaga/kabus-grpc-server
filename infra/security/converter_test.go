@@ -2343,11 +2343,11 @@ func Test_toSendOrderStockRequestFromSendStockOrderRequest(t *testing.T) {
 	tests := []struct {
 		name string
 		arg1 *kabuspb.SendStockOrderRequest
-		arg2 string
 		want kabus.SendOrderStockRequest
 	}{
 		{name: "現物買なら指定したDelivTypeが設定される",
 			arg1: &kabuspb.SendStockOrderRequest{
+				Password:     "PASSWORD",
 				SymbolCode:   "1320",
 				Exchange:     kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU,
 				Side:         kabuspb.Side_SIDE_BUY,
@@ -2359,7 +2359,6 @@ func Test_toSendOrderStockRequestFromSendStockOrderRequest(t *testing.T) {
 				Price:        0,
 				ExpireDay:    nil,
 			},
-			arg2: "PASSWORD",
 			want: kabus.SendOrderStockRequest{
 				Password:        "PASSWORD",
 				Symbol:          "1320",
@@ -2378,6 +2377,7 @@ func Test_toSendOrderStockRequestFromSendStockOrderRequest(t *testing.T) {
 			}},
 		{name: "現物売ならDelivTypeに未指定が設定される",
 			arg1: &kabuspb.SendStockOrderRequest{
+				Password:     "PASSWORD",
 				SymbolCode:   "1320",
 				Exchange:     kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU,
 				Side:         kabuspb.Side_SIDE_SELL,
@@ -2389,7 +2389,6 @@ func Test_toSendOrderStockRequestFromSendStockOrderRequest(t *testing.T) {
 				Price:        0,
 				ExpireDay:    nil,
 			},
-			arg2: "PASSWORD",
 			want: kabus.SendOrderStockRequest{
 				Password:        "PASSWORD",
 				Symbol:          "1320",
@@ -2408,6 +2407,7 @@ func Test_toSendOrderStockRequestFromSendStockOrderRequest(t *testing.T) {
 			}},
 		{name: "現物買なら指定したFundTypeが設定される",
 			arg1: &kabuspb.SendStockOrderRequest{
+				Password:     "PASSWORD",
 				SymbolCode:   "1320",
 				Exchange:     kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU,
 				Side:         kabuspb.Side_SIDE_BUY,
@@ -2419,7 +2419,6 @@ func Test_toSendOrderStockRequestFromSendStockOrderRequest(t *testing.T) {
 				Price:        0,
 				ExpireDay:    nil,
 			},
-			arg2: "PASSWORD",
 			want: kabus.SendOrderStockRequest{
 				Password:        "PASSWORD",
 				Symbol:          "1320",
@@ -2438,6 +2437,7 @@ func Test_toSendOrderStockRequestFromSendStockOrderRequest(t *testing.T) {
 			}},
 		{name: "現物売ならFundTypeに未指定が設定される",
 			arg1: &kabuspb.SendStockOrderRequest{
+				Password:     "PASSWORD",
 				SymbolCode:   "1320",
 				Exchange:     kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU,
 				Side:         kabuspb.Side_SIDE_SELL,
@@ -2449,7 +2449,6 @@ func Test_toSendOrderStockRequestFromSendStockOrderRequest(t *testing.T) {
 				Price:        0,
 				ExpireDay:    nil,
 			},
-			arg2: "PASSWORD",
 			want: kabus.SendOrderStockRequest{
 				Password:        "PASSWORD",
 				Symbol:          "1320",
@@ -2472,7 +2471,7 @@ func Test_toSendOrderStockRequestFromSendStockOrderRequest(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			got := toSendOrderStockRequestFromSendStockOrderRequest(test.arg1, test.arg2)
+			got := toSendOrderStockRequestFromSendStockOrderRequest(test.arg1)
 			if !reflect.DeepEqual(test.want, got) {
 				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
 			}
@@ -2485,11 +2484,11 @@ func Test_toSendOrderStockRequestFromSendMarginOrderRequest(t *testing.T) {
 	tests := []struct {
 		name string
 		arg1 *kabuspb.SendMarginOrderRequest
-		arg2 string
 		want kabus.SendOrderStockRequest
 	}{
 		{name: "Exitなら指定したDelivTypeが設定される",
 			arg1: &kabuspb.SendMarginOrderRequest{
+				Password:        "PASSWORD",
 				SymbolCode:      "1320",
 				Exchange:        kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU,
 				Side:            kabuspb.Side_SIDE_BUY,
@@ -2503,7 +2502,6 @@ func Test_toSendOrderStockRequestFromSendMarginOrderRequest(t *testing.T) {
 				Price:           0,
 				ExpireDay:       nil,
 			},
-			arg2: "PASSWORD",
 			want: kabus.SendOrderStockRequest{
 				Password:        "PASSWORD",
 				Symbol:          "1320",
@@ -2522,6 +2520,7 @@ func Test_toSendOrderStockRequestFromSendMarginOrderRequest(t *testing.T) {
 			}},
 		{name: "EntryならDelivTypeに未指定が設定される",
 			arg1: &kabuspb.SendMarginOrderRequest{
+				Password:        "PASSWORD",
 				SymbolCode:      "1320",
 				Exchange:        kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU,
 				Side:            kabuspb.Side_SIDE_BUY,
@@ -2535,7 +2534,6 @@ func Test_toSendOrderStockRequestFromSendMarginOrderRequest(t *testing.T) {
 				Price:           0,
 				ExpireDay:       nil,
 			},
-			arg2: "PASSWORD",
 			want: kabus.SendOrderStockRequest{
 				Password:        "PASSWORD",
 				Symbol:          "1320",
@@ -2558,7 +2556,7 @@ func Test_toSendOrderStockRequestFromSendMarginOrderRequest(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			got := toSendOrderStockRequestFromSendMarginOrderRequest(test.arg1, test.arg2)
+			got := toSendOrderStockRequestFromSendMarginOrderRequest(test.arg1)
 			if !reflect.DeepEqual(test.want, got) {
 				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
 			}
@@ -2582,6 +2580,7 @@ func Test_toSendOrderFutureRequest(t *testing.T) {
 		ExpireDay:      kabus.YmdNUMToday,
 	}
 	got := toSendOrderFutureRequest(&kabuspb.SendFutureOrderRequest{
+		Password:       "PASSWORD",
 		SymbolCode:     "165120018",
 		Exchange:       kabuspb.FutureExchange_FUTURE_EXCHANGE_ALL_SESSION,
 		TradeType:      kabuspb.TradeType_TRADE_TYPE_EXIT,
@@ -2592,7 +2591,7 @@ func Test_toSendOrderFutureRequest(t *testing.T) {
 		OrderType:      kabuspb.FutureOrderType_FUTURE_ORDER_TYPE_MO,
 		Price:          0,
 		ExpireDay:      nil,
-	}, "PASSWORD")
+	})
 	if !reflect.DeepEqual(want, got) {
 		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
 	}
@@ -2614,6 +2613,7 @@ func Test_toSendOrderOptionRequest(t *testing.T) {
 		ExpireDay:      kabus.YmdNUMToday,
 	}
 	got := toSendOrderOptionRequest(&kabuspb.SendOptionOrderRequest{
+		Password:       "PASSWORD",
 		SymbolCode:     "165120018",
 		Exchange:       kabuspb.OptionExchange_OPTION_EXCHANGE_ALL_SESSION,
 		TradeType:      kabuspb.TradeType_TRADE_TYPE_EXIT,
@@ -2624,7 +2624,7 @@ func Test_toSendOrderOptionRequest(t *testing.T) {
 		OrderType:      kabuspb.OptionOrderType_OPTION_ORDER_TYPE_MO,
 		Price:          0,
 		ExpireDay:      nil,
-	}, "PASSWORD")
+	})
 	if !reflect.DeepEqual(want, got) {
 		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
 	}
@@ -2632,7 +2632,7 @@ func Test_toSendOrderOptionRequest(t *testing.T) {
 
 func Test_toCancelOrderRequest(t *testing.T) {
 	t.Parallel()
-	got := toCancelOrderRequest(&kabuspb.CancelOrderRequest{OrderId: "ORDER-ID"}, "PASSWORD")
+	got := toCancelOrderRequest(&kabuspb.CancelOrderRequest{Password: "PASSWORD", OrderId: "ORDER-ID"})
 	want := kabus.CancelOrderRequest{OrderID: "ORDER-ID", Password: "PASSWORD"}
 	if !reflect.DeepEqual(want, got) {
 		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
