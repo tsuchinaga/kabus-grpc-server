@@ -32,6 +32,9 @@ service KabusService {
   rpc RegisterSymbols(RegisterSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録
   rpc UnregisterSymbols(UnregisterSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録解除
   rpc UnregisterAllSymbols(UnregisterAllSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録全解除
+
+  // PUSH
+  rpc GetBoardsStreaming(GetBoardsStreamingRequest) returns (stream Board); // 時価情報・板情報ストリーミング
 }
 
 // トークン取得リクエスト
@@ -404,6 +407,9 @@ message UnregisterSymbolsRequest {
 
 // 銘柄登録全解除リクエスト
 message UnregisterAllSymbolsRequest {}
+
+// 時価情報・板情報ストリーミング
+message GetBoardsStreamingRequest {}
 
 // トークン
 message Token {

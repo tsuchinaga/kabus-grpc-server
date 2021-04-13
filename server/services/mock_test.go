@@ -68,3 +68,34 @@ func (t *testRegisterSymbolStore) GetAll() []*kabuspb.RegisterSymbol {
 func (t *testRegisterSymbolStore) SetAll(registeredList []*kabuspb.RegisterSymbol) {
 	t.lastSet = registeredList
 }
+
+type testBoardStreamStore struct {
+	repositories.BoardStreamStore
+	all         []kabuspb.KabusService_GetBoardsStreamingServer
+	addCount    int
+	removeCount int
+}
+
+func (t *testBoardStreamStore) All() []kabuspb.KabusService_GetBoardsStreamingServer { return t.all }
+func (t *testBoardStreamStore) Add(kabuspb.KabusService_GetBoardsStreamingServer)    { t.addCount++ }
+func (t *testBoardStreamStore) Remove(int)                                           { t.removeCount++ }
+
+type testBoardWS struct {
+	repositories.BoardWS
+	isConnected bool
+	connect     error
+}
+
+func (t *testBoardWS) IsConnected() bool                              { return t.isConnected }
+func (t *testBoardWS) Connect(func(board *kabuspb.Board) error) error { return t.connect }
+
+type testGetBoardsStreamingServer struct {
+	kabuspb.KabusService_GetBoardsStreamingServer
+	send      error
+	sendCount int
+}
+
+func (t *testGetBoardsStreamingServer) Send(*kabuspb.Board) error {
+	t.sendCount++
+	return t.send
+}

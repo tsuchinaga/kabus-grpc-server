@@ -197,13 +197,23 @@ type testSetting struct {
 
 func (t *testSetting) Password() string { return t.password }
 
+type testBoardStreamService struct {
+	services.BoardStreamService
+	connect error
+}
+
+func (t *testBoardStreamService) Connect(kabuspb.KabusService_GetBoardsStreamingServer) error {
+	return t.connect
+}
+
 func Test_NewServer(t *testing.T) {
 	security := &testSecurity{}
 	tokenService := &testTokenService{}
 	registerSymbolService := &testRegisterSymbolService{}
 	setting := &testSetting{}
-	got := NewServer(security, tokenService, registerSymbolService, setting)
-	want := &server{security: security, tokenService: tokenService, registerSymbolService: registerSymbolService, setting: setting}
+	boardStreamService := &testBoardStreamService{}
+	got := NewServer(security, tokenService, registerSymbolService, setting, boardStreamService)
+	want := &server{security: security, tokenService: tokenService, registerSymbolService: registerSymbolService, setting: setting, boardStreamService: boardStreamService}
 	t.Parallel()
 	if !reflect.DeepEqual(want, got) {
 		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
@@ -1196,6 +1206,30 @@ func Test_server_GetOptionWallet(t *testing.T) {
 			got1, got2 := server.GetOptionWallet(context.Background(), &kabuspb.GetOptionWalletRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_server_GetBoardsStreaming(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		connect  error
+		hasError bool
+	}{
+		{name: "connectがerrorならerrorを返す", connect: errors.New("error message"), hasError: true},
+		{name: "connectがnilを返したらnilを返す", connect: nil, hasError: false},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{boardStreamService: &testBoardStreamService{connect: test.connect}}
+			got := server.GetBoardsStreaming(nil, nil)
+			if (got != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.hasError, got)
 			}
 		})
 	}

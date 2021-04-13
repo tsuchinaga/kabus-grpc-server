@@ -9,8 +9,13 @@ import (
 	"gitlab.com/tsuchinaga/kabus-grpc-server/server/services"
 )
 
-func NewServer(security repositories.Security, tokenService services.TokenService, registerSymbolService services.RegisterSymbolService, setting repositories.Setting) kabuspb.KabusServiceServer {
-	return &server{security: security, tokenService: tokenService, registerSymbolService: registerSymbolService, setting: setting}
+func NewServer(
+	security repositories.Security,
+	tokenService services.TokenService,
+	registerSymbolService services.RegisterSymbolService,
+	setting repositories.Setting,
+	boardStreamService services.BoardStreamService) kabuspb.KabusServiceServer {
+	return &server{security: security, tokenService: tokenService, registerSymbolService: registerSymbolService, setting: setting, boardStreamService: boardStreamService}
 }
 
 type server struct {
@@ -19,6 +24,7 @@ type server struct {
 	tokenService          services.TokenService
 	registerSymbolService services.RegisterSymbolService
 	setting               repositories.Setting
+	boardStreamService    services.BoardStreamService
 }
 
 func (s *server) SendStockOrder(ctx context.Context, req *kabuspb.SendStockOrderRequest) (*kabuspb.OrderResponse, error) {
@@ -257,4 +263,8 @@ func (s *server) GetIndustryRanking(ctx context.Context, req *kabuspb.GetIndustr
 	}
 
 	return s.security.IndustryRanking(ctx, token, req)
+}
+
+func (s *server) GetBoardsStreaming(_ *kabuspb.GetBoardsStreamingRequest, stream kabuspb.KabusService_GetBoardsStreamingServer) error {
+	return s.boardStreamService.Connect(stream)
 }

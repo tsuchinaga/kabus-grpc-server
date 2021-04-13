@@ -42,6 +42,8 @@ type KabusServiceClient interface {
 	RegisterSymbols(ctx context.Context, in *RegisterSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
 	UnregisterSymbols(ctx context.Context, in *UnregisterSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
 	UnregisterAllSymbols(ctx context.Context, in *UnregisterAllSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
+	// PUSH
+	GetBoardsStreaming(ctx context.Context, in *GetBoardsStreamingRequest, opts ...grpc.CallOption) (KabusService_GetBoardsStreamingClient, error)
 }
 
 type kabusServiceClient struct {
@@ -277,6 +279,38 @@ func (c *kabusServiceClient) UnregisterAllSymbols(ctx context.Context, in *Unreg
 	return out, nil
 }
 
+func (c *kabusServiceClient) GetBoardsStreaming(ctx context.Context, in *GetBoardsStreamingRequest, opts ...grpc.CallOption) (KabusService_GetBoardsStreamingClient, error) {
+	stream, err := c.cc.NewStream(ctx, &KabusService_ServiceDesc.Streams[0], "/kabuspb.KabusService/GetBoardsStreaming", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &kabusServiceGetBoardsStreamingClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type KabusService_GetBoardsStreamingClient interface {
+	Recv() (*Board, error)
+	grpc.ClientStream
+}
+
+type kabusServiceGetBoardsStreamingClient struct {
+	grpc.ClientStream
+}
+
+func (x *kabusServiceGetBoardsStreamingClient) Recv() (*Board, error) {
+	m := new(Board)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // KabusServiceServer is the server API for KabusService service.
 // All implementations must embed UnimplementedKabusServiceServer
 // for forward compatibility
@@ -306,6 +340,8 @@ type KabusServiceServer interface {
 	RegisterSymbols(context.Context, *RegisterSymbolsRequest) (*RegisteredSymbols, error)
 	UnregisterSymbols(context.Context, *UnregisterSymbolsRequest) (*RegisteredSymbols, error)
 	UnregisterAllSymbols(context.Context, *UnregisterAllSymbolsRequest) (*RegisteredSymbols, error)
+	// PUSH
+	GetBoardsStreaming(*GetBoardsStreamingRequest, KabusService_GetBoardsStreamingServer) error
 	mustEmbedUnimplementedKabusServiceServer()
 }
 
@@ -387,6 +423,9 @@ func (UnimplementedKabusServiceServer) UnregisterSymbols(context.Context, *Unreg
 }
 func (UnimplementedKabusServiceServer) UnregisterAllSymbols(context.Context, *UnregisterAllSymbolsRequest) (*RegisteredSymbols, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UnregisterAllSymbols not implemented")
+}
+func (UnimplementedKabusServiceServer) GetBoardsStreaming(*GetBoardsStreamingRequest, KabusService_GetBoardsStreamingServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetBoardsStreaming not implemented")
 }
 func (UnimplementedKabusServiceServer) mustEmbedUnimplementedKabusServiceServer() {}
 
@@ -851,6 +890,27 @@ func _KabusService_UnregisterAllSymbols_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _KabusService_GetBoardsStreaming_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetBoardsStreamingRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(KabusServiceServer).GetBoardsStreaming(m, &kabusServiceGetBoardsStreamingServer{stream})
+}
+
+type KabusService_GetBoardsStreamingServer interface {
+	Send(*Board) error
+	grpc.ServerStream
+}
+
+type kabusServiceGetBoardsStreamingServer struct {
+	grpc.ServerStream
+}
+
+func (x *kabusServiceGetBoardsStreamingServer) Send(m *Board) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // KabusService_ServiceDesc is the grpc.ServiceDesc for KabusService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -959,6 +1019,12 @@ var KabusService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _KabusService_UnregisterAllSymbols_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetBoardsStreaming",
+			Handler:       _KabusService_GetBoardsStreaming_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "kabuspb/kabus.proto",
 }
