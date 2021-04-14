@@ -18,30 +18,40 @@ func GetBoardStreamStore() repositories.BoardStreamStore {
 	defer boardStreamSingletonMutex.Unlock()
 
 	if boardStreamSingleton == nil {
-		boardStreamSingleton = &boardStream{store: []kabuspb.KabusService_GetBoardsStreamingServer{}}
+		boardStreamSingleton = &boardStream{store: []streamChan{}}
 	}
 
 	return boardStreamSingleton
 }
 
 type boardStream struct {
-	store []kabuspb.KabusService_GetBoardsStreamingServer
+	store []streamChan
 	mtx   sync.Mutex
+}
+
+type streamChan struct {
+	stream kabuspb.KabusService_GetBoardsStreamingServer
+	ch     chan error
 }
 
 func (s *boardStream) All() []kabuspb.KabusService_GetBoardsStreamingServer {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
-	return s.store
+
+	res := make([]kabuspb.KabusService_GetBoardsStreamingServer, len(s.store))
+	for i, stream := range s.store {
+		res[i] = stream.stream
+	}
+	return res
 }
 
-func (s *boardStream) Add(stream kabuspb.KabusService_GetBoardsStreamingServer) {
+func (s *boardStream) Add(stream kabuspb.KabusService_GetBoardsStreamingServer, ch chan error) {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
-	s.store = append(s.store, stream)
+	s.store = append(s.store, streamChan{stream: stream, ch: ch})
 }
 
-func (s *boardStream) Remove(index int) {
+func (s *boardStream) Remove(index int, err error) {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
@@ -49,5 +59,7 @@ func (s *boardStream) Remove(index int) {
 		return
 	}
 
+	stream := s.store[index]
+	stream.ch <- err
 	s.store = append(s.store[:index], s.store[index+1:]...)
 }

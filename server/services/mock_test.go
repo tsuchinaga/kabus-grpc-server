@@ -77,8 +77,11 @@ type testBoardStreamStore struct {
 }
 
 func (t *testBoardStreamStore) All() []kabuspb.KabusService_GetBoardsStreamingServer { return t.all }
-func (t *testBoardStreamStore) Add(kabuspb.KabusService_GetBoardsStreamingServer)    { t.addCount++ }
-func (t *testBoardStreamStore) Remove(int)                                           { t.removeCount++ }
+func (t *testBoardStreamStore) Add(_ kabuspb.KabusService_GetBoardsStreamingServer, ch chan error) {
+	close(ch)
+	t.addCount++
+}
+func (t *testBoardStreamStore) Remove(int, error) { t.removeCount++ }
 
 type testBoardWS struct {
 	repositories.BoardWS

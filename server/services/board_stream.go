@@ -38,15 +38,16 @@ func (s *boardStream) Connect(stream kabuspb.KabusService_GetBoardsStreamingServ
 		}
 	}
 
-	s.streamStore.Add(stream)
-	return nil
+	ch := make(chan error)
+	s.streamStore.Add(stream, ch)
+	return <-ch
 }
 
 func (s *boardStream) onNext(board *kabuspb.Board) error {
 	for i, stream := range s.streamStore.All() {
 		if err := stream.Send(board); err != nil {
 			log.Println(err) // デバッグでおいとく
-			s.streamStore.Remove(i)
+			s.streamStore.Remove(i, err)
 		}
 	}
 	return nil
