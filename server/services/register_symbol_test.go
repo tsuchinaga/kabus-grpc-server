@@ -27,8 +27,8 @@ func Test_registerSymbol_Get(t *testing.T) {
 			getAll: []*kabuspb.RegisterSymbol{},
 			want:   []*kabuspb.RegisterSymbol{}},
 		{name: "storeのgetAllにデータがあればそれを返す",
-			getAll: []*kabuspb.RegisterSymbol{{Symbol: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}},
-			want:   []*kabuspb.RegisterSymbol{{Symbol: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
+			getAll: []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}},
+			want:   []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
 	}
 
 	for _, test := range tests {
@@ -52,8 +52,8 @@ func Test_registerSymbol_Set(t *testing.T) {
 		want []*kabuspb.RegisterSymbol
 	}{
 		{name: "データの入っている引数をstoreに渡せる",
-			arg:  []*kabuspb.RegisterSymbol{{Symbol: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}},
-			want: []*kabuspb.RegisterSymbol{{Symbol: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
+			arg:  []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}},
+			want: []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
 		{name: "空の引数をstoreに渡せる",
 			arg:  []*kabuspb.RegisterSymbol{},
 			want: []*kabuspb.RegisterSymbol{}},

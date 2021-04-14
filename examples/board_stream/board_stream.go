@@ -31,7 +31,7 @@ func main() {
 
 	// 登録
 	{
-		_, err := cli.RegisterSymbols(context.Background(), &kabuspb.RegisterSymbolsRequest{Symbols: []*kabuspb.RegisterSymbol{{Symbol: symbolCode, Exchange: kabuspb.Exchange_EXCHANGE_ALL_SESSION}}})
+		_, err := cli.RegisterSymbols(context.Background(), &kabuspb.RegisterSymbolsRequest{Symbols: []*kabuspb.RegisterSymbol{{SymbolCode: symbolCode, Exchange: kabuspb.Exchange_EXCHANGE_ALL_SESSION}}})
 		if err != nil {
 			panic(err)
 		}

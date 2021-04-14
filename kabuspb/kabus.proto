@@ -301,7 +301,7 @@ message GetOrdersRequest {
   // 銘柄コード
   //   指定された銘柄コードと一致する注文のみレスポンスします
   //   複数の銘柄コードを指定することができません
-  string symbol = 5;
+  string symbol_code = 5;
 
   // 状態
   //   指定された状態と一致する注文のみレスポンスします
@@ -993,7 +993,7 @@ message RegisteredSymbols {
 // 銘柄登録の詳細
 message RegisterSymbol {
   // 銘柄コード
-  string symbol = 1;
+  string symbol_code = 1;
 
   // 市場
   Exchange exchange = 2;

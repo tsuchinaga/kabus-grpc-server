@@ -27,8 +27,8 @@ func Test_registerSymbol_GetAll(t *testing.T) {
 	}{
 		{name: "storeが空配列なら空配列を返す", store: &registerSymbol{store: []*kabuspb.RegisterSymbol{}}, want: []*kabuspb.RegisterSymbol{}},
 		{name: "storeにデータがあればそれを返す",
-			store: &registerSymbol{store: []*kabuspb.RegisterSymbol{{Symbol: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}, {Symbol: "2345", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
-			want:  []*kabuspb.RegisterSymbol{{Symbol: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}, {Symbol: "2345", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
+			store: &registerSymbol{store: []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}, {SymbolCode: "2345", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
+			want:  []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}, {SymbolCode: "2345", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
 	}
 
 	for _, test := range tests {
@@ -52,11 +52,11 @@ func Test_registerSymbol_SetAll(t *testing.T) {
 		want  []*kabuspb.RegisterSymbol
 	}{
 		{name: "データのある配列で上書き出る",
-			store: &registerSymbol{store: []*kabuspb.RegisterSymbol{{Symbol: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}, {Symbol: "2345", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
-			arg:   []*kabuspb.RegisterSymbol{{Symbol: "3456", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}},
-			want:  []*kabuspb.RegisterSymbol{{Symbol: "3456", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
+			store: &registerSymbol{store: []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}, {SymbolCode: "2345", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
+			arg:   []*kabuspb.RegisterSymbol{{SymbolCode: "3456", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}},
+			want:  []*kabuspb.RegisterSymbol{{SymbolCode: "3456", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
 		{name: "空配列で上書きできる",
-			store: &registerSymbol{store: []*kabuspb.RegisterSymbol{{Symbol: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}, {Symbol: "2345", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
+			store: &registerSymbol{store: []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}, {SymbolCode: "2345", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
 			arg:   []*kabuspb.RegisterSymbol{},
 			want:  []*kabuspb.RegisterSymbol{}},
 	}

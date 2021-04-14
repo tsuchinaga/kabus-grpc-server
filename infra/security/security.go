@@ -129,7 +129,7 @@ func (s *security) Orders(ctx context.Context, token string, req *kabuspb.GetOrd
 		ID:               req.Id,
 		UpdateTime:       req.UpdateTime.AsTime(),
 		IsGetOrderDetail: toIsGetOrderDetail(req.GetDetails),
-		Symbol:           req.Symbol,
+		Symbol:           req.SymbolCode,
 		State:            toOrderState(req.State),
 		Side:             toSide(req.Side),
 		CashMargin:       toCashMargin(req.TradeType),
@@ -187,7 +187,7 @@ func (s *security) Token(ctx context.Context, password string) (string, error) {
 func (s *security) RegisterSymbols(ctx context.Context, token string, req *kabuspb.RegisterSymbolsRequest) (*kabuspb.RegisteredSymbols, error) {
 	symbols := make([]kabus.RegisterSymbol, len(req.Symbols))
 	for i, symbol := range req.Symbols {
-		symbols[i] = kabus.RegisterSymbol{Symbol: symbol.Symbol, Exchange: toExchange(symbol.Exchange)}
+		symbols[i] = kabus.RegisterSymbol{Symbol: symbol.SymbolCode, Exchange: toExchange(symbol.Exchange)}
 	}
 	res, err := s.restClient.RegisterWithContext(ctx, token, kabus.RegisterRequest{Symbols: symbols})
 	if err != nil {
@@ -196,7 +196,7 @@ func (s *security) RegisterSymbols(ctx context.Context, token string, req *kabus
 
 	resSymbols := make([]*kabuspb.RegisterSymbol, len(res.RegisterList))
 	for i, symbol := range res.RegisterList {
-		resSymbols[i] = &kabuspb.RegisterSymbol{Symbol: symbol.Symbol, Exchange: fromExchange(symbol.Exchange)}
+		resSymbols[i] = &kabuspb.RegisterSymbol{SymbolCode: symbol.Symbol, Exchange: fromExchange(symbol.Exchange)}
 	}
 	return &kabuspb.RegisteredSymbols{Symbols: resSymbols}, nil
 }
@@ -204,7 +204,7 @@ func (s *security) RegisterSymbols(ctx context.Context, token string, req *kabus
 func (s *security) UnregisterSymbols(ctx context.Context, token string, req *kabuspb.UnregisterSymbolsRequest) (*kabuspb.RegisteredSymbols, error) {
 	symbols := make([]kabus.UnregisterSymbol, len(req.Symbols))
 	for i, symbol := range req.Symbols {
-		symbols[i] = kabus.UnregisterSymbol{Symbol: symbol.Symbol, Exchange: toExchange(symbol.Exchange)}
+		symbols[i] = kabus.UnregisterSymbol{Symbol: symbol.SymbolCode, Exchange: toExchange(symbol.Exchange)}
 	}
 	res, err := s.restClient.UnregisterWithContext(ctx, token, kabus.UnregisterRequest{Symbols: symbols})
 	if err != nil {
@@ -213,7 +213,7 @@ func (s *security) UnregisterSymbols(ctx context.Context, token string, req *kab
 
 	resSymbols := make([]*kabuspb.RegisterSymbol, len(res.RegisterList))
 	for i, symbol := range res.RegisterList {
-		resSymbols[i] = &kabuspb.RegisterSymbol{Symbol: symbol.Symbol, Exchange: fromExchange(symbol.Exchange)}
+		resSymbols[i] = &kabuspb.RegisterSymbol{SymbolCode: symbol.Symbol, Exchange: fromExchange(symbol.Exchange)}
 	}
 	return &kabuspb.RegisteredSymbols{Symbols: resSymbols}, nil
 }
@@ -226,7 +226,7 @@ func (s *security) UnregisterAll(ctx context.Context, token string, _ *kabuspb.U
 
 	resSymbols := make([]*kabuspb.RegisterSymbol, len(res.RegisterList))
 	for i, symbol := range res.RegisterList {
-		resSymbols[i] = &kabuspb.RegisterSymbol{Symbol: symbol.Symbol, Exchange: fromExchange(symbol.Exchange)}
+		resSymbols[i] = &kabuspb.RegisterSymbol{SymbolCode: symbol.Symbol, Exchange: fromExchange(symbol.Exchange)}
 	}
 	return &kabuspb.RegisteredSymbols{Symbols: resSymbols}, nil
 }
