@@ -47,8 +47,13 @@ func main() {
 
 	checkContracted := func(orderID string, orders *kabuspb.Orders) bool {
 		for _, order := range orders.Orders {
-			if order.Id == orderID && order.OrderState == kabuspb.OrderState_ORDER_STATE_DONE {
-				return true
+			if order.Id != orderID || order.OrderState != kabuspb.OrderState_ORDER_STATE_DONE {
+				continue
+			}
+			for _, detail := range order.Details {
+				if detail.RecordType == kabuspb.RecordType_RECORD_TYPE_CONTRACTED {
+					return true
+				}
 			}
 		}
 		return false
@@ -57,7 +62,7 @@ func main() {
 	// 約定確認
 	{
 		for {
-			res, err := cli.GetOrders(context.Background(), &kabuspb.GetOrdersRequest{})
+			res, err := cli.GetOrders(context.Background(), &kabuspb.GetOrdersRequest{GetDetails: true})
 			if err != nil {
 				panic(err)
 			}
@@ -95,7 +100,7 @@ func main() {
 	// 約定確認
 	{
 		for {
-			res, err := cli.GetOrders(context.Background(), &kabuspb.GetOrdersRequest{})
+			res, err := cli.GetOrders(context.Background(), &kabuspb.GetOrdersRequest{GetDetails: true})
 			if err != nil {
 				panic(err)
 			}
