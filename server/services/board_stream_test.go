@@ -55,29 +55,33 @@ func Test_boardStream_Connect(t *testing.T) {
 func Test_boardStream_onNext(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name        string
-		all         []kabuspb.KabusService_GetBoardsStreamingServer
-		removeCount int
-		hasError    bool
+		name            string
+		all             []kabuspb.KabusService_GetBoardsStreamingServer
+		hasStream       bool
+		removeCount     int
+		disconnectCount int
+		hasError        bool
 	}{
-		{name: "allで何もなければsendしない", all: []kabuspb.KabusService_GetBoardsStreamingServer{}, removeCount: 0},
+		{name: "allで何もなければsendしない", all: []kabuspb.KabusService_GetBoardsStreamingServer{}, hasStream: true, removeCount: 0},
 		{name: "sendしたときにerrorがなければremoveされない", all: []kabuspb.KabusService_GetBoardsStreamingServer{
 			&testGetBoardsStreamingServer{send: nil}, &testGetBoardsStreamingServer{send: nil}, &testGetBoardsStreamingServer{send: nil},
-		}, removeCount: 0},
+		}, hasStream: true, removeCount: 0},
 		{name: "sendでerrorがあればremoveする", all: []kabuspb.KabusService_GetBoardsStreamingServer{
 			&testGetBoardsStreamingServer{send: errors.New("error message1")}, &testGetBoardsStreamingServer{send: nil}, &testGetBoardsStreamingServer{send: errors.New("error message1")},
-		}, removeCount: 2},
+		}, hasStream: true, removeCount: 2},
+		{name: "hasStreamがfalseならDisconnectが叩かれる", all: []kabuspb.KabusService_GetBoardsStreamingServer{}, hasStream: false, removeCount: 0, disconnectCount: 1},
 	}
 
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			streamStore := &testBoardStreamStore{all: test.all}
-			service := &boardStream{streamStore: streamStore}
+			streamStore := &testBoardStreamStore{all: test.all, hasStream: test.hasStream}
+			boardWS := &testBoardWS{disconnect: nil}
+			service := &boardStream{streamStore: streamStore, boardWS: boardWS}
 			got := service.onNext(nil)
-			if (got != nil) != test.hasError || test.removeCount != streamStore.removeCount {
-				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.hasError, test.removeCount, got, streamStore.removeCount)
+			if (got != nil) != test.hasError || test.removeCount != streamStore.removeCount || test.disconnectCount != boardWS.disconnectCount {
+				t.Errorf("%s error\nwant: %+v, %+v, %+v\ngot: %+v, %+v, %+v\n", t.Name(), test.hasError, test.removeCount, test.disconnectCount, got, streamStore.removeCount, boardWS.disconnectCount)
 			}
 		})
 	}

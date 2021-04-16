@@ -34,6 +34,12 @@ type streamChan struct {
 	ch     chan error
 }
 
+func (s *boardStream) HasStream() bool {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+	return len(s.store) > 0
+}
+
 func (s *boardStream) All() []kabuspb.KabusService_GetBoardsStreamingServer {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()

@@ -71,11 +71,13 @@ func (t *testRegisterSymbolStore) SetAll(registeredList []*kabuspb.RegisterSymbo
 
 type testBoardStreamStore struct {
 	repositories.BoardStreamStore
+	hasStream   bool
 	all         []kabuspb.KabusService_GetBoardsStreamingServer
 	addCount    int
 	removeCount int
 }
 
+func (t *testBoardStreamStore) HasStream() bool                                      { return t.hasStream }
 func (t *testBoardStreamStore) All() []kabuspb.KabusService_GetBoardsStreamingServer { return t.all }
 func (t *testBoardStreamStore) Add(_ kabuspb.KabusService_GetBoardsStreamingServer, ch chan error) {
 	close(ch)
@@ -85,12 +87,18 @@ func (t *testBoardStreamStore) Remove(int, error) { t.removeCount++ }
 
 type testBoardWS struct {
 	repositories.BoardWS
-	isConnected bool
-	connect     error
+	isConnected     bool
+	connect         error
+	disconnect      error
+	disconnectCount int
 }
 
 func (t *testBoardWS) IsConnected() bool                              { return t.isConnected }
 func (t *testBoardWS) Connect(func(board *kabuspb.Board) error) error { return t.connect }
+func (t *testBoardWS) Disconnect() error {
+	t.disconnectCount++
+	return t.disconnect
+}
 
 type testGetBoardsStreamingServer struct {
 	kabuspb.KabusService_GetBoardsStreamingServer

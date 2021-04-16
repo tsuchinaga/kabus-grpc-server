@@ -132,3 +132,27 @@ func Test_boardStream_Remove(t *testing.T) {
 		})
 	}
 }
+
+func Test_boardStream_HasStream(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name  string
+		store repositories.BoardStreamStore
+		want  bool
+	}{
+		{name: "要素がなければfalse", store: &boardStream{store: []streamChan{}}, want: false},
+		{name: "要素が1つあればtrue", store: &boardStream{store: []streamChan{{}}}, want: true},
+		{name: "要素が複数あればtrue", store: &boardStream{store: []streamChan{{}, {}, {}}}, want: true},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := test.store.HasStream()
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
