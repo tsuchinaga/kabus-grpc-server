@@ -33,3 +33,5 @@ kabusapiを叩くためのgRPCサーバー
 まだ開発中で全機能実装できていません。
 
 また、kabusapiを叩く以外の機能も追加すると思います。
+
+[github.com/tsuchinaga/kabus-grpc-server](https://github.com/tsuchinaga/kabus-grpc-server) にミラーリングしていますが、オリジナルは [gitlab.com/tsuchinaga/kabus-grpc-server](https://gitlab.com/tsuchinaga/kabus-grpc-server) にあります。
