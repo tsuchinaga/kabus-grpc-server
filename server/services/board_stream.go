@@ -2,7 +2,6 @@ package services
 
 import (
 	"log"
-	"time"
 
 	"gitlab.com/tsuchinaga/kabus-grpc-server/kabuspb"
 	"gitlab.com/tsuchinaga/kabus-grpc-server/server/repositories"
@@ -32,13 +31,10 @@ func (s *boardStream) Connect(stream kabuspb.KabusService_GetBoardsStreamingServ
 		var err error
 		go func() {
 			err = s.boardWS.Connect(s.onNext)
+			for i := range s.streamStore.All() {
+				s.streamStore.Remove(i, err)
+			}
 		}()
-
-		// wsの接続に失敗するかもなので1s程度待ってあげる
-		<-time.After(1 * time.Second)
-		if err != nil {
-			return err
-		}
 	}
 
 	return <-ch
