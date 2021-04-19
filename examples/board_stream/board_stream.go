@@ -20,6 +20,13 @@ func main() {
 
 	cli := kabuspb.NewKabusServiceClient(conn)
 
+	{
+		_, err := cli.UnregisterAllSymbols(context.Background(), &kabuspb.UnregisterAllSymbolsRequest{})
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	var symbolCode string
 	{
 		res, err := cli.GetFutureSymbolCodeInfo(context.Background(), &kabuspb.GetFutureSymbolCodeInfoRequest{FutureCode: kabuspb.FutureCode_FUTURE_CODE_NK225_MINI, DerivativeMonth: timestamppb.New(time.Now().AddDate(0, 1, 0))})
