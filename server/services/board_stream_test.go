@@ -59,6 +59,7 @@ func Test_boardStream_onNext(t *testing.T) {
 		all             []kabuspb.KabusService_GetBoardsStreamingServer
 		hasStream       bool
 		removeCount     int
+		disconnect      error
 		disconnectCount int
 		hasError        bool
 	}{
@@ -70,6 +71,7 @@ func Test_boardStream_onNext(t *testing.T) {
 			&testGetBoardsStreamingServer{send: errors.New("error message1")}, &testGetBoardsStreamingServer{send: nil}, &testGetBoardsStreamingServer{send: errors.New("error message1")},
 		}, hasStream: true, removeCount: 2},
 		{name: "hasStreamがfalseならDisconnectが叩かれる", all: []kabuspb.KabusService_GetBoardsStreamingServer{}, hasStream: false, removeCount: 0, disconnectCount: 1},
+		{name: "hasStreamがfalseならDisconnectでエラーが出てもエラーは返されない", all: []kabuspb.KabusService_GetBoardsStreamingServer{}, hasStream: false, disconnect: errors.New("error message"), removeCount: 0, disconnectCount: 1},
 	}
 
 	for _, test := range tests {
@@ -77,7 +79,7 @@ func Test_boardStream_onNext(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			streamStore := &testBoardStreamStore{all: test.all, hasStream: test.hasStream}
-			boardWS := &testBoardWS{disconnect: nil}
+			boardWS := &testBoardWS{disconnect: test.disconnect}
 			service := &boardStream{streamStore: streamStore, boardWS: boardWS}
 			got := service.onNext(nil)
 			if (got != nil) != test.hasError || test.removeCount != streamStore.removeCount || test.disconnectCount != boardWS.disconnectCount {
