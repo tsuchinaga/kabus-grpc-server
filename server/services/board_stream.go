@@ -25,6 +25,9 @@ type boardStream struct {
 }
 
 func (s *boardStream) Connect(stream kabuspb.KabusService_GetBoardsStreamingServer) error {
+	ch := make(chan error)
+	s.streamStore.Add(stream, ch)
+
 	if !s.boardWS.IsConnected() {
 		var err error
 		go func() {
@@ -38,8 +41,6 @@ func (s *boardStream) Connect(stream kabuspb.KabusService_GetBoardsStreamingServ
 		}
 	}
 
-	ch := make(chan error)
-	s.streamStore.Add(stream, ch)
 	return <-ch
 }
 

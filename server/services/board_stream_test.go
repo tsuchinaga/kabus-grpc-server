@@ -33,7 +33,7 @@ func Test_boardStream_Connect(t *testing.T) {
 		hasError    bool
 	}{
 		{name: "ws接続済みならAddするだけ", isConnected: true, addCount: 1},
-		{name: "ws未接続ならws接続し、errがあればerrを返す", isConnected: false, connect: errors.New("error message"), hasError: true},
+		{name: "ws未接続ならws接続し、errがあればerrを返す", isConnected: false, connect: errors.New("error message"), hasError: true, addCount: 1},
 		{name: "ws未接続ならws接続し、errがなければAddする", isConnected: false, connect: nil, addCount: 1},
 	}
 
