@@ -66,6 +66,14 @@ type testSecurity struct {
 	getFutureWallet2  error
 	getOptionWallet1  *kabuspb.OptionWallet
 	getOptionWallet2  error
+	exchange1         *kabuspb.ExchangeInfo
+	exchange2         error
+	regulation1       *kabuspb.Regulation
+	regulation2       error
+	primaryExchange1  *kabuspb.PrimaryExchange
+	primaryExchange2  error
+	softLimit1        *kabuspb.SoftLimit
+	softLimit2        error
 }
 
 func (t *testSecurity) RegisterSymbols(context.Context, string, *kabuspb.RegisterSymbolsRequest) (*kabuspb.RegisteredSymbols, error) {
@@ -162,6 +170,22 @@ func (t *testSecurity) GetFutureWallet(context.Context, string, *kabuspb.GetFutu
 
 func (t *testSecurity) GetOptionWallet(context.Context, string, *kabuspb.GetOptionWalletRequest) (*kabuspb.OptionWallet, error) {
 	return t.getOptionWallet1, t.getOptionWallet2
+}
+
+func (t *testSecurity) Exchange(context.Context, string, *kabuspb.GetExchangeRequest) (*kabuspb.ExchangeInfo, error) {
+	return t.exchange1, t.exchange2
+}
+
+func (t *testSecurity) Regulation(context.Context, string, *kabuspb.GetRegulationRequest) (*kabuspb.Regulation, error) {
+	return t.regulation1, t.regulation2
+}
+
+func (t *testSecurity) PrimaryExchange(context.Context, string, *kabuspb.GetPrimaryExchangeRequest) (*kabuspb.PrimaryExchange, error) {
+	return t.primaryExchange1, t.primaryExchange2
+}
+
+func (t *testSecurity) SoftLimit(context.Context, string, *kabuspb.GetSoftLimitRequest) (*kabuspb.SoftLimit, error) {
+	return t.softLimit1, t.softLimit2
 }
 
 type testTokenService struct {
@@ -1187,6 +1211,238 @@ func Test_server_GetOptionWallet(t *testing.T) {
 				security:     &testSecurity{getOptionWallet1: test.getOptionWallet1, getOptionWallet2: test.getOptionWallet2},
 				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
 			got1, got2 := server.GetOptionWallet(context.Background(), &kabuspb.GetOptionWalletRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_server_GetExchange(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name      string
+		getToken1 string
+		getToken2 error
+		exchange1 *kabuspb.ExchangeInfo
+		exchange2 error
+		want      *kabuspb.ExchangeInfo
+		hasError  bool
+	}{
+		{name: "token取得でエラーがあればエラーを返す",
+			getToken2: errors.New("get token error message"),
+			hasError:  true},
+		{name: "エラーがあればエラーを返す",
+			getToken1: "TOKEN_STRING",
+			exchange2: errors.New("register error message"),
+			hasError:  true},
+		{name: "エラーがなければ結果を返す",
+			getToken1: "TOKEN_STRING",
+			exchange1: &kabuspb.ExchangeInfo{
+				Currency: kabuspb.Currency_CURRENCY_USD_JPY,
+				BidPrice: 105.502,
+				Spread:   0.2,
+				AskPrice: 105.504,
+				Change:   -0.055,
+				Time:     timestamppb.New(time.Date(0, 1, 1, 16, 10, 45, 0, time.Local)),
+			},
+			want: &kabuspb.ExchangeInfo{
+				Currency: kabuspb.Currency_CURRENCY_USD_JPY,
+				BidPrice: 105.502,
+				Spread:   0.2,
+				AskPrice: 105.504,
+				Change:   -0.055,
+				Time:     timestamppb.New(time.Date(0, 1, 1, 16, 10, 45, 0, time.Local)),
+			}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{
+				security:     &testSecurity{exchange1: test.exchange1, exchange2: test.exchange2},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+			got1, got2 := server.GetExchange(context.Background(), &kabuspb.GetExchangeRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_server_GetRegulation(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name        string
+		getToken1   string
+		getToken2   error
+		regulation1 *kabuspb.Regulation
+		regulation2 error
+		want        *kabuspb.Regulation
+		hasError    bool
+	}{
+		{name: "token取得でエラーがあればエラーを返す",
+			getToken2: errors.New("get token error message"),
+			hasError:  true},
+		{name: "エラーがあればエラーを返す",
+			getToken1:   "TOKEN_STRING",
+			regulation2: errors.New("register error message"),
+			hasError:    true},
+		{name: "エラーがなければ結果を返す",
+			getToken1: "TOKEN_STRING",
+			regulation1: &kabuspb.Regulation{
+				SymbolCode: "5614",
+				RegulationInfoList: []*kabuspb.RegulationInfo{
+					{
+						Exchange:      kabuspb.RegulationExchange_REGULATION_EXCHANGE_TOUSHOU,
+						Product:       kabuspb.RegulationProduct_REGULATION_PRODUCT_RECEIPT,
+						Side:          kabuspb.RegulationSide_REGULATION_SIDE_BUY,
+						Reason:        "品受停止（貸借申込停止銘柄（日証金規制））",
+						LimitStartDay: timestamppb.New(time.Date(2020, 10, 1, 0, 0, 0, 0, time.Local)),
+						LimitEndDay:   timestamppb.New(time.Date(2999, 12, 31, 0, 0, 0, 0, time.Local)),
+						Level:         kabuspb.RegulationLevel_REGULATION_LEVEL_ERROR,
+					}, {
+						Exchange:      kabuspb.RegulationExchange_REGULATION_EXCHANGE_UNSPECIFIED,
+						Product:       kabuspb.RegulationProduct_REGULATION_PRODUCT_STOCK,
+						Side:          kabuspb.RegulationSide_REGULATION_SIDE_BUY,
+						Reason:        "その他（代用不適格銘柄）",
+						LimitStartDay: timestamppb.New(time.Date(2021, 1, 27, 0, 0, 0, 0, time.Local)),
+						LimitEndDay:   timestamppb.New(time.Date(2021, 2, 17, 0, 0, 0, 0, time.Local)),
+						Level:         kabuspb.RegulationLevel_REGULATION_LEVEL_ERROR,
+					},
+				},
+			},
+			want: &kabuspb.Regulation{
+				SymbolCode: "5614",
+				RegulationInfoList: []*kabuspb.RegulationInfo{
+					{
+						Exchange:      kabuspb.RegulationExchange_REGULATION_EXCHANGE_TOUSHOU,
+						Product:       kabuspb.RegulationProduct_REGULATION_PRODUCT_RECEIPT,
+						Side:          kabuspb.RegulationSide_REGULATION_SIDE_BUY,
+						Reason:        "品受停止（貸借申込停止銘柄（日証金規制））",
+						LimitStartDay: timestamppb.New(time.Date(2020, 10, 1, 0, 0, 0, 0, time.Local)),
+						LimitEndDay:   timestamppb.New(time.Date(2999, 12, 31, 0, 0, 0, 0, time.Local)),
+						Level:         kabuspb.RegulationLevel_REGULATION_LEVEL_ERROR,
+					}, {
+						Exchange:      kabuspb.RegulationExchange_REGULATION_EXCHANGE_UNSPECIFIED,
+						Product:       kabuspb.RegulationProduct_REGULATION_PRODUCT_STOCK,
+						Side:          kabuspb.RegulationSide_REGULATION_SIDE_BUY,
+						Reason:        "その他（代用不適格銘柄）",
+						LimitStartDay: timestamppb.New(time.Date(2021, 1, 27, 0, 0, 0, 0, time.Local)),
+						LimitEndDay:   timestamppb.New(time.Date(2021, 2, 17, 0, 0, 0, 0, time.Local)),
+						Level:         kabuspb.RegulationLevel_REGULATION_LEVEL_ERROR,
+					},
+				},
+			}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{
+				security:     &testSecurity{regulation1: test.regulation1, regulation2: test.regulation2},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+			got1, got2 := server.GetRegulation(context.Background(), &kabuspb.GetRegulationRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_server_GetPrimaryExchange(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name             string
+		getToken1        string
+		getToken2        error
+		primaryExchange1 *kabuspb.PrimaryExchange
+		primaryExchange2 error
+		want             *kabuspb.PrimaryExchange
+		hasError         bool
+	}{
+		{name: "token取得でエラーがあればエラーを返す",
+			getToken2: errors.New("get token error message"),
+			hasError:  true},
+		{name: "エラーがあればエラーを返す",
+			getToken1:        "TOKEN_STRING",
+			primaryExchange2: errors.New("register error message"),
+			hasError:         true},
+		{name: "エラーがなければ結果を返す",
+			getToken1: "TOKEN_STRING",
+			primaryExchange1: &kabuspb.PrimaryExchange{
+				SymbolCode:      "2928",
+				PrimaryExchange: kabuspb.StockExchange_STOCK_EXCHANGE_SATSUSHOU,
+			},
+			want: &kabuspb.PrimaryExchange{
+				SymbolCode:      "2928",
+				PrimaryExchange: kabuspb.StockExchange_STOCK_EXCHANGE_SATSUSHOU,
+			}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{
+				security:     &testSecurity{primaryExchange1: test.primaryExchange1, primaryExchange2: test.primaryExchange2},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+			got1, got2 := server.GetPrimaryExchange(context.Background(), &kabuspb.GetPrimaryExchangeRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_server_GetSoftLimit(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name       string
+		getToken1  string
+		getToken2  error
+		softLimit1 *kabuspb.SoftLimit
+		softLimit2 error
+		want       *kabuspb.SoftLimit
+		hasError   bool
+	}{
+		{name: "token取得でエラーがあればエラーを返す",
+			getToken2: errors.New("get token error message"),
+			hasError:  true},
+		{name: "エラーがあればエラーを返す",
+			getToken1:  "TOKEN_STRING",
+			softLimit2: errors.New("register error message"),
+			hasError:   true},
+		{name: "エラーがなければ結果を返す",
+			getToken1: "TOKEN_STRING",
+			softLimit1: &kabuspb.SoftLimit{
+				Stock:        200,
+				Margin:       200,
+				Future:       10,
+				FutureMini:   100,
+				Option:       20,
+				KabusVersion: "5.13.1.0",
+			},
+			want: &kabuspb.SoftLimit{
+				Stock:        200,
+				Margin:       200,
+				Future:       10,
+				FutureMini:   100,
+				Option:       20,
+				KabusVersion: "5.13.1.0",
+			}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{
+				security:     &testSecurity{softLimit1: test.softLimit1, softLimit2: test.softLimit2},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+			got1, got2 := server.GetSoftLimit(context.Background(), &kabuspb.GetSoftLimitRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}

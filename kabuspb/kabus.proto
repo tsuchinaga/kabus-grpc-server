@@ -32,8 +32,11 @@ service KabusService {
   rpc RegisterSymbols(RegisterSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録
   rpc UnregisterSymbols(UnregisterSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録解除
   rpc UnregisterAllSymbols(UnregisterAllSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録全解除
+  rpc GetExchange(GetExchangeRequest) returns (ExchangeInfo); // 為替情報
+  rpc GetRegulation(GetRegulationRequest) returns (Regulation); // 規制情報
+  rpc GetPrimaryExchange(GetPrimaryExchangeRequest) returns (PrimaryExchange); // 優先市場
+  rpc GetSoftLimit(GetSoftLimitRequest) returns (SoftLimit); // ソフトリミット
 
-  // PUSH
   rpc GetBoardsStreaming(GetBoardsStreamingRequest) returns (stream Board); // 時価情報・板情報ストリーミング
 }
 
@@ -275,8 +278,14 @@ message GetBoardRequest {
 
 // 銘柄情報リクエスト
 message GetSymbolRequest {
+  // 銘柄コード
   string symbol_code = 1;
+
+  // 市場
   Exchange exchange = 2;
+
+  // 追加情報出力フラグ
+  bool get_info = 3;
 }
 
 // 注文約定照会リクエスト
@@ -326,6 +335,12 @@ message GetPositionsRequest{
 
   // 銘柄コード
   string symbol_code = 2;
+
+  // 売買区分フィルタ
+  Side side = 3;
+
+  // 追加情報出力フラグ
+  bool get_info = 4;
 }
 
 // 先物銘柄コード取得リクエスト
@@ -422,6 +437,30 @@ message UnregisterSymbolsRequest {
 
 // 銘柄登録全解除リクエスト
 message UnregisterAllSymbolsRequest {}
+
+// 為替情報リクエスト
+message GetExchangeRequest {
+  // 通貨
+  Currency currency = 1;
+}
+
+// 規制情報リクエスト
+message GetRegulationRequest {
+  // 銘柄コード
+  string symbol_code = 1;
+
+  // 市場
+  StockExchange exchange = 2;
+}
+
+// 優先市場リクエスト
+message GetPrimaryExchangeRequest {
+  // 銘柄コード
+  string symbol_code = 1;
+}
+
+// ソフトリミットリクエスト
+message GetSoftLimitRequest {}
 
 // 時価情報・板情報ストリーミング
 message GetBoardsStreamingRequest {}
@@ -1371,6 +1410,94 @@ message OptionWallet {
   double margin_requirement = 3;
 }
 
+// 為替情報
+message ExchangeInfo {
+  // 通貨
+  Currency currency = 1;
+
+  // BID
+  double bid_price = 2;
+
+  // SP
+  double spread = 3;
+
+  // ASK
+  double ask_price = 4;
+
+  // 前日比
+  double change = 5;
+
+  // 時刻
+  google.protobuf.Timestamp time = 6;
+}
+
+// 規制情報
+message Regulation {
+  // 銘柄コード
+  string symbol_code = 1;
+
+  repeated RegulationInfo regulation_info_list = 2;
+}
+
+// 規制情報詳細
+message RegulationInfo {
+  // 規制市場
+  RegulationExchange exchange = 1;
+
+  // 規制取引区分
+  RegulationProduct product = 2;
+
+  // 規制売買
+  RegulationSide side = 3;
+
+  // 理由
+  string reason = 4;
+
+  // 制限開始日
+  google.protobuf.Timestamp limit_start_day = 5;
+
+  // 制限終了日
+  google.protobuf.Timestamp limit_end_day = 6;
+
+  // コンプライアンスレベル
+  RegulationLevel level = 7;
+}
+
+// 優先市場
+message PrimaryExchange {
+  // 銘柄コード
+  string symbol_code = 1;
+
+  // 優先市場
+  StockExchange primary_exchange = 2;
+}
+
+// ソフトリミット
+message SoftLimit {
+  // 現物のワンショット上限
+  //   単位は万円
+  double stock = 1;
+
+  // 信用のワンショット上限
+  //   単位は万円
+  double margin = 2;
+
+  // 先物のワンショット上限
+  //   単位は枚
+  double future = 3;
+
+  // 先物ミニのワンショット上限
+  //   単位は枚
+  double future_mini = 4;
+
+  // オプションのワンショット上限
+  //   単位は枚
+  double option = 5;
+
+  // kabuステーションのバージョン
+  string kabus_version = 6;
+}
+
 // 市場
 enum Exchange {
   EXCHANGE_UNSPECIFIED = 0; // 指定なし
@@ -1667,4 +1794,62 @@ enum OptionOrderType {
   OPTION_ORDER_TYPE_MOC = 18; // 引成（派生） Market Order on Closing FAKのみ有効
   OPTION_ORDER_TYPE_LO = 20; // 指値 Limit Order
   OPTION_ORDER_TYPE_LOC = 28; // 引指（派生） Limit Order on Closing
+}
+
+// 通貨
+enum Currency {
+  CURRENCY_UNSPECIFIED = 0; // 未指定
+  CURRENCY_USD_JPY = 1; // USD/JPY
+  CURRENCY_EUR_JPY = 2; // EUR/JPY
+  CURRENCY_GBP_JPY = 3; // GBP/JPY
+  CURRENCY_AUD_JPY = 4; // AUD/JPY
+  CURRENCY_CHF_JPY = 5; // CHF/JPY
+  CURRENCY_CAD_JPY = 6; // CAD/JPY
+  CURRENCY_NZD_JPY = 7; // NZD/JPY
+  CURRENCY_ZAR_JPY = 8; // ZAR/JPY
+  CURRENCY_EUR_USD = 9; // EUR/USD
+  CURRENCY_GBP_USD = 10; // GBP/USD
+  CURRENCY_AUD_USD = 11; // AUD/USD
+}
+
+// 規制市場
+enum RegulationExchange {
+  REGULATION_EXCHANGE_UNSPECIFIED = 0; // 未指定
+  REGULATION_EXCHANGE_TOUSHOU = 1; // 東証
+  REGULATION_EXCHANGE_MEISHOU = 3; // 名証
+  REGULATION_EXCHANGE_FUKUSHOU = 5; // 福証
+  REGULATION_EXCHANGE_SATSUSHOU = 6; // 札証
+  REGULATION_EXCHANGE_SOR = 9; // SOR
+  REGULATION_EXCHANGE_CXJ = 10; // CXJ
+  REGULATION_EXCHANGE_JNX = 21; // JNX
+}
+
+// 規制取引区分
+enum RegulationProduct {
+  REGULATION_PRODUCT_UNSPECIFIED = 0; // 未指定
+  REGULATION_PRODUCT_ALL = 1; // 全対象
+  REGULATION_PRODUCT_STOCK = 2; // 現物
+  REGULATION_PRODUCT_MARGIN_ENTRY_SYSTEM = 3; // 信用新規（制度）
+  REGULATION_PRODUCT_MARGIN_ENTRY_GENERAL = 4; // 信用新規（一般）
+  REGULATION_PRODUCT_ENTRY = 5; // 新規
+  REGULATION_PRODUCT_MARGIN_EXIT_SYSTEM = 6; // 信用返済（制度）
+  REGULATION_PRODUCT_MARGIN_EXIT_GENERAL = 7; // 信用返済（一般）
+  REGULATION_PRODUCT_EXIT = 8; // 返済
+  REGULATION_PRODUCT_RECEIPT = 9; // 品受
+  REGULATION_PRODUCT_DELIVERY = 10; // 品渡
+}
+
+// 規制売買
+enum RegulationSide {
+  REGULATION_SIDE_UNSPECIFIED = 0; // 未指定
+  REGULATION_SIDE_ALL = 1; // 全対象
+  REGULATION_SIDE_BUY = 2; // 買い
+  REGULATION_SIDE_SELL = 3; // 売り
+}
+
+// コンプライアンスレベル
+enum RegulationLevel {
+  REGULATION_LEVEL_UNSPECIFIED = 0; // 未指定
+  REGULATION_LEVEL_WARNING = 1; // ワーニング
+  REGULATION_LEVEL_ERROR = 2; // エラー
 }

@@ -263,6 +263,42 @@ func (s *server) GetIndustryRanking(ctx context.Context, req *kabuspb.GetIndustr
 	return s.security.IndustryRanking(ctx, token, req)
 }
 
+func (s *server) GetExchange(ctx context.Context, req *kabuspb.GetExchangeRequest) (*kabuspb.ExchangeInfo, error) {
+	token, err := s.tokenService.GetToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.security.Exchange(ctx, token, req)
+}
+
+func (s *server) GetRegulation(ctx context.Context, req *kabuspb.GetRegulationRequest) (*kabuspb.Regulation, error) {
+	token, err := s.tokenService.GetToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.security.Regulation(ctx, token, req)
+}
+
+func (s *server) GetPrimaryExchange(ctx context.Context, req *kabuspb.GetPrimaryExchangeRequest) (*kabuspb.PrimaryExchange, error) {
+	token, err := s.tokenService.GetToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.security.PrimaryExchange(ctx, token, req)
+}
+
+func (s *server) GetSoftLimit(ctx context.Context, req *kabuspb.GetSoftLimitRequest) (*kabuspb.SoftLimit, error) {
+	token, err := s.tokenService.GetToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.security.SoftLimit(ctx, token, req)
+}
+
 func (s *server) GetBoardsStreaming(_ *kabuspb.GetBoardsStreamingRequest, stream kabuspb.KabusService_GetBoardsStreamingServer) error {
 	return s.boardStreamService.Connect(stream)
 }

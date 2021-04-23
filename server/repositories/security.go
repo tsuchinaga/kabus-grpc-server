@@ -32,4 +32,8 @@ type Security interface {
 	GetMarginWallet(ctx context.Context, token string, req *kabuspb.GetMarginWalletRequest) (*kabuspb.MarginWallet, error)
 	GetFutureWallet(ctx context.Context, token string, req *kabuspb.GetFutureWalletRequest) (*kabuspb.FutureWallet, error)
 	GetOptionWallet(ctx context.Context, token string, req *kabuspb.GetOptionWalletRequest) (*kabuspb.OptionWallet, error)
+	Exchange(ctx context.Context, token string, req *kabuspb.GetExchangeRequest) (*kabuspb.ExchangeInfo, error)
+	Regulation(ctx context.Context, token string, req *kabuspb.GetRegulationRequest) (*kabuspb.Regulation, error)
+	PrimaryExchange(ctx context.Context, token string, req *kabuspb.GetPrimaryExchangeRequest) (*kabuspb.PrimaryExchange, error)
+	SoftLimit(ctx context.Context, token string, req *kabuspb.GetSoftLimitRequest) (*kabuspb.SoftLimit, error)
 }

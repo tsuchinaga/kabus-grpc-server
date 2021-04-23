@@ -64,6 +64,14 @@ type testRESTClient struct {
 	walletOptionWithContext2       error
 	walletOptionSymbolWithContext1 *kabus.WalletOptionResponse
 	walletOptionSymbolWithContext2 error
+	exchangeWithContext1           *kabus.ExchangeResponse
+	exchangeWithContext2           error
+	regulationWithContext1         *kabus.RegulationResponse
+	regulationWithContext2         error
+	primaryExchangeWithContext1    *kabus.PrimaryExchangeResponse
+	primaryExchangeWithContext2    error
+	softLimitWithContext1          *kabus.SoftLimitResponse
+	softLimitWithContext2          error
 }
 
 func (t *testRESTClient) TokenWithContext(context.Context, kabus.TokenRequest) (*kabus.TokenResponse, error) {
@@ -158,6 +166,22 @@ func (t *testRESTClient) WalletOptionWithContext(context.Context, string) (*kabu
 
 func (t *testRESTClient) WalletOptionSymbolWithContext(context.Context, string, kabus.WalletOptionSymbolRequest) (*kabus.WalletOptionResponse, error) {
 	return t.walletOptionSymbolWithContext1, t.walletOptionSymbolWithContext2
+}
+
+func (t *testRESTClient) ExchangeWithContext(context.Context, string, kabus.ExchangeRequest) (*kabus.ExchangeResponse, error) {
+	return t.exchangeWithContext1, t.exchangeWithContext2
+}
+
+func (t *testRESTClient) RegulationWithContext(context.Context, string, kabus.RegulationRequest) (*kabus.RegulationResponse, error) {
+	return t.regulationWithContext1, t.regulationWithContext2
+}
+
+func (t *testRESTClient) PrimaryExchangeWithContext(context.Context, string, kabus.PrimaryExchangeRequest) (*kabus.PrimaryExchangeResponse, error) {
+	return t.primaryExchangeWithContext1, t.primaryExchangeWithContext2
+}
+
+func (t *testRESTClient) SoftLimitWithContext(context.Context, string, kabus.SoftLimitRequest) (*kabus.SoftLimitResponse, error) {
+	return t.softLimitWithContext1, t.softLimitWithContext2
 }
 
 func Test_NewSecurity(t *testing.T) {
@@ -1305,6 +1329,201 @@ func Test_security_GetOptionWallet(t *testing.T) {
 				walletOptionSymbolWithContext1: test.walletOptionSymbolWithContext1, walletOptionSymbolWithContext2: test.walletOptionSymbolWithContext2}
 			security := &security{restClient: restClient}
 			got1, got2 := security.GetOptionWallet(context.Background(), "", test.req)
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_Exchange(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                 string
+		exchangeWithContext1 *kabus.ExchangeResponse
+		exchangeWithContext2 error
+		want                 *kabuspb.ExchangeInfo
+		hasError             bool
+	}{
+		{name: "errorを返されたらerrorを返す", exchangeWithContext2: errors.New("error message"), hasError: true},
+		{name: "responseが返されたらresponseを変換して返す",
+			exchangeWithContext1: &kabus.ExchangeResponse{
+				Symbol:   kabus.ExchangeSymbolDetailUSDJPY,
+				BidPrice: 105.502,
+				Spread:   0.2,
+				AskPrice: 105.504,
+				Change:   -0.055,
+				Time:     kabus.HmsString{Time: time.Date(0, 1, 1, 16, 10, 45, 0, time.Local)},
+			},
+			want: &kabuspb.ExchangeInfo{
+				Currency: kabuspb.Currency_CURRENCY_USD_JPY,
+				BidPrice: 105.502,
+				Spread:   0.2,
+				AskPrice: 105.504,
+				Change:   -0.055,
+				Time:     timestamppb.New(time.Date(0, 1, 1, 16, 10, 45, 0, time.Local)),
+			},
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{exchangeWithContext1: test.exchangeWithContext1, exchangeWithContext2: test.exchangeWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.Exchange(context.Background(), "", &kabuspb.GetExchangeRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_Regulation(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                   string
+		regulationWithContext1 *kabus.RegulationResponse
+		regulationWithContext2 error
+		want                   *kabuspb.Regulation
+		hasError               bool
+	}{
+		{name: "errorを返されたらerrorを返す", regulationWithContext2: errors.New("error message"), hasError: true},
+		{name: "responseが返されたらresponseを変換して返す",
+			regulationWithContext1: &kabus.RegulationResponse{
+				Symbol: "5614",
+				RegulationsInfo: []kabus.RegulationsInfo{
+					{
+						Exchange:      kabus.RegulationExchangeToushou,
+						Product:       kabus.RegulationProductReceipt,
+						Side:          kabus.RegulationSideBuy,
+						Reason:        "品受停止（貸借申込停止銘柄（日証金規制））",
+						LimitStartDay: kabus.YmdHmString{Time: time.Date(2020, 10, 1, 0, 0, 0, 0, time.Local)},
+						LimitEndDay:   kabus.YmdHmString{Time: time.Date(2999, 12, 31, 0, 0, 0, 0, time.Local)},
+						Level:         kabus.RegulationLevelError,
+					}, {
+						Exchange:      kabus.RegulationExchangeUnspecified,
+						Product:       kabus.RegulationProductCash,
+						Side:          kabus.RegulationSideBuy,
+						Reason:        "その他（代用不適格銘柄）",
+						LimitStartDay: kabus.YmdHmString{Time: time.Date(2021, 1, 27, 0, 0, 0, 0, time.Local)},
+						LimitEndDay:   kabus.YmdHmString{Time: time.Date(2021, 2, 17, 0, 0, 0, 0, time.Local)},
+						Level:         kabus.RegulationLevelError,
+					},
+				}},
+			want: &kabuspb.Regulation{
+				SymbolCode: "5614",
+				RegulationInfoList: []*kabuspb.RegulationInfo{
+					{
+						Exchange:      kabuspb.RegulationExchange_REGULATION_EXCHANGE_TOUSHOU,
+						Product:       kabuspb.RegulationProduct_REGULATION_PRODUCT_RECEIPT,
+						Side:          kabuspb.RegulationSide_REGULATION_SIDE_BUY,
+						Reason:        "品受停止（貸借申込停止銘柄（日証金規制））",
+						LimitStartDay: timestamppb.New(time.Date(2020, 10, 1, 0, 0, 0, 0, time.Local)),
+						LimitEndDay:   timestamppb.New(time.Date(2999, 12, 31, 0, 0, 0, 0, time.Local)),
+						Level:         kabuspb.RegulationLevel_REGULATION_LEVEL_ERROR,
+					}, {
+						Exchange:      kabuspb.RegulationExchange_REGULATION_EXCHANGE_UNSPECIFIED,
+						Product:       kabuspb.RegulationProduct_REGULATION_PRODUCT_STOCK,
+						Side:          kabuspb.RegulationSide_REGULATION_SIDE_BUY,
+						Reason:        "その他（代用不適格銘柄）",
+						LimitStartDay: timestamppb.New(time.Date(2021, 1, 27, 0, 0, 0, 0, time.Local)),
+						LimitEndDay:   timestamppb.New(time.Date(2021, 2, 17, 0, 0, 0, 0, time.Local)),
+						Level:         kabuspb.RegulationLevel_REGULATION_LEVEL_ERROR,
+					},
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{regulationWithContext1: test.regulationWithContext1, regulationWithContext2: test.regulationWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.Regulation(context.Background(), "", &kabuspb.GetRegulationRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_PrimaryExchange(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                        string
+		primaryExchangeWithContext1 *kabus.PrimaryExchangeResponse
+		primaryExchangeWithContext2 error
+		want                        *kabuspb.PrimaryExchange
+		hasError                    bool
+	}{
+		{name: "errorを返されたらerrorを返す", primaryExchangeWithContext2: errors.New("error message"), hasError: true},
+		{name: "responseが返されたらresponseを変換して返す",
+			primaryExchangeWithContext1: &kabus.PrimaryExchangeResponse{
+				Symbol:          "2928",
+				PrimaryExchange: kabus.StockExchangeSatsushou,
+			},
+			want: &kabuspb.PrimaryExchange{
+				SymbolCode:      "2928",
+				PrimaryExchange: kabuspb.StockExchange_STOCK_EXCHANGE_SATSUSHOU,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{primaryExchangeWithContext1: test.primaryExchangeWithContext1, primaryExchangeWithContext2: test.primaryExchangeWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.PrimaryExchange(context.Background(), "", &kabuspb.GetPrimaryExchangeRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_SoftLimit(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                  string
+		softLimitWithContext1 *kabus.SoftLimitResponse
+		softLimitWithContext2 error
+		want                  *kabuspb.SoftLimit
+		hasError              bool
+	}{
+		{name: "errorを返されたらerrorを返す", softLimitWithContext2: errors.New("error message"), hasError: true},
+		{name: "responseが返されたらresponseを変換して返す",
+			softLimitWithContext1: &kabus.SoftLimitResponse{
+				Stock:        200,
+				Margin:       200,
+				Future:       10,
+				FutureMini:   100,
+				Option:       20,
+				KabuSVersion: "5.13.1.0",
+			},
+			want: &kabuspb.SoftLimit{
+				Stock:        200,
+				Margin:       200,
+				Future:       10,
+				FutureMini:   100,
+				Option:       20,
+				KabusVersion: "5.13.1.0",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{softLimitWithContext1: test.softLimitWithContext1, softLimitWithContext2: test.softLimitWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.SoftLimit(context.Background(), "", &kabuspb.GetSoftLimitRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}

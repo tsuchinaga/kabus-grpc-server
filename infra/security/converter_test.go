@@ -2809,3 +2809,318 @@ func Test_fromPriceMessage(t *testing.T) {
 		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
 	}
 }
+
+func Test_fromStockExchange(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.StockExchange
+		want kabuspb.StockExchange
+	}{
+		{name: "未指定 を変換できる", arg: kabus.StockExchangeUnspecified, want: kabuspb.StockExchange_STOCK_EXCHANGE_UNSPECIFIED},
+		{name: "東証 を変換できる", arg: kabus.StockExchangeToushou, want: kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU},
+		{name: "名証 を変換できる", arg: kabus.StockExchangeMeishou, want: kabuspb.StockExchange_STOCK_EXCHANGE_MEISHOU},
+		{name: "福証 を変換できる", arg: kabus.StockExchangeFukushou, want: kabuspb.StockExchange_STOCK_EXCHANGE_FUKUSHOU},
+		{name: "札証 を変換できる", arg: kabus.StockExchangeSatsushou, want: kabuspb.StockExchange_STOCK_EXCHANGE_SATSUSHOU},
+		{name: "未定義 を変換できる", arg: kabus.StockExchange(-1), want: kabuspb.StockExchange_STOCK_EXCHANGE_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromStockExchange(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromRegulationsInfo(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  []kabus.RegulationsInfo
+		want []*kabuspb.RegulationInfo
+	}{
+		{name: "要素がなければ空配列", arg: []kabus.RegulationsInfo{}, want: []*kabuspb.RegulationInfo{}},
+		{name: "要素があれば同じ長さの配列",
+			arg: []kabus.RegulationsInfo{
+				{
+					Exchange:      kabus.RegulationExchangeToushou,
+					Product:       kabus.RegulationProductReceipt,
+					Side:          kabus.RegulationSideBuy,
+					Reason:        "品受停止（貸借申込停止銘柄（日証金規制））",
+					LimitStartDay: kabus.YmdHmString{Time: time.Date(2020, 10, 1, 0, 0, 0, 0, time.Local)},
+					LimitEndDay:   kabus.YmdHmString{Time: time.Date(2999, 12, 31, 0, 0, 0, 0, time.Local)},
+					Level:         kabus.RegulationLevelError,
+				}, {
+					Exchange:      kabus.RegulationExchangeUnspecified,
+					Product:       kabus.RegulationProductCash,
+					Side:          kabus.RegulationSideBuy,
+					Reason:        "その他（代用不適格銘柄）",
+					LimitStartDay: kabus.YmdHmString{Time: time.Date(2021, 1, 27, 0, 0, 0, 0, time.Local)},
+					LimitEndDay:   kabus.YmdHmString{Time: time.Date(2021, 2, 17, 0, 0, 0, 0, time.Local)},
+					Level:         kabus.RegulationLevelError,
+				},
+			},
+			want: []*kabuspb.RegulationInfo{
+				{
+					Exchange:      kabuspb.RegulationExchange_REGULATION_EXCHANGE_TOUSHOU,
+					Product:       kabuspb.RegulationProduct_REGULATION_PRODUCT_RECEIPT,
+					Side:          kabuspb.RegulationSide_REGULATION_SIDE_BUY,
+					Reason:        "品受停止（貸借申込停止銘柄（日証金規制））",
+					LimitStartDay: timestamppb.New(time.Date(2020, 10, 1, 0, 0, 0, 0, time.Local)),
+					LimitEndDay:   timestamppb.New(time.Date(2999, 12, 31, 0, 0, 0, 0, time.Local)),
+					Level:         kabuspb.RegulationLevel_REGULATION_LEVEL_ERROR,
+				},
+				{
+					Exchange:      kabuspb.RegulationExchange_REGULATION_EXCHANGE_UNSPECIFIED,
+					Product:       kabuspb.RegulationProduct_REGULATION_PRODUCT_STOCK,
+					Side:          kabuspb.RegulationSide_REGULATION_SIDE_BUY,
+					Reason:        "その他（代用不適格銘柄）",
+					LimitStartDay: timestamppb.New(time.Date(2021, 1, 27, 0, 0, 0, 0, time.Local)),
+					LimitEndDay:   timestamppb.New(time.Date(2021, 2, 17, 0, 0, 0, 0, time.Local)),
+					Level:         kabuspb.RegulationLevel_REGULATION_LEVEL_ERROR,
+				},
+			}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromRegulationsInfo(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromRegulationExchange(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.RegulationExchange
+		want kabuspb.RegulationExchange
+	}{
+		{name: "未指定 を変換できる", arg: kabus.RegulationExchangeUnspecified, want: kabuspb.RegulationExchange_REGULATION_EXCHANGE_UNSPECIFIED},
+		{name: "東証 を変換できる", arg: kabus.RegulationExchangeToushou, want: kabuspb.RegulationExchange_REGULATION_EXCHANGE_TOUSHOU},
+		{name: "名証 を変換できる", arg: kabus.RegulationExchangeMeishou, want: kabuspb.RegulationExchange_REGULATION_EXCHANGE_MEISHOU},
+		{name: "福証 を変換できる", arg: kabus.RegulationExchangeFukushou, want: kabuspb.RegulationExchange_REGULATION_EXCHANGE_FUKUSHOU},
+		{name: "札証 を変換できる", arg: kabus.RegulationExchangeSatsushou, want: kabuspb.RegulationExchange_REGULATION_EXCHANGE_SATSUSHOU},
+		{name: "SOR を変換できる", arg: kabus.RegulationExchangeSOR, want: kabuspb.RegulationExchange_REGULATION_EXCHANGE_SOR},
+		{name: "CXJ を変換できる", arg: kabus.RegulationExchangeCXJ, want: kabuspb.RegulationExchange_REGULATION_EXCHANGE_CXJ},
+		{name: "JNX を変換できる", arg: kabus.RegulationExchangeJNX, want: kabuspb.RegulationExchange_REGULATION_EXCHANGE_JNX},
+		{name: "未定義 を変換できる", arg: kabus.RegulationExchange(-1), want: kabuspb.RegulationExchange_REGULATION_EXCHANGE_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromRegulationExchange(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromRegulationProduct(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.RegulationProduct
+		want kabuspb.RegulationProduct
+	}{
+		{name: "全対象 を変換できる", arg: kabus.RegulationProductAll, want: kabuspb.RegulationProduct_REGULATION_PRODUCT_ALL},
+		{name: "現物 を変換できる", arg: kabus.RegulationProductCash, want: kabuspb.RegulationProduct_REGULATION_PRODUCT_STOCK},
+		{name: "信用新規（制度） を変換できる", arg: kabus.RegulationProductMarginEntrySystem, want: kabuspb.RegulationProduct_REGULATION_PRODUCT_MARGIN_ENTRY_SYSTEM},
+		{name: "信用新規（一般） を変換できる", arg: kabus.RegulationProductMarginEntryGeneral, want: kabuspb.RegulationProduct_REGULATION_PRODUCT_MARGIN_ENTRY_GENERAL},
+		{name: "新規 を変換できる", arg: kabus.RegulationProductEntry, want: kabuspb.RegulationProduct_REGULATION_PRODUCT_ENTRY},
+		{name: "信用返済（制度） を変換できる", arg: kabus.RegulationProductMarginExitSystem, want: kabuspb.RegulationProduct_REGULATION_PRODUCT_MARGIN_EXIT_SYSTEM},
+		{name: "信用返済（一般） を変換できる", arg: kabus.RegulationProductMarginExitGeneral, want: kabuspb.RegulationProduct_REGULATION_PRODUCT_MARGIN_EXIT_GENERAL},
+		{name: "返済 を変換できる", arg: kabus.RegulationProductExit, want: kabuspb.RegulationProduct_REGULATION_PRODUCT_EXIT},
+		{name: "品受 を変換できる", arg: kabus.RegulationProductReceipt, want: kabuspb.RegulationProduct_REGULATION_PRODUCT_RECEIPT},
+		{name: "品渡 を変換できる", arg: kabus.RegulationProductDelivery, want: kabuspb.RegulationProduct_REGULATION_PRODUCT_DELIVERY},
+		{name: "未定義 を変換できる", arg: kabus.RegulationProduct(-1), want: kabuspb.RegulationProduct_REGULATION_PRODUCT_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromRegulationProduct(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromRegulationSide(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.RegulationSide
+		want kabuspb.RegulationSide
+	}{
+		{name: "全対象 を変換できる", arg: kabus.RegulationSideAll, want: kabuspb.RegulationSide_REGULATION_SIDE_ALL},
+		{name: "売 を変換できる", arg: kabus.RegulationSideSell, want: kabuspb.RegulationSide_REGULATION_SIDE_SELL},
+		{name: "買 を変換できる", arg: kabus.RegulationSideBuy, want: kabuspb.RegulationSide_REGULATION_SIDE_BUY},
+		{name: "未定義 を変換できる", arg: kabus.RegulationSide(-1), want: kabuspb.RegulationSide_REGULATION_SIDE_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromRegulationSide(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromRegulationLevel(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.RegulationLevel
+		want kabuspb.RegulationLevel
+	}{
+		{name: "未指定 を変換できる", arg: kabus.RegulationLevelUnspecified, want: kabuspb.RegulationLevel_REGULATION_LEVEL_UNSPECIFIED},
+		{name: "ワーニング を変換できる", arg: kabus.RegulationLevelWarning, want: kabuspb.RegulationLevel_REGULATION_LEVEL_WARNING},
+		{name: "エラー を変換できる", arg: kabus.RegulationLevelError, want: kabuspb.RegulationLevel_REGULATION_LEVEL_ERROR},
+		{name: "未定義 を変換できる", arg: kabus.RegulationLevel(-1), want: kabuspb.RegulationLevel_REGULATION_LEVEL_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromRegulationLevel(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toExchangeSymbol(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.Currency
+		want kabus.ExchangeSymbol
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.Currency_CURRENCY_UNSPECIFIED, want: kabus.ExchangeSymbolUnspecified},
+		{name: "USD/JPY を変換できる", arg: kabuspb.Currency_CURRENCY_USD_JPY, want: kabus.ExchangeSymbolUSDJPY},
+		{name: "EUR/JPY を変換できる", arg: kabuspb.Currency_CURRENCY_EUR_JPY, want: kabus.ExchangeSymbolEURJPY},
+		{name: "GBP/JPY を変換できる", arg: kabuspb.Currency_CURRENCY_GBP_JPY, want: kabus.ExchangeSymbolGBPJPY},
+		{name: "AUD/JPY を変換できる", arg: kabuspb.Currency_CURRENCY_AUD_JPY, want: kabus.ExchangeSymbolAUDJPY},
+		{name: "CHF/JPY を変換できる", arg: kabuspb.Currency_CURRENCY_CHF_JPY, want: kabus.ExchangeSymbolCHFJPY},
+		{name: "CAD/JPY を変換できる", arg: kabuspb.Currency_CURRENCY_CAD_JPY, want: kabus.ExchangeSymbolCADJPY},
+		{name: "NZD/JPY を変換できる", arg: kabuspb.Currency_CURRENCY_NZD_JPY, want: kabus.ExchangeSymbolNZDJPY},
+		{name: "ZAR/JPY を変換できる", arg: kabuspb.Currency_CURRENCY_ZAR_JPY, want: kabus.ExchangeSymbolZARJPY},
+		{name: "EUR/USD を変換できる", arg: kabuspb.Currency_CURRENCY_EUR_USD, want: kabus.ExchangeSymbolEURUSD},
+		{name: "GBP/USD を変換できる", arg: kabuspb.Currency_CURRENCY_GBP_USD, want: kabus.ExchangeSymbolGBPUSD},
+		{name: "AUD/USD を変換できる", arg: kabuspb.Currency_CURRENCY_AUD_USD, want: kabus.ExchangeSymbolAUDUSD},
+		{name: "未定義 を変換できる", arg: kabuspb.Currency(-1), want: kabus.ExchangeSymbolUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toExchangeSymbol(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromExchangeSymbolDetail(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabus.ExchangeSymbolDetail
+		want kabuspb.Currency
+	}{
+		{name: "未指定 を変換できる", arg: kabus.ExchangeSymbolDetailUnspecified, want: kabuspb.Currency_CURRENCY_UNSPECIFIED},
+		{name: "USD/JPY を変換できる", arg: kabus.ExchangeSymbolDetailUSDJPY, want: kabuspb.Currency_CURRENCY_USD_JPY},
+		{name: "EUR/JPY を変換できる", arg: kabus.ExchangeSymbolDetailEURJPY, want: kabuspb.Currency_CURRENCY_EUR_JPY},
+		{name: "GBP/JPY を変換できる", arg: kabus.ExchangeSymbolDetailGBPJPY, want: kabuspb.Currency_CURRENCY_GBP_JPY},
+		{name: "AUD/JPY を変換できる", arg: kabus.ExchangeSymbolDetailAUDJPY, want: kabuspb.Currency_CURRENCY_AUD_JPY},
+		{name: "CHF/JPY を変換できる", arg: kabus.ExchangeSymbolDetailCHFJPY, want: kabuspb.Currency_CURRENCY_CHF_JPY},
+		{name: "CAD/JPY を変換できる", arg: kabus.ExchangeSymbolDetailCADJPY, want: kabuspb.Currency_CURRENCY_CAD_JPY},
+		{name: "NZD/JPY を変換できる", arg: kabus.ExchangeSymbolDetailNZDJPY, want: kabuspb.Currency_CURRENCY_NZD_JPY},
+		{name: "ZAR/JPY を変換できる", arg: kabus.ExchangeSymbolDetailZARJPY, want: kabuspb.Currency_CURRENCY_ZAR_JPY},
+		{name: "EUR/USD を変換できる", arg: kabus.ExchangeSymbolDetailEURUSD, want: kabuspb.Currency_CURRENCY_EUR_USD},
+		{name: "GBP/USD を変換できる", arg: kabus.ExchangeSymbolDetailGBPUSD, want: kabuspb.Currency_CURRENCY_GBP_USD},
+		{name: "AUD/USD を変換できる", arg: kabus.ExchangeSymbolDetailAUDUSD, want: kabuspb.Currency_CURRENCY_AUD_USD},
+		{name: "未定義 を変換できる", arg: kabus.ExchangeSymbolDetail("-1"), want: kabuspb.Currency_CURRENCY_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromExchangeSymbolDetail(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toGetSymbolInfo(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  bool
+		want kabus.GetSymbolInfo
+	}{
+		{name: "true を変換できる", arg: true, want: kabus.GetSymbolInfoTrue},
+		{name: "false を変換できる", arg: false, want: kabus.GetSymbolInfoFalse},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toGetSymbolInfo(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toGetPositionInfo(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  bool
+		want kabus.GetPositionInfo
+	}{
+		{name: "true を変換できる", arg: true, want: kabus.GetPositionInfoTrue},
+		{name: "false を変換できる", arg: false, want: kabus.GetPositionInfoFalse},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toGetPositionInfo(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}

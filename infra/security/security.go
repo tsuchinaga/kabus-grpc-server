@@ -91,7 +91,7 @@ func (s *security) Board(ctx context.Context, token string, req *kabuspb.GetBoar
 }
 
 func (s *security) Symbol(ctx context.Context, token string, req *kabuspb.GetSymbolRequest) (*kabuspb.Symbol, error) {
-	res, err := s.restClient.SymbolWithContext(ctx, token, kabus.SymbolRequest{Symbol: req.SymbolCode, Exchange: toExchange(req.Exchange)})
+	res, err := s.restClient.SymbolWithContext(ctx, token, kabus.SymbolRequest{Symbol: req.SymbolCode, Exchange: toExchange(req.Exchange), AddInfo: toGetSymbolInfo(req.GetInfo)})
 	if err != nil {
 		return nil, err
 	}
@@ -145,6 +145,8 @@ func (s *security) Positions(ctx context.Context, token string, req *kabuspb.Get
 	res, err := s.restClient.PositionsWithContext(ctx, token, kabus.PositionsRequest{
 		Product: toProduct(req.Product),
 		Symbol:  req.SymbolCode,
+		Side:    toSide(req.Side),
+		AddInfo: toGetPositionInfo(req.GetInfo),
 	})
 	if err != nil {
 		return nil, err
@@ -353,6 +355,7 @@ func (s *security) GetStockWallet(ctx context.Context, token string, req *kabusp
 	}
 	return &kabuspb.StockWallet{StockAccountWallet: res.StockAccountWallet}, nil
 }
+
 func (s *security) GetMarginWallet(ctx context.Context, token string, req *kabuspb.GetMarginWalletRequest) (*kabuspb.MarginWallet, error) {
 	var (
 		res *kabus.WalletMarginResponse
@@ -374,6 +377,7 @@ func (s *security) GetMarginWallet(ctx context.Context, token string, req *kabus
 		CashOfConsignmentDepositRate: res.CashOfConsignmentDepositRate,
 	}, nil
 }
+
 func (s *security) GetFutureWallet(ctx context.Context, token string, req *kabuspb.GetFutureWalletRequest) (*kabuspb.FutureWallet, error) {
 	var (
 		res *kabus.WalletFutureResponse
@@ -390,6 +394,7 @@ func (s *security) GetFutureWallet(ctx context.Context, token string, req *kabus
 	}
 	return &kabuspb.FutureWallet{FutureTradeLimit: res.FutureTradeLimit, MarginRequirement: res.MarginRequirement}, nil
 }
+
 func (s *security) GetOptionWallet(ctx context.Context, token string, req *kabuspb.GetOptionWalletRequest) (*kabuspb.OptionWallet, error) {
 	var (
 		res *kabus.WalletOptionResponse
@@ -408,5 +413,54 @@ func (s *security) GetOptionWallet(ctx context.Context, token string, req *kabus
 		OptionBuyTradeLimit:  res.OptionBuyTradeLimit,
 		OptionSellTradeLimit: res.OptionSellTradeLimit,
 		MarginRequirement:    res.MarginRequirement,
+	}, nil
+}
+
+func (s *security) Exchange(ctx context.Context, token string, req *kabuspb.GetExchangeRequest) (*kabuspb.ExchangeInfo, error) {
+	res, err := s.restClient.ExchangeWithContext(ctx, token, kabus.ExchangeRequest{Symbol: toExchangeSymbol(req.Currency)})
+	if err != nil {
+		return nil, err
+	}
+	return &kabuspb.ExchangeInfo{
+		Currency: fromExchangeSymbolDetail(res.Symbol),
+		BidPrice: res.BidPrice,
+		Spread:   res.Spread,
+		AskPrice: res.AskPrice,
+		Change:   res.Change,
+		Time:     timestamppb.New(res.Time.Time),
+	}, nil
+}
+
+func (s *security) Regulation(ctx context.Context, token string, req *kabuspb.GetRegulationRequest) (*kabuspb.Regulation, error) {
+	res, err := s.restClient.RegulationWithContext(ctx, token, kabus.RegulationRequest{Symbol: req.SymbolCode, Exchange: toStockExchange(req.Exchange)})
+	if err != nil {
+		return nil, err
+	}
+	return &kabuspb.Regulation{
+		SymbolCode:         res.Symbol,
+		RegulationInfoList: fromRegulationsInfo(res.RegulationsInfo),
+	}, nil
+}
+
+func (s *security) PrimaryExchange(ctx context.Context, token string, req *kabuspb.GetPrimaryExchangeRequest) (*kabuspb.PrimaryExchange, error) {
+	res, err := s.restClient.PrimaryExchangeWithContext(ctx, token, kabus.PrimaryExchangeRequest{Symbol: req.SymbolCode})
+	if err != nil {
+		return nil, err
+	}
+	return &kabuspb.PrimaryExchange{SymbolCode: res.Symbol, PrimaryExchange: fromStockExchange(res.PrimaryExchange)}, nil
+}
+
+func (s *security) SoftLimit(ctx context.Context, token string, _ *kabuspb.GetSoftLimitRequest) (*kabuspb.SoftLimit, error) {
+	res, err := s.restClient.SoftLimitWithContext(ctx, token, kabus.SoftLimitRequest{})
+	if err != nil {
+		return nil, err
+	}
+	return &kabuspb.SoftLimit{
+		Stock:        res.Stock,
+		Margin:       res.Margin,
+		Future:       res.Future,
+		FutureMini:   res.FutureMini,
+		Option:       res.Option,
+		KabusVersion: res.KabuSVersion,
 	}, nil
 }

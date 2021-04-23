@@ -1367,3 +1367,171 @@ func fromPriceMessage(board kabus.PriceMessage) *kabuspb.Board {
 		Delta:                    board.Delta,
 	}
 }
+
+func fromStockExchange(exchange kabus.StockExchange) kabuspb.StockExchange {
+	switch exchange {
+	case kabus.StockExchangeToushou:
+		return kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU
+	case kabus.StockExchangeMeishou:
+		return kabuspb.StockExchange_STOCK_EXCHANGE_MEISHOU
+	case kabus.StockExchangeFukushou:
+		return kabuspb.StockExchange_STOCK_EXCHANGE_FUKUSHOU
+	case kabus.StockExchangeSatsushou:
+		return kabuspb.StockExchange_STOCK_EXCHANGE_SATSUSHOU
+	}
+	return kabuspb.StockExchange_STOCK_EXCHANGE_UNSPECIFIED
+}
+
+func fromRegulationsInfo(regulations []kabus.RegulationsInfo) []*kabuspb.RegulationInfo {
+	res := make([]*kabuspb.RegulationInfo, len(regulations))
+	for i, regulation := range regulations {
+		res[i] = &kabuspb.RegulationInfo{
+			Exchange:      fromRegulationExchange(regulation.Exchange),
+			Product:       fromRegulationProduct(regulation.Product),
+			Side:          fromRegulationSide(regulation.Side),
+			Reason:        regulation.Reason,
+			LimitStartDay: timestamppb.New(regulation.LimitStartDay.Time),
+			LimitEndDay:   timestamppb.New(regulation.LimitEndDay.Time),
+			Level:         fromRegulationLevel(regulation.Level),
+		}
+	}
+	return res
+}
+
+func fromRegulationExchange(exchange kabus.RegulationExchange) kabuspb.RegulationExchange {
+	switch exchange {
+	case kabus.RegulationExchangeToushou:
+		return kabuspb.RegulationExchange_REGULATION_EXCHANGE_TOUSHOU
+	case kabus.RegulationExchangeMeishou:
+		return kabuspb.RegulationExchange_REGULATION_EXCHANGE_MEISHOU
+	case kabus.RegulationExchangeFukushou:
+		return kabuspb.RegulationExchange_REGULATION_EXCHANGE_FUKUSHOU
+	case kabus.RegulationExchangeSatsushou:
+		return kabuspb.RegulationExchange_REGULATION_EXCHANGE_SATSUSHOU
+	case kabus.RegulationExchangeSOR:
+		return kabuspb.RegulationExchange_REGULATION_EXCHANGE_SOR
+	case kabus.RegulationExchangeCXJ:
+		return kabuspb.RegulationExchange_REGULATION_EXCHANGE_CXJ
+	case kabus.RegulationExchangeJNX:
+		return kabuspb.RegulationExchange_REGULATION_EXCHANGE_JNX
+	}
+	return kabuspb.RegulationExchange_REGULATION_EXCHANGE_UNSPECIFIED
+}
+
+func fromRegulationProduct(product kabus.RegulationProduct) kabuspb.RegulationProduct {
+	switch product {
+	case kabus.RegulationProductAll:
+		return kabuspb.RegulationProduct_REGULATION_PRODUCT_ALL
+	case kabus.RegulationProductCash:
+		return kabuspb.RegulationProduct_REGULATION_PRODUCT_STOCK
+	case kabus.RegulationProductMarginEntrySystem:
+		return kabuspb.RegulationProduct_REGULATION_PRODUCT_MARGIN_ENTRY_SYSTEM
+	case kabus.RegulationProductMarginEntryGeneral:
+		return kabuspb.RegulationProduct_REGULATION_PRODUCT_MARGIN_ENTRY_GENERAL
+	case kabus.RegulationProductEntry:
+		return kabuspb.RegulationProduct_REGULATION_PRODUCT_ENTRY
+	case kabus.RegulationProductMarginExitSystem:
+		return kabuspb.RegulationProduct_REGULATION_PRODUCT_MARGIN_EXIT_SYSTEM
+	case kabus.RegulationProductMarginExitGeneral:
+		return kabuspb.RegulationProduct_REGULATION_PRODUCT_MARGIN_EXIT_GENERAL
+	case kabus.RegulationProductExit:
+		return kabuspb.RegulationProduct_REGULATION_PRODUCT_EXIT
+	case kabus.RegulationProductReceipt:
+		return kabuspb.RegulationProduct_REGULATION_PRODUCT_RECEIPT
+	case kabus.RegulationProductDelivery:
+		return kabuspb.RegulationProduct_REGULATION_PRODUCT_DELIVERY
+	}
+	return kabuspb.RegulationProduct_REGULATION_PRODUCT_UNSPECIFIED
+}
+
+func fromRegulationSide(side kabus.RegulationSide) kabuspb.RegulationSide {
+	switch side {
+	case kabus.RegulationSideAll:
+		return kabuspb.RegulationSide_REGULATION_SIDE_ALL
+	case kabus.RegulationSideSell:
+		return kabuspb.RegulationSide_REGULATION_SIDE_SELL
+	case kabus.RegulationSideBuy:
+		return kabuspb.RegulationSide_REGULATION_SIDE_BUY
+	}
+	return kabuspb.RegulationSide_REGULATION_SIDE_UNSPECIFIED
+}
+
+func fromRegulationLevel(level kabus.RegulationLevel) kabuspb.RegulationLevel {
+	switch level {
+	case kabus.RegulationLevelWarning:
+		return kabuspb.RegulationLevel_REGULATION_LEVEL_WARNING
+	case kabus.RegulationLevelError:
+		return kabuspb.RegulationLevel_REGULATION_LEVEL_ERROR
+	}
+	return kabuspb.RegulationLevel_REGULATION_LEVEL_UNSPECIFIED
+}
+
+func toExchangeSymbol(currency kabuspb.Currency) kabus.ExchangeSymbol {
+	switch currency {
+	case kabuspb.Currency_CURRENCY_USD_JPY:
+		return kabus.ExchangeSymbolUSDJPY
+	case kabuspb.Currency_CURRENCY_EUR_JPY:
+		return kabus.ExchangeSymbolEURJPY
+	case kabuspb.Currency_CURRENCY_GBP_JPY:
+		return kabus.ExchangeSymbolGBPJPY
+	case kabuspb.Currency_CURRENCY_AUD_JPY:
+		return kabus.ExchangeSymbolAUDJPY
+	case kabuspb.Currency_CURRENCY_CHF_JPY:
+		return kabus.ExchangeSymbolCHFJPY
+	case kabuspb.Currency_CURRENCY_CAD_JPY:
+		return kabus.ExchangeSymbolCADJPY
+	case kabuspb.Currency_CURRENCY_NZD_JPY:
+		return kabus.ExchangeSymbolNZDJPY
+	case kabuspb.Currency_CURRENCY_ZAR_JPY:
+		return kabus.ExchangeSymbolZARJPY
+	case kabuspb.Currency_CURRENCY_EUR_USD:
+		return kabus.ExchangeSymbolEURUSD
+	case kabuspb.Currency_CURRENCY_GBP_USD:
+		return kabus.ExchangeSymbolGBPUSD
+	case kabuspb.Currency_CURRENCY_AUD_USD:
+		return kabus.ExchangeSymbolAUDUSD
+	}
+	return kabus.GetSymbolInfoUnspecified
+}
+
+func fromExchangeSymbolDetail(exchange kabus.ExchangeSymbolDetail) kabuspb.Currency {
+	switch exchange {
+	case kabus.ExchangeSymbolDetailUSDJPY:
+		return kabuspb.Currency_CURRENCY_USD_JPY
+	case kabus.ExchangeSymbolDetailEURJPY:
+		return kabuspb.Currency_CURRENCY_EUR_JPY
+	case kabus.ExchangeSymbolDetailGBPJPY:
+		return kabuspb.Currency_CURRENCY_GBP_JPY
+	case kabus.ExchangeSymbolDetailAUDJPY:
+		return kabuspb.Currency_CURRENCY_AUD_JPY
+	case kabus.ExchangeSymbolDetailCHFJPY:
+		return kabuspb.Currency_CURRENCY_CHF_JPY
+	case kabus.ExchangeSymbolDetailCADJPY:
+		return kabuspb.Currency_CURRENCY_CAD_JPY
+	case kabus.ExchangeSymbolDetailNZDJPY:
+		return kabuspb.Currency_CURRENCY_NZD_JPY
+	case kabus.ExchangeSymbolDetailZARJPY:
+		return kabuspb.Currency_CURRENCY_ZAR_JPY
+	case kabus.ExchangeSymbolDetailEURUSD:
+		return kabuspb.Currency_CURRENCY_EUR_USD
+	case kabus.ExchangeSymbolDetailGBPUSD:
+		return kabuspb.Currency_CURRENCY_GBP_USD
+	case kabus.ExchangeSymbolDetailAUDUSD:
+		return kabuspb.Currency_CURRENCY_AUD_USD
+	}
+	return kabuspb.Currency_CURRENCY_UNSPECIFIED
+}
+
+func toGetSymbolInfo(getInfo bool) kabus.GetSymbolInfo {
+	if getInfo {
+		return kabus.GetSymbolInfoTrue
+	}
+	return kabus.GetSymbolInfoFalse
+}
+
+func toGetPositionInfo(getInfo bool) kabus.GetPositionInfo {
+	if getInfo {
+		return kabus.GetPositionInfoTrue
+	}
+	return kabus.GetPositionInfoFalse
+}

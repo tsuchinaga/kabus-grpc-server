@@ -3,7 +3,7 @@ module gitlab.com/tsuchinaga/kabus-grpc-server
 go 1.16
 
 require (
-	gitlab.com/tsuchinaga/go-kabusapi v1.3.13 // indirect
+	gitlab.com/tsuchinaga/go-kabusapi v1.3.15 // indirect
 	google.golang.org/grpc v1.36.0 // indirect
 	google.golang.org/protobuf v1.26.0 // indirect
 )
