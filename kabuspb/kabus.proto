@@ -28,14 +28,14 @@ service KabusService {
   rpc GetValueRanking(GetValueRankingRequest) returns (ValueRanking); // 売買代金ランキング
   rpc GetMarginRanking(GetMarginRankingRequest) returns (MarginRanking); // 信用ランキング
   rpc GetIndustryRanking(GetIndustryRankingRequest) returns (IndustryRanking); // 業種別ランキング
-  rpc GetRegisteredSymbols(GetRegisteredSymbolsRequest) returns (RegisteredSymbols); // 登録銘柄一覧 ※直前で実行されたRegister, Unregister, UnregisterAllの結果を保持しているだけ
-  rpc RegisterSymbols(RegisterSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録
-  rpc UnregisterSymbols(UnregisterSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録解除
-  rpc UnregisterAllSymbols(UnregisterAllSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録全解除
   rpc GetExchange(GetExchangeRequest) returns (ExchangeInfo); // 為替情報
   rpc GetRegulation(GetRegulationRequest) returns (Regulation); // 規制情報
   rpc GetPrimaryExchange(GetPrimaryExchangeRequest) returns (PrimaryExchange); // 優先市場
   rpc GetSoftLimit(GetSoftLimitRequest) returns (SoftLimit); // ソフトリミット
+  rpc GetRegisteredSymbols(GetRegisteredSymbolsRequest) returns (RegisteredSymbols); // 登録銘柄一覧 ※直前で実行されたRegister, Unregister, UnregisterAllの結果を保持しているだけ
+  rpc RegisterSymbols(RegisterSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録
+  rpc UnregisterSymbols(UnregisterSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録解除
+  rpc UnregisterAllSymbols(UnregisterAllSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録全解除
 
   rpc GetBoardsStreaming(GetBoardsStreamingRequest) returns (stream Board); // 時価情報・板情報ストリーミング
 }
@@ -421,22 +421,34 @@ message GetIndustryRankingRequest {
 }
 
 // 登録銘柄一覧リクエスト
-message GetRegisteredSymbolsRequest {}
+message GetRegisteredSymbolsRequest {
+  // ツール名
+  string requester_name = 1;
+}
 
 // 銘柄登録リクエスト
 message RegisterSymbolsRequest {
+  // ツール名
+  string requester_name = 2;
+
   // 登録する銘柄のリスト
   repeated RegisterSymbol symbols = 1;
 }
 
 // 銘柄登録解除リクエスト
 message UnregisterSymbolsRequest {
+  // ツール名
+  string requester_name = 2;
+
   // 登録解除する銘柄のリスト
   repeated RegisterSymbol symbols = 1;
 }
 
 // 銘柄登録全解除リクエスト
-message UnregisterAllSymbolsRequest {}
+message UnregisterAllSymbolsRequest {
+  // ツール名
+  string requester_name = 1;
+}
 
 // 為替情報リクエスト
 message GetExchangeRequest {
@@ -1027,6 +1039,9 @@ message Position {
 message RegisteredSymbols {
   // 現在登録されている銘柄のリスト
   repeated RegisterSymbol symbols = 1;
+
+  // 登録銘柄数
+  int32 count = 2;
 }
 
 // 銘柄登録の詳細

@@ -151,8 +151,11 @@ func (s *server) GetOptionSymbolCodeInfo(ctx context.Context, req *kabuspb.GetOp
 	return s.security.SymbolNameOption(ctx, token, req)
 }
 
-func (s *server) GetRegisteredSymbols(context.Context, *kabuspb.GetRegisteredSymbolsRequest) (*kabuspb.RegisteredSymbols, error) {
-	return &kabuspb.RegisteredSymbols{Symbols: s.registerSymbolService.Get()}, nil
+func (s *server) GetRegisteredSymbols(_ context.Context, req *kabuspb.GetRegisteredSymbolsRequest) (*kabuspb.RegisteredSymbols, error) {
+	return &kabuspb.RegisteredSymbols{
+		Symbols: s.registerSymbolService.Get(req.RequesterName),
+		Count:   int32(s.registerSymbolService.CountAll()),
+	}, nil
 }
 
 func (s *server) RegisterSymbols(ctx context.Context, req *kabuspb.RegisterSymbolsRequest) (*kabuspb.RegisteredSymbols, error) {
@@ -161,13 +164,16 @@ func (s *server) RegisterSymbols(ctx context.Context, req *kabuspb.RegisterSymbo
 		return nil, err
 	}
 
-	res, err := s.security.RegisterSymbols(ctx, token, req)
-	if err != nil {
+	if _, err := s.security.RegisterSymbols(ctx, token, req); err != nil {
 		return nil, err
 	}
 
-	s.registerSymbolService.Set(res.Symbols)
-	return res, nil
+	s.registerSymbolService.Add(req.RequesterName, req.Symbols)
+
+	return &kabuspb.RegisteredSymbols{
+		Symbols: s.registerSymbolService.Get(req.RequesterName),
+		Count:   int32(s.registerSymbolService.CountAll()),
+	}, nil
 }
 
 func (s *server) UnregisterSymbols(ctx context.Context, req *kabuspb.UnregisterSymbolsRequest) (*kabuspb.RegisteredSymbols, error) {
@@ -176,13 +182,16 @@ func (s *server) UnregisterSymbols(ctx context.Context, req *kabuspb.UnregisterS
 		return nil, err
 	}
 
-	res, err := s.security.UnregisterSymbols(ctx, token, req)
-	if err != nil {
+	if _, err := s.security.UnregisterSymbols(ctx, token, req); err != nil {
 		return nil, err
 	}
 
-	s.registerSymbolService.Set(res.Symbols)
-	return res, err
+	s.registerSymbolService.Remove(req.RequesterName, req.Symbols)
+
+	return &kabuspb.RegisteredSymbols{
+		Symbols: s.registerSymbolService.Get(req.RequesterName),
+		Count:   int32(s.registerSymbolService.CountAll()),
+	}, nil
 }
 
 func (s *server) UnregisterAllSymbols(ctx context.Context, req *kabuspb.UnregisterAllSymbolsRequest) (*kabuspb.RegisteredSymbols, error) {
@@ -191,13 +200,15 @@ func (s *server) UnregisterAllSymbols(ctx context.Context, req *kabuspb.Unregist
 		return nil, err
 	}
 
-	res, err := s.security.UnregisterAll(ctx, token, req)
-	if err != nil {
+	if _, err := s.security.UnregisterAll(ctx, token, req); err != nil {
 		return nil, err
 	}
 
-	s.registerSymbolService.Set(res.Symbols)
-	return res, err
+	s.registerSymbolService.Remove(req.RequesterName, s.registerSymbolService.Get(req.RequesterName))
+	return &kabuspb.RegisteredSymbols{
+		Symbols: []*kabuspb.RegisterSymbol{},
+		Count:   int32(s.registerSymbolService.CountAll()),
+	}, nil
 }
 
 func (s *server) GetSymbol(ctx context.Context, req *kabuspb.GetSymbolRequest) (*kabuspb.Symbol, error) {

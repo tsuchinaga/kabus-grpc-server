@@ -38,14 +38,14 @@ type KabusServiceClient interface {
 	GetValueRanking(ctx context.Context, in *GetValueRankingRequest, opts ...grpc.CallOption) (*ValueRanking, error)
 	GetMarginRanking(ctx context.Context, in *GetMarginRankingRequest, opts ...grpc.CallOption) (*MarginRanking, error)
 	GetIndustryRanking(ctx context.Context, in *GetIndustryRankingRequest, opts ...grpc.CallOption) (*IndustryRanking, error)
-	GetRegisteredSymbols(ctx context.Context, in *GetRegisteredSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
-	RegisterSymbols(ctx context.Context, in *RegisterSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
-	UnregisterSymbols(ctx context.Context, in *UnregisterSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
-	UnregisterAllSymbols(ctx context.Context, in *UnregisterAllSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
 	GetExchange(ctx context.Context, in *GetExchangeRequest, opts ...grpc.CallOption) (*ExchangeInfo, error)
 	GetRegulation(ctx context.Context, in *GetRegulationRequest, opts ...grpc.CallOption) (*Regulation, error)
 	GetPrimaryExchange(ctx context.Context, in *GetPrimaryExchangeRequest, opts ...grpc.CallOption) (*PrimaryExchange, error)
 	GetSoftLimit(ctx context.Context, in *GetSoftLimitRequest, opts ...grpc.CallOption) (*SoftLimit, error)
+	GetRegisteredSymbols(ctx context.Context, in *GetRegisteredSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
+	RegisterSymbols(ctx context.Context, in *RegisterSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
+	UnregisterSymbols(ctx context.Context, in *UnregisterSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
+	UnregisterAllSymbols(ctx context.Context, in *UnregisterAllSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
 	GetBoardsStreaming(ctx context.Context, in *GetBoardsStreamingRequest, opts ...grpc.CallOption) (KabusService_GetBoardsStreamingClient, error)
 }
 
@@ -246,42 +246,6 @@ func (c *kabusServiceClient) GetIndustryRanking(ctx context.Context, in *GetIndu
 	return out, nil
 }
 
-func (c *kabusServiceClient) GetRegisteredSymbols(ctx context.Context, in *GetRegisteredSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error) {
-	out := new(RegisteredSymbols)
-	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetRegisteredSymbols", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *kabusServiceClient) RegisterSymbols(ctx context.Context, in *RegisterSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error) {
-	out := new(RegisteredSymbols)
-	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/RegisterSymbols", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *kabusServiceClient) UnregisterSymbols(ctx context.Context, in *UnregisterSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error) {
-	out := new(RegisteredSymbols)
-	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/UnregisterSymbols", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *kabusServiceClient) UnregisterAllSymbols(ctx context.Context, in *UnregisterAllSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error) {
-	out := new(RegisteredSymbols)
-	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/UnregisterAllSymbols", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *kabusServiceClient) GetExchange(ctx context.Context, in *GetExchangeRequest, opts ...grpc.CallOption) (*ExchangeInfo, error) {
 	out := new(ExchangeInfo)
 	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetExchange", in, out, opts...)
@@ -312,6 +276,42 @@ func (c *kabusServiceClient) GetPrimaryExchange(ctx context.Context, in *GetPrim
 func (c *kabusServiceClient) GetSoftLimit(ctx context.Context, in *GetSoftLimitRequest, opts ...grpc.CallOption) (*SoftLimit, error) {
 	out := new(SoftLimit)
 	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetSoftLimit", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) GetRegisteredSymbols(ctx context.Context, in *GetRegisteredSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error) {
+	out := new(RegisteredSymbols)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetRegisteredSymbols", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) RegisterSymbols(ctx context.Context, in *RegisterSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error) {
+	out := new(RegisteredSymbols)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/RegisterSymbols", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) UnregisterSymbols(ctx context.Context, in *UnregisterSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error) {
+	out := new(RegisteredSymbols)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/UnregisterSymbols", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kabusServiceClient) UnregisterAllSymbols(ctx context.Context, in *UnregisterAllSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error) {
+	out := new(RegisteredSymbols)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/UnregisterAllSymbols", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -375,14 +375,14 @@ type KabusServiceServer interface {
 	GetValueRanking(context.Context, *GetValueRankingRequest) (*ValueRanking, error)
 	GetMarginRanking(context.Context, *GetMarginRankingRequest) (*MarginRanking, error)
 	GetIndustryRanking(context.Context, *GetIndustryRankingRequest) (*IndustryRanking, error)
-	GetRegisteredSymbols(context.Context, *GetRegisteredSymbolsRequest) (*RegisteredSymbols, error)
-	RegisterSymbols(context.Context, *RegisterSymbolsRequest) (*RegisteredSymbols, error)
-	UnregisterSymbols(context.Context, *UnregisterSymbolsRequest) (*RegisteredSymbols, error)
-	UnregisterAllSymbols(context.Context, *UnregisterAllSymbolsRequest) (*RegisteredSymbols, error)
 	GetExchange(context.Context, *GetExchangeRequest) (*ExchangeInfo, error)
 	GetRegulation(context.Context, *GetRegulationRequest) (*Regulation, error)
 	GetPrimaryExchange(context.Context, *GetPrimaryExchangeRequest) (*PrimaryExchange, error)
 	GetSoftLimit(context.Context, *GetSoftLimitRequest) (*SoftLimit, error)
+	GetRegisteredSymbols(context.Context, *GetRegisteredSymbolsRequest) (*RegisteredSymbols, error)
+	RegisterSymbols(context.Context, *RegisterSymbolsRequest) (*RegisteredSymbols, error)
+	UnregisterSymbols(context.Context, *UnregisterSymbolsRequest) (*RegisteredSymbols, error)
+	UnregisterAllSymbols(context.Context, *UnregisterAllSymbolsRequest) (*RegisteredSymbols, error)
 	GetBoardsStreaming(*GetBoardsStreamingRequest, KabusService_GetBoardsStreamingServer) error
 	mustEmbedUnimplementedKabusServiceServer()
 }
@@ -454,18 +454,6 @@ func (UnimplementedKabusServiceServer) GetMarginRanking(context.Context, *GetMar
 func (UnimplementedKabusServiceServer) GetIndustryRanking(context.Context, *GetIndustryRankingRequest) (*IndustryRanking, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetIndustryRanking not implemented")
 }
-func (UnimplementedKabusServiceServer) GetRegisteredSymbols(context.Context, *GetRegisteredSymbolsRequest) (*RegisteredSymbols, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetRegisteredSymbols not implemented")
-}
-func (UnimplementedKabusServiceServer) RegisterSymbols(context.Context, *RegisterSymbolsRequest) (*RegisteredSymbols, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RegisterSymbols not implemented")
-}
-func (UnimplementedKabusServiceServer) UnregisterSymbols(context.Context, *UnregisterSymbolsRequest) (*RegisteredSymbols, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UnregisterSymbols not implemented")
-}
-func (UnimplementedKabusServiceServer) UnregisterAllSymbols(context.Context, *UnregisterAllSymbolsRequest) (*RegisteredSymbols, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UnregisterAllSymbols not implemented")
-}
 func (UnimplementedKabusServiceServer) GetExchange(context.Context, *GetExchangeRequest) (*ExchangeInfo, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetExchange not implemented")
 }
@@ -477,6 +465,18 @@ func (UnimplementedKabusServiceServer) GetPrimaryExchange(context.Context, *GetP
 }
 func (UnimplementedKabusServiceServer) GetSoftLimit(context.Context, *GetSoftLimitRequest) (*SoftLimit, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSoftLimit not implemented")
+}
+func (UnimplementedKabusServiceServer) GetRegisteredSymbols(context.Context, *GetRegisteredSymbolsRequest) (*RegisteredSymbols, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRegisteredSymbols not implemented")
+}
+func (UnimplementedKabusServiceServer) RegisterSymbols(context.Context, *RegisterSymbolsRequest) (*RegisteredSymbols, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterSymbols not implemented")
+}
+func (UnimplementedKabusServiceServer) UnregisterSymbols(context.Context, *UnregisterSymbolsRequest) (*RegisteredSymbols, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnregisterSymbols not implemented")
+}
+func (UnimplementedKabusServiceServer) UnregisterAllSymbols(context.Context, *UnregisterAllSymbolsRequest) (*RegisteredSymbols, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UnregisterAllSymbols not implemented")
 }
 func (UnimplementedKabusServiceServer) GetBoardsStreaming(*GetBoardsStreamingRequest, KabusService_GetBoardsStreamingServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetBoardsStreaming not implemented")
@@ -872,78 +872,6 @@ func _KabusService_GetIndustryRanking_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _KabusService_GetRegisteredSymbols_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetRegisteredSymbolsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(KabusServiceServer).GetRegisteredSymbols(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/kabuspb.KabusService/GetRegisteredSymbols",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KabusServiceServer).GetRegisteredSymbols(ctx, req.(*GetRegisteredSymbolsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _KabusService_RegisterSymbols_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RegisterSymbolsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(KabusServiceServer).RegisterSymbols(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/kabuspb.KabusService/RegisterSymbols",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KabusServiceServer).RegisterSymbols(ctx, req.(*RegisterSymbolsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _KabusService_UnregisterSymbols_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UnregisterSymbolsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(KabusServiceServer).UnregisterSymbols(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/kabuspb.KabusService/UnregisterSymbols",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KabusServiceServer).UnregisterSymbols(ctx, req.(*UnregisterSymbolsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _KabusService_UnregisterAllSymbols_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UnregisterAllSymbolsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(KabusServiceServer).UnregisterAllSymbols(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/kabuspb.KabusService/UnregisterAllSymbols",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(KabusServiceServer).UnregisterAllSymbols(ctx, req.(*UnregisterAllSymbolsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _KabusService_GetExchange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetExchangeRequest)
 	if err := dec(in); err != nil {
@@ -1012,6 +940,78 @@ func _KabusService_GetSoftLimit_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(KabusServiceServer).GetSoftLimit(ctx, req.(*GetSoftLimitRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_GetRegisteredSymbols_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRegisteredSymbolsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).GetRegisteredSymbols(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/GetRegisteredSymbols",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).GetRegisteredSymbols(ctx, req.(*GetRegisteredSymbolsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_RegisterSymbols_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterSymbolsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).RegisterSymbols(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/RegisterSymbols",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).RegisterSymbols(ctx, req.(*RegisterSymbolsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_UnregisterSymbols_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnregisterSymbolsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).UnregisterSymbols(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/UnregisterSymbols",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).UnregisterSymbols(ctx, req.(*UnregisterSymbolsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KabusService_UnregisterAllSymbols_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnregisterAllSymbolsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).UnregisterAllSymbols(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/UnregisterAllSymbols",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).UnregisterAllSymbols(ctx, req.(*UnregisterAllSymbolsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1129,22 +1129,6 @@ var KabusService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _KabusService_GetIndustryRanking_Handler,
 		},
 		{
-			MethodName: "GetRegisteredSymbols",
-			Handler:    _KabusService_GetRegisteredSymbols_Handler,
-		},
-		{
-			MethodName: "RegisterSymbols",
-			Handler:    _KabusService_RegisterSymbols_Handler,
-		},
-		{
-			MethodName: "UnregisterSymbols",
-			Handler:    _KabusService_UnregisterSymbols_Handler,
-		},
-		{
-			MethodName: "UnregisterAllSymbols",
-			Handler:    _KabusService_UnregisterAllSymbols_Handler,
-		},
-		{
 			MethodName: "GetExchange",
 			Handler:    _KabusService_GetExchange_Handler,
 		},
@@ -1159,6 +1143,22 @@ var KabusService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetSoftLimit",
 			Handler:    _KabusService_GetSoftLimit_Handler,
+		},
+		{
+			MethodName: "GetRegisteredSymbols",
+			Handler:    _KabusService_GetRegisteredSymbols_Handler,
+		},
+		{
+			MethodName: "RegisterSymbols",
+			Handler:    _KabusService_RegisterSymbols_Handler,
+		},
+		{
+			MethodName: "UnregisterSymbols",
+			Handler:    _KabusService_UnregisterSymbols_Handler,
+		},
+		{
+			MethodName: "UnregisterAllSymbols",
+			Handler:    _KabusService_UnregisterAllSymbols_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

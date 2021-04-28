@@ -58,15 +58,21 @@ func (t *testSetting) Password() string { return "" }
 
 type testRegisterSymbolStore struct {
 	repositories.RegisterSymbolStore
-	getAll  []*kabuspb.RegisterSymbol
-	lastSet []*kabuspb.RegisterSymbol
+	countAll           int
+	getAll             []*kabuspb.RegisterSymbol
+	getByRequester     []*kabuspb.RegisterSymbol
+	callAddAllCount    int
+	callRemoveAllCount int
 }
 
-func (t *testRegisterSymbolStore) GetAll() []*kabuspb.RegisterSymbol {
-	return t.getAll
+func (t *testRegisterSymbolStore) CountAll() int                     { return t.countAll }
+func (t *testRegisterSymbolStore) GetAll() []*kabuspb.RegisterSymbol { return t.getAll }
+func (t *testRegisterSymbolStore) GetByRequester(string) []*kabuspb.RegisterSymbol {
+	return t.getByRequester
 }
-func (t *testRegisterSymbolStore) SetAll(registeredList []*kabuspb.RegisterSymbol) {
-	t.lastSet = registeredList
+func (t *testRegisterSymbolStore) AddAll(string, []*kabuspb.RegisterSymbol) { t.callAddAllCount++ }
+func (t *testRegisterSymbolStore) RemoveAll(string, []*kabuspb.RegisterSymbol) {
+	t.callRemoveAllCount++
 }
 
 type testBoardStreamStore struct {

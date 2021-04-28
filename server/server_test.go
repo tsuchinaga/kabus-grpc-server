@@ -203,15 +203,29 @@ func (t *testTokenService) Refresh(context.Context) (string, error)  { return t.
 
 type testRegisterSymbolService struct {
 	services.RegisterSymbolService
-	get     []*kabuspb.RegisterSymbol
-	lastSet []*kabuspb.RegisterSymbol
+	countAll            int
+	getAll              []*kabuspb.RegisterSymbol
+	get                 []*kabuspb.RegisterSymbol
+	lastGetRequester    string
+	lastAddRequester    string
+	lastAddSymbols      []*kabuspb.RegisterSymbol
+	lastRemoveRequester string
+	lastRemoveSymbols   []*kabuspb.RegisterSymbol
 }
 
-func (t *testRegisterSymbolService) Get() []*kabuspb.RegisterSymbol {
+func (t *testRegisterSymbolService) CountAll() int                     { return t.countAll }
+func (t *testRegisterSymbolService) GetAll() []*kabuspb.RegisterSymbol { return t.getAll }
+func (t *testRegisterSymbolService) Get(requester string) []*kabuspb.RegisterSymbol {
+	t.lastGetRequester = requester
 	return t.get
 }
-func (t *testRegisterSymbolService) Set(registeredList []*kabuspb.RegisterSymbol) {
-	t.lastSet = registeredList
+func (t *testRegisterSymbolService) Add(requester string, symbols []*kabuspb.RegisterSymbol) {
+	t.lastAddRequester = requester
+	t.lastAddSymbols = symbols
+}
+func (t *testRegisterSymbolService) Remove(requester string, symbols []*kabuspb.RegisterSymbol) {
+	t.lastRemoveRequester = requester
+	t.lastRemoveSymbols = symbols
 }
 
 type testBoardStreamService struct {
@@ -240,20 +254,25 @@ func Test_server_GetRegisteredSymbols(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name     string
+		countAll int
 		get      []*kabuspb.RegisterSymbol
 		want     *kabuspb.RegisteredSymbols
 		hasError bool
 	}{
 		{name: "registerSymbolServiceの結果が返される",
-			get:  []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}},
-			want: &kabuspb.RegisteredSymbols{Symbols: []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}}},
+			countAll: 10,
+			get:      []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}},
+			want: &kabuspb.RegisteredSymbols{
+				Symbols: []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}},
+				Count:   10,
+			}},
 	}
 
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			server := &server{registerSymbolService: &testRegisterSymbolService{get: test.get}}
+			server := &server{registerSymbolService: &testRegisterSymbolService{countAll: test.countAll, get: test.get}}
 			got1, got2 := server.GetRegisteredSymbols(context.Background(), &kabuspb.GetRegisteredSymbolsRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -270,9 +289,13 @@ func Test_server_RegisterSymbols(t *testing.T) {
 		getToken2 error
 		register1 *kabuspb.RegisteredSymbols
 		register2 error
+		countAll  int
+		get       []*kabuspb.RegisterSymbol
+		arg       *kabuspb.RegisterSymbolsRequest
 		want      *kabuspb.RegisteredSymbols
 		hasError  bool
-		wantSet   []*kabuspb.RegisterSymbol
+		wantAdd1  string
+		wantAdd2  []*kabuspb.RegisterSymbol
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -281,26 +304,33 @@ func Test_server_RegisterSymbols(t *testing.T) {
 			getToken1: "TOKEN_STRING",
 			register2: errors.New("register error message"),
 			hasError:  true},
-		{name: "Registerの結果をStoreに保存してから結果を返す",
+		{name: "リクエストをStoreに保存してから結果を返す",
 			getToken1: "TOKEN_STRING",
 			register1: &kabuspb.RegisteredSymbols{Symbols: []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
-			want:      &kabuspb.RegisteredSymbols{Symbols: []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
-			wantSet:   []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
+			arg:       &kabuspb.RegisterSymbolsRequest{RequesterName: "requester", Symbols: []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
+			get:       []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}},
+			countAll:  2,
+			want:      &kabuspb.RegisteredSymbols{Symbols: []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}, Count: 2},
+			wantAdd1:  "requester",
+			wantAdd2:  []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
 	}
 
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			registerSymbolService := &testRegisterSymbolService{}
+			registerSymbolService := &testRegisterSymbolService{countAll: test.countAll, get: test.get}
 			server := &server{
 				security:              &testSecurity{register1: test.register1, register2: test.register2},
 				tokenService:          &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
 				registerSymbolService: registerSymbolService}
-			got1, got2 := server.RegisterSymbols(context.Background(), &kabuspb.RegisterSymbolsRequest{Symbols: []*kabuspb.RegisterSymbol{}})
-			got3 := registerSymbolService.lastSet
-			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError || !reflect.DeepEqual(test.wantSet, got3) {
-				t.Errorf("%s error\nwant: %+v, %+v, %+v\ngot: %+v, %+v, %+v\n", t.Name(), test.want, test.hasError, test.wantSet, got1, got2, got3)
+			got1, got2 := server.RegisterSymbols(context.Background(), test.arg)
+			got3 := registerSymbolService.lastAddRequester
+			got4 := registerSymbolService.lastAddSymbols
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError || !reflect.DeepEqual(test.wantAdd1, got3) || !reflect.DeepEqual(test.wantAdd2, got4) {
+				t.Errorf("%s error\nwant: %+v, %+v, %+v, %+v\ngot: %+v, %+v, %+v, %+v\n", t.Name(),
+					test.want, test.hasError, test.wantAdd1, test.wantAdd2,
+					got1, got2, got3, got4)
 			}
 		})
 	}
@@ -316,7 +346,11 @@ func Test_server_UnregisterSymbols(t *testing.T) {
 		unregister2 error
 		want        *kabuspb.RegisteredSymbols
 		hasError    bool
-		wantSet     []*kabuspb.RegisterSymbol
+		countAll    int
+		get         []*kabuspb.RegisterSymbol
+		arg         *kabuspb.UnregisterSymbolsRequest
+		wantRemove1 string
+		wantRemove2 []*kabuspb.RegisterSymbol
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -325,26 +359,32 @@ func Test_server_UnregisterSymbols(t *testing.T) {
 			getToken1:   "TOKEN_STRING",
 			unregister2: errors.New("register error message"),
 			hasError:    true},
-		{name: "Unregisterの結果をStoreに保存してから結果を返す",
+		{name: "リクエストの結果をStoreに保存してから結果を返す",
 			getToken1:   "TOKEN_STRING",
-			unregister1: &kabuspb.RegisteredSymbols{Symbols: []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
-			want:        &kabuspb.RegisteredSymbols{Symbols: []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
-			wantSet:     []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
+			unregister1: &kabuspb.RegisteredSymbols{Symbols: []*kabuspb.RegisterSymbol{{SymbolCode: "2345", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
+			want:        &kabuspb.RegisteredSymbols{Symbols: []*kabuspb.RegisterSymbol{{SymbolCode: "2345", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}, Count: 2},
+			countAll:    2,
+			get:         []*kabuspb.RegisterSymbol{{SymbolCode: "2345", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}},
+			arg:         &kabuspb.UnregisterSymbolsRequest{RequesterName: "requester", Symbols: []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
+			wantRemove1: "requester",
+			wantRemove2: []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}},
+		},
 	}
 
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			registerSymbolService := &testRegisterSymbolService{}
+			registerSymbolService := &testRegisterSymbolService{countAll: test.countAll, get: test.get}
 			server := &server{
 				security:              &testSecurity{unregister1: test.unregister1, unregister2: test.unregister2},
 				tokenService:          &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
 				registerSymbolService: registerSymbolService}
-			got1, got2 := server.UnregisterSymbols(context.Background(), &kabuspb.UnregisterSymbolsRequest{Symbols: []*kabuspb.RegisterSymbol{}})
-			got3 := registerSymbolService.lastSet
-			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError || !reflect.DeepEqual(test.wantSet, got3) {
-				t.Errorf("%s error\nwant: %+v, %+v, %+v\ngot: %+v, %+v, %+v\n", t.Name(), test.want, test.hasError, test.wantSet, got1, got2, got3)
+			got1, got2 := server.UnregisterSymbols(context.Background(), test.arg)
+			got3 := registerSymbolService.lastRemoveRequester
+			got4 := registerSymbolService.lastRemoveSymbols
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError || !reflect.DeepEqual(test.wantRemove1, got3) || !reflect.DeepEqual(test.wantRemove2, got4) {
+				t.Errorf("%s error\nwant: %+v, %+v, %+v, %+v\ngot: %+v, %+v, %+v, %+v\n", t.Name(), test.want, test.hasError, test.wantRemove1, test.wantRemove2, got1, got2, got3, got4)
 			}
 		})
 	}
@@ -360,7 +400,11 @@ func Test_server_UnregisterAllSymbols(t *testing.T) {
 		unregisterAll2 error
 		want           *kabuspb.RegisteredSymbols
 		hasError       bool
-		wantSet        []*kabuspb.RegisterSymbol
+		countAll       int
+		get            []*kabuspb.RegisterSymbol
+		arg            *kabuspb.UnregisterAllSymbolsRequest
+		wantRemove1    string
+		wantRemove2    []*kabuspb.RegisterSymbol
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -372,23 +416,28 @@ func Test_server_UnregisterAllSymbols(t *testing.T) {
 		{name: "UnregisterAllの結果をStoreに保存してから結果を返す",
 			getToken1:      "TOKEN_STRING",
 			unregisterAll1: &kabuspb.RegisteredSymbols{Symbols: []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
-			want:           &kabuspb.RegisteredSymbols{Symbols: []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
-			wantSet:        []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
+			want:           &kabuspb.RegisteredSymbols{Symbols: []*kabuspb.RegisterSymbol{}, Count: 2},
+			countAll:       2,
+			get:            []*kabuspb.RegisterSymbol{{SymbolCode: "2345", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}},
+			arg:            &kabuspb.UnregisterAllSymbolsRequest{RequesterName: "requester"},
+			wantRemove1:    "requester",
+			wantRemove2:    []*kabuspb.RegisterSymbol{{SymbolCode: "2345", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
 	}
 
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			registerSymbolService := &testRegisterSymbolService{}
+			registerSymbolService := &testRegisterSymbolService{countAll: test.countAll, get: test.get}
 			server := &server{
 				security:              &testSecurity{unregisterAll1: test.unregisterAll1, unregisterAll2: test.unregisterAll2},
 				tokenService:          &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
 				registerSymbolService: registerSymbolService}
-			got1, got2 := server.UnregisterAllSymbols(context.Background(), &kabuspb.UnregisterAllSymbolsRequest{})
-			got3 := registerSymbolService.lastSet
-			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError || !reflect.DeepEqual(test.wantSet, got3) {
-				t.Errorf("%s error\nwant: %+v, %+v, %+v\ngot: %+v, %+v, %+v\n", t.Name(), test.want, test.hasError, test.wantSet, got1, got2, got3)
+			got1, got2 := server.UnregisterAllSymbols(context.Background(), test.arg)
+			got3 := registerSymbolService.lastRemoveRequester
+			got4 := registerSymbolService.lastRemoveSymbols
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError || !reflect.DeepEqual(test.wantRemove1, got3) || !reflect.DeepEqual(test.wantRemove2, got4) {
+				t.Errorf("%s error\nwant: %+v, %+v, %+v, %+v\ngot: %+v, %+v, %+v, %+v\n", t.Name(), test.want, test.hasError, test.wantRemove1, test.wantRemove2, got1, got2, got3, got4)
 			}
 		})
 	}
