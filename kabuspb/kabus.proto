@@ -1778,16 +1778,16 @@ enum FundType {
 enum StockOrderType {
   STOCK_ORDER_TYPE_UNSPECIFIED = 0; // 未指定
   STOCK_ORDER_TYPE_MO = 10; // 成行 Market Order
-  STOCK_ORDER_TYPE_MOOM = 13; // 寄成（前場） Market Order on Opening Morning
-  STOCK_ORDER_TYPE_MOOA = 14; // 寄成（後場） Market Order on Opening Afternoon
-  STOCK_ORDER_TYPE_MOCM = 15; // 引成（前場） Market Order on Closing Morning
-  STOCK_ORDER_TYPE_MOCA = 16; // 引成（後場） Market Order on Closing Afternoon
+  STOCK_ORDER_TYPE_MOMO = 13; // 寄成（前場） Market Order on Morning Opening
+  STOCK_ORDER_TYPE_MOAO = 14; // 寄成（後場） Market Order on Afternoon Opening
+  STOCK_ORDER_TYPE_MOMC = 15; // 引成（前場） Market Order on Morning Closing
+  STOCK_ORDER_TYPE_MOAC = 16; // 引成（後場） Market Order on Afternoon Closing
   STOCK_ORDER_TYPE_IOC_MO = 17; // IOC成行 Immediate Or Cancel Market Order
   STOCK_ORDER_TYPE_LO = 20; // 指値 Limit Order
-  STOCK_ORDER_TYPE_LOOM = 21; // 寄指（前場） Limit Order on Opening Morning
-  STOCK_ORDER_TYPE_LOOA = 22; // 寄指（後場） Limit Order on Opening Afternoon
-  STOCK_ORDER_TYPE_LOCM = 23; // 引指（前場） Limit Order on Closing Morning
-  STOCK_ORDER_TYPE_LOCA = 24; // 引指（後場） Limit Order on Closing Afternoon
+  STOCK_ORDER_TYPE_LOMO = 21; // 寄指（前場） Limit Order on Morning Opening
+  STOCK_ORDER_TYPE_LOAO = 22; // 寄指（後場） Limit Order on Afternoon Opening
+  STOCK_ORDER_TYPE_LOMC = 23; // 引指（前場） Limit Order on Morning Closing
+  STOCK_ORDER_TYPE_LOAC = 24; // 引指（後場） Limit Order on Afternoon Closing
   STOCK_ORDER_TYPE_FUNARI_M = 25; // 不成（前場） Funari Mooning
   STOCK_ORDER_TYPE_FUNARI_A = 26; // 不成（後場） Funari Afternoon
   STOCK_ORDER_TYPE_IOC_LO = 27; // IOC指値 Immediate Or Cancel Limit Order

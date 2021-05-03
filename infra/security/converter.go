@@ -1141,25 +1141,25 @@ func toStockFrontOrderType(orderType kabuspb.StockOrderType) kabus.StockFrontOrd
 	switch orderType {
 	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_MO:
 		return kabus.StockFrontOrderTypeMarket
-	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_MOOM:
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_MOMO:
 		return kabus.StockFrontOrderTypeMOOM
-	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_MOOA:
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_MOAO:
 		return kabus.StockFrontOrderTypeMOOA
-	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_MOCM:
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_MOMC:
 		return kabus.StockFrontOrderTypeMOCM
-	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_MOCA:
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_MOAC:
 		return kabus.StockFrontOrderTypeMOCA
 	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_IOC_MO:
 		return kabus.StockFrontOrderTypeIOCMarket
 	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_LO:
 		return kabus.StockFrontOrderTypeLimit
-	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_LOOM:
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_LOMO:
 		return kabus.StockFrontOrderTypeLOOM
-	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_LOOA:
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_LOAO:
 		return kabus.StockFrontOrderTypeLOOA
-	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_LOCM:
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_LOMC:
 		return kabus.StockFrontOrderTypeLOCM
-	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_LOCA:
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_LOAC:
 		return kabus.StockFrontOrderTypeLOCA
 	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_FUNARI_M:
 		return kabus.StockFrontOrderTypeFunariM
