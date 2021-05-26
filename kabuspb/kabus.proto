@@ -84,6 +84,27 @@ message SendStockOrderRequest {
   //   引け後 : 翌取引所営業日
   //   休前日 : 休日明けの取引所営業日
   google.protobuf.Timestamp expire_day = 11;
+
+  // 逆指値条件
+  StockStopOrder stop_order = 12;
+}
+
+// 逆指値条件(現物)
+message StockStopOrder {
+  // トリガ銘柄
+  TriggerType trigger_type = 1;
+
+  // トリガ価格
+  double trigger_price = 2;
+
+  // 以上・以下
+  UnderOver under_over = 3;
+
+  // ヒット後執行条件
+  StockAfterHitOrderType after_hit_order_type = 4;
+
+  // ヒット後注文価格
+  double after_hit_price = 5;
 }
 
 // 注文発注（信用）リクエスト
@@ -130,6 +151,27 @@ message SendMarginOrderRequest {
   //   引け後 : 翌取引所営業日
   //   休前日 : 休日明けの取引所営業日
   google.protobuf.Timestamp expire_day = 13;
+
+  // 逆指値条件
+  MarginStopOrder stop_order = 14;
+}
+
+// 逆指値条件(信用)
+message MarginStopOrder {
+  // トリガ銘柄
+  TriggerType trigger_type = 1;
+
+  // トリガ価格
+  double trigger_price = 2;
+
+  // 以上・以下
+  UnderOver under_over = 3;
+
+  // ヒット後執行条件
+  StockAfterHitOrderType after_hit_order_type = 4;
+
+  // ヒット後注文価格
+  double after_hit_price = 5;
 }
 
 // 注文発注（先物）リクエスト
@@ -170,6 +212,24 @@ message SendFutureOrderRequest {
   //   引け後 : 翌取引所営業日
   //   休前日 : 休日明けの取引所営業日
   google.protobuf.Timestamp expire_day = 11;
+
+  // 逆指値条件
+  FutureStopOrder stop_order = 12;
+}
+
+// 逆指値条件(先物)
+message FutureStopOrder {
+  // トリガ価格
+  double trigger_price = 1;
+
+  // 以上・以下
+  UnderOver under_over = 2;
+
+  // ヒット後執行条件
+  FutureAfterHitOrderType after_hit_order_type = 3;
+
+  // ヒット後注文価格
+  double after_hit_price = 4;
 }
 
 // 注文発注（オプション）リクエスト
@@ -210,6 +270,24 @@ message SendOptionOrderRequest {
   //   引け後 : 翌取引所営業日
   //   休前日 : 休日明けの取引所営業日
   google.protobuf.Timestamp expire_day = 11;
+
+  // 逆指値条件
+  OptionStopOrder stop_order = 12;
+}
+
+// 逆指値条件(オプション)
+message OptionStopOrder {
+  // トリガ価格
+  double trigger_price = 1;
+
+  // 以上・以下
+  UnderOver under_over = 2;
+
+  // ヒット後執行条件
+  OptionAfterHitOrderType after_hit_order_type = 3;
+
+  // ヒット後注文価格
+  double after_hit_price = 4;
 }
 
 // 返済建玉指定
@@ -698,6 +776,9 @@ message Board {
   // デルタ
   //   オプション銘柄かつ日通しの場合のみ
   double delta = 62;
+
+  // 銘柄種別
+  SecurityType security_type = 63;
 }
 
 // 銘柄
@@ -1712,6 +1793,7 @@ enum SecurityType {
   SECURITY_TYPE_DOW = 144; // NYダウ先物
   SECURITY_TYPE_VI = 145; // 日経平均VI先物
   SECURITY_TYPE_CODE30 = 171; // TOPIX Core30先物
+  SECURITY_TYPE_NK225_OP = 103; // 日経225OP
 }
 
 // 市場・上場部
@@ -1791,6 +1873,7 @@ enum StockOrderType {
   STOCK_ORDER_TYPE_FUNARI_M = 25; // 不成（前場） Funari Mooning
   STOCK_ORDER_TYPE_FUNARI_A = 26; // 不成（後場） Funari Afternoon
   STOCK_ORDER_TYPE_IOC_LO = 27; // IOC指値 Immediate Or Cancel Limit Order
+  STOCK_ORDER_TYPE_STOP = 30; // 逆指値 Stop Order
 }
 
 // 先物執行条件
@@ -1800,6 +1883,7 @@ enum FutureOrderType {
   FUTURE_ORDER_TYPE_MOC = 18; // 引成（派生） Market Order on Closing FAKのみ有効
   FUTURE_ORDER_TYPE_LO = 20; // 指値 Limit Order
   FUTURE_ORDER_TYPE_LOC = 28; // 引指（派生） Limit Order on Closing
+  FUTURE_ORDER_TYPE_STOP = 30; // 逆指値 Stop
 }
 
 // オプション執行条件
@@ -1809,6 +1893,7 @@ enum OptionOrderType {
   OPTION_ORDER_TYPE_MOC = 18; // 引成（派生） Market Order on Closing FAKのみ有効
   OPTION_ORDER_TYPE_LO = 20; // 指値 Limit Order
   OPTION_ORDER_TYPE_LOC = 28; // 引指（派生） Limit Order on Closing
+  OPTION_ORDER_TYPE_STOP = 30; // 逆指値 Stop
 }
 
 // 通貨
@@ -1867,4 +1952,41 @@ enum RegulationLevel {
   REGULATION_LEVEL_UNSPECIFIED = 0; // 未指定
   REGULATION_LEVEL_WARNING = 1; // ワーニング
   REGULATION_LEVEL_ERROR = 2; // エラー
+}
+
+// トリガ種別
+enum TriggerType {
+  TRIGGER_TYPE_UNSPECIFIED = 0; // 未指定
+  TRIGGER_TYPE_ORDER_SYMBOL = 1; // 発注銘柄
+  TRIGGER_TYPE_NK225 = 2; // NK225指数
+  TRIGGER_TYPE_TOPIX = 3; // TOPIX指数
+}
+
+// 以上・以下
+enum UnderOver {
+  UNDER_OVER_UNSPECIFIED = 0; // 未指定
+  UNDER_OVER_UNDER = 1; // 以下
+  UNDER_OVER_OVER = 2; // 以上
+}
+
+// ヒット後執行条件(現物)
+enum StockAfterHitOrderType {
+  STOCK_AFTER_HIT_ORDER_TYPE_UNSPECIFIED = 0; // 未指定
+  STOCK_AFTER_HIT_ORDER_TYPE_MO = 1; // 成行
+  STOCK_AFTER_HIT_ORDER_TYPE_LO = 2; // 指値
+  STOCK_AFTER_HIT_ORDER_TYPE_FUNARI = 3; // 不成
+}
+
+// ヒット後執行条件(先物)
+enum FutureAfterHitOrderType {
+  FUTURE_AFTER_HIT_ORDER_TYPE_UNSPECIFIED = 0; // 未指定
+  FUTURE_AFTER_HIT_ORDER_TYPE_MO = 1; // 成行
+  FUTURE_AFTER_HIT_ORDER_TYPE_LO = 2; // 指値
+}
+
+// ヒット後執行条件(オプション)
+enum OptionAfterHitOrderType {
+  OPTION_AFTER_HIT_ORDER_TYPE_UNSPECIFIED = 0; // 未指定
+  OPTION_AFTER_HIT_ORDER_TYPE_MO = 1; // 成行
+  OPTION_AFTER_HIT_ORDER_TYPE_LO = 2; // 指値
 }

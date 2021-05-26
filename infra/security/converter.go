@@ -634,6 +634,8 @@ func fromSecurityType(securityType kabus.SecurityType) kabuspb.SecurityType {
 		return kabuspb.SecurityType_SECURITY_TYPE_VI
 	case kabus.SecurityTypeCORE30:
 		return kabuspb.SecurityType_SECURITY_TYPE_CODE30
+	case kabus.SecurityTypeNK225OP:
+		return kabuspb.SecurityType_SECURITY_TYPE_NK225_OP
 	}
 	return kabuspb.SecurityType_SECURITY_TYPE_UNSPECIFIED
 }
@@ -1002,20 +1004,21 @@ func toSendOrderStockRequestFromSendStockOrderRequest(req *kabuspb.SendStockOrde
 	}
 
 	return kabus.SendOrderStockRequest{
-		Password:        req.Password,
-		Symbol:          req.SymbolCode,
-		Exchange:        toStockExchange(req.Exchange),
-		SecurityType:    kabus.SecurityTypeStock, // 株式 固定値
-		Side:            toSide(req.Side),
-		CashMargin:      kabus.CashMarginCash,             // 現物 固定値
-		MarginTradeType: kabus.MarginTradeTypeUnspecified, // 未指定 固定値
-		DelivType:       delivType,
-		FundType:        fundType,
-		AccountType:     toAccountType(req.AccountType),
-		Qty:             int(req.Quantity),
-		Price:           req.Price,
-		ExpireDay:       toExpireDay(req.ExpireDay),
-		FrontOrderType:  toStockFrontOrderType(req.OrderType),
+		Password:          req.Password,
+		Symbol:            req.SymbolCode,
+		Exchange:          toStockExchange(req.Exchange),
+		SecurityType:      kabus.SecurityTypeStock, // 株式 固定値
+		Side:              toSide(req.Side),
+		CashMargin:        kabus.CashMarginCash,             // 現物 固定値
+		MarginTradeType:   kabus.MarginTradeTypeUnspecified, // 未指定 固定値
+		DelivType:         delivType,
+		FundType:          fundType,
+		AccountType:       toAccountType(req.AccountType),
+		Qty:               int(req.Quantity),
+		Price:             req.Price,
+		ExpireDay:         toExpireDay(req.ExpireDay),
+		FrontOrderType:    toStockFrontOrderType(req.OrderType),
+		ReverseLimitOrder: toStockReverseLimitOrder(req.StopOrder),
 	}
 }
 
@@ -1026,20 +1029,21 @@ func toSendOrderStockRequestFromSendMarginOrderRequest(req *kabuspb.SendMarginOr
 	}
 
 	return kabus.SendOrderStockRequest{
-		Password:        req.Password,
-		Symbol:          req.SymbolCode,
-		Exchange:        toStockExchange(req.Exchange),
-		SecurityType:    kabus.SecurityTypeStock, // 株式 固定値
-		Side:            toSide(req.Side),
-		CashMargin:      toCashMargin(req.TradeType),
-		MarginTradeType: toMarginTradeType(req.MarginTradeType),
-		DelivType:       delivType,
-		AccountType:     toAccountType(req.AccountType),
-		Qty:             int(req.Quantity),
-		ClosePositions:  toClosePositions(req.ClosePositions),
-		Price:           req.Price,
-		ExpireDay:       toExpireDay(req.ExpireDay),
-		FrontOrderType:  toStockFrontOrderType(req.OrderType),
+		Password:          req.Password,
+		Symbol:            req.SymbolCode,
+		Exchange:          toStockExchange(req.Exchange),
+		SecurityType:      kabus.SecurityTypeStock, // 株式 固定値
+		Side:              toSide(req.Side),
+		CashMargin:        toCashMargin(req.TradeType),
+		MarginTradeType:   toMarginTradeType(req.MarginTradeType),
+		DelivType:         delivType,
+		AccountType:       toAccountType(req.AccountType),
+		Qty:               int(req.Quantity),
+		ClosePositions:    toClosePositions(req.ClosePositions),
+		Price:             req.Price,
+		ExpireDay:         toExpireDay(req.ExpireDay),
+		FrontOrderType:    toStockFrontOrderType(req.OrderType),
+		ReverseLimitOrder: toMarginReverseLimitOrder(req.StopOrder),
 	}
 }
 
@@ -1057,6 +1061,7 @@ func toSendOrderFutureRequest(req *kabuspb.SendFutureOrderRequest) kabus.SendOrd
 		FrontOrderType:     toFutureFrontOrderType(req.OrderType),
 		Price:              req.Price,
 		ExpireDay:          toExpireDay(req.ExpireDay),
+		ReverseLimitOrder:  toFutureReverseLimitOrder(req.StopOrder),
 	}
 }
 
@@ -1074,6 +1079,7 @@ func toSendOrderOptionRequest(req *kabuspb.SendOptionOrderRequest) kabus.SendOrd
 		FrontOrderType:     toOptionFrontOrderType(req.OrderType),
 		Price:              req.Price,
 		ExpireDay:          toExpireDay(req.ExpireDay),
+		ReverseLimitOrder:  toOptionReverseLimitOrder(req.StopOrder),
 	}
 }
 
@@ -1167,6 +1173,8 @@ func toStockFrontOrderType(orderType kabuspb.StockOrderType) kabus.StockFrontOrd
 		return kabus.StockFrontOrderTypeFunariA
 	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_IOC_LO:
 		return kabus.StockFrontOrderTypeIOCLimit
+	case kabuspb.StockOrderType_STOCK_ORDER_TYPE_STOP:
+		return kabus.StockFrontOrderTypeReverseLimit
 	}
 	return kabus.StockFrontOrderTypeUnspecified
 }
@@ -1236,6 +1244,8 @@ func toFutureFrontOrderType(orderType kabuspb.FutureOrderType) kabus.FutureFront
 		return kabus.FutureFrontOrderTypeLimit
 	case kabuspb.FutureOrderType_FUTURE_ORDER_TYPE_LOC:
 		return kabus.FutureFrontOrderTypeLimitClose
+	case kabuspb.FutureOrderType_FUTURE_ORDER_TYPE_STOP:
+		return kabus.FutureFrontOrderTypeReverseLimit
 	}
 	return kabus.FutureFrontOrderTypeUnspecified
 }
@@ -1262,6 +1272,8 @@ func toOptionFrontOrderType(orderType kabuspb.OptionOrderType) kabus.OptionFront
 		return kabus.OptionFrontOrderTypeLimit
 	case kabuspb.OptionOrderType_OPTION_ORDER_TYPE_LOC:
 		return kabus.OptionFrontOrderTypeLimitClose
+	case kabuspb.OptionOrderType_OPTION_ORDER_TYPE_STOP:
+		return kabus.OptionFrontOrderTypeReverseLimit
 	}
 	return kabus.OptionFrontOrderTypeUnspecified
 }
@@ -1534,4 +1546,108 @@ func toGetPositionInfo(getInfo bool) kabus.GetPositionInfo {
 		return kabus.GetPositionInfoTrue
 	}
 	return kabus.GetPositionInfoFalse
+}
+
+func toStockReverseLimitOrder(stop *kabuspb.StockStopOrder) *kabus.StockReverseLimitOrder {
+	if stop == nil {
+		return nil
+	}
+	return &kabus.StockReverseLimitOrder{
+		TriggerSec:        toTriggerSec(stop.TriggerType),
+		TriggerPrice:      stop.TriggerPrice,
+		UnderOver:         toUnderOver(stop.UnderOver),
+		AfterHitOrderType: toStockAfterHitOrderType(stop.AfterHitOrderType),
+		AfterHitPrice:     stop.AfterHitPrice,
+	}
+}
+
+func toMarginReverseLimitOrder(stop *kabuspb.MarginStopOrder) *kabus.StockReverseLimitOrder {
+	if stop == nil {
+		return nil
+	}
+	return &kabus.StockReverseLimitOrder{
+		TriggerSec:        toTriggerSec(stop.TriggerType),
+		TriggerPrice:      stop.TriggerPrice,
+		UnderOver:         toUnderOver(stop.UnderOver),
+		AfterHitOrderType: toStockAfterHitOrderType(stop.AfterHitOrderType),
+		AfterHitPrice:     stop.AfterHitPrice,
+	}
+}
+
+func toTriggerSec(triggerType kabuspb.TriggerType) kabus.TriggerSec {
+	switch triggerType {
+	case kabuspb.TriggerType_TRIGGER_TYPE_ORDER_SYMBOL:
+		return kabus.TriggerSecOrderSymbol
+	case kabuspb.TriggerType_TRIGGER_TYPE_NK225:
+		return kabus.TriggerSecOrderN225
+	case kabuspb.TriggerType_TRIGGER_TYPE_TOPIX:
+		return kabus.TriggerSecOrderTOPIX
+	}
+	return kabus.TriggerSecUnspecified
+}
+
+func toUnderOver(underOver kabuspb.UnderOver) kabus.UnderOver {
+	switch underOver {
+	case kabuspb.UnderOver_UNDER_OVER_UNDER:
+		return kabus.UnderOverUnder
+	case kabuspb.UnderOver_UNDER_OVER_OVER:
+		return kabus.UnderOverOver
+	}
+	return kabus.UnderOverUnspecified
+}
+
+func toStockAfterHitOrderType(afterHitOrderType kabuspb.StockAfterHitOrderType) kabus.StockAfterHitOrderType {
+	switch afterHitOrderType {
+	case kabuspb.StockAfterHitOrderType_STOCK_AFTER_HIT_ORDER_TYPE_MO:
+		return kabus.StockAfterHitOrderTypeMarket
+	case kabuspb.StockAfterHitOrderType_STOCK_AFTER_HIT_ORDER_TYPE_LO:
+		return kabus.StockAfterHitOrderTypeLimit
+	case kabuspb.StockAfterHitOrderType_STOCK_AFTER_HIT_ORDER_TYPE_FUNARI:
+		return kabus.StockAfterHitOrderTypeFunari
+	}
+	return kabus.StockAfterHitOrderTypeUnspecified
+}
+
+func toFutureReverseLimitOrder(stop *kabuspb.FutureStopOrder) *kabus.FutureReverseLimitOrder {
+	if stop == nil {
+		return nil
+	}
+	return &kabus.FutureReverseLimitOrder{
+		TriggerPrice:      stop.TriggerPrice,
+		UnderOver:         toUnderOver(stop.UnderOver),
+		AfterHitOrderType: toFutureAfterHitOrderType(stop.AfterHitOrderType),
+		AfterHitPrice:     stop.AfterHitPrice,
+	}
+}
+
+func toFutureAfterHitOrderType(afterHitOrderType kabuspb.FutureAfterHitOrderType) kabus.FutureAfterHitOrderType {
+	switch afterHitOrderType {
+	case kabuspb.FutureAfterHitOrderType_FUTURE_AFTER_HIT_ORDER_TYPE_MO:
+		return kabus.FutureAfterHitOrderTypeMarket
+	case kabuspb.FutureAfterHitOrderType_FUTURE_AFTER_HIT_ORDER_TYPE_LO:
+		return kabus.FutureAfterHitOrderTypeLimit
+	}
+	return kabus.FutureAfterHitOrderTypeUnspecified
+}
+
+func toOptionReverseLimitOrder(stop *kabuspb.OptionStopOrder) *kabus.OptionReverseLimitOrder {
+	if stop == nil {
+		return nil
+	}
+	return &kabus.OptionReverseLimitOrder{
+		TriggerPrice:      stop.TriggerPrice,
+		UnderOver:         toUnderOver(stop.UnderOver),
+		AfterHitOrderType: toOptionAfterHitOrderType(stop.AfterHitOrderType),
+		AfterHitPrice:     stop.AfterHitPrice,
+	}
+}
+
+func toOptionAfterHitOrderType(afterHitOrderType kabuspb.OptionAfterHitOrderType) kabus.OptionAfterHitOrderType {
+	switch afterHitOrderType {
+	case kabuspb.OptionAfterHitOrderType_OPTION_AFTER_HIT_ORDER_TYPE_MO:
+		return kabus.OptionAfterHitOrderTypeMarket
+	case kabuspb.OptionAfterHitOrderType_OPTION_AFTER_HIT_ORDER_TYPE_LO:
+		return kabus.OptionAfterHitOrderTypeLimit
+	}
+	return kabus.OptionAfterHitOrderTypeUnspecified
 }

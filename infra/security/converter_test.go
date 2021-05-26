@@ -1188,6 +1188,7 @@ func Test_fromSecurityType(t *testing.T) {
 		{name: "NYダウ先物 を変換できる", arg: kabus.SecurityTypeDOW, want: kabuspb.SecurityType_SECURITY_TYPE_DOW},
 		{name: "日経平均VI先物 を変換できる", arg: kabus.SecurityTypeVI, want: kabuspb.SecurityType_SECURITY_TYPE_VI},
 		{name: "TOPIX Core30先物 を変換できる", arg: kabus.SecurityTypeCORE30, want: kabuspb.SecurityType_SECURITY_TYPE_CODE30},
+		{name: "日経225OP を変換できる", arg: kabus.SecurityTypeNK225OP, want: kabuspb.SecurityType_SECURITY_TYPE_NK225_OP},
 		{name: "未定義 を変換できる", arg: kabus.SecurityType(-1), want: kabuspb.SecurityType_SECURITY_TYPE_UNSPECIFIED},
 	}
 
@@ -2110,6 +2111,7 @@ func Test_toStockFrontOrderType(t *testing.T) {
 		{name: "不成（前場） を変換できる", arg: kabuspb.StockOrderType_STOCK_ORDER_TYPE_FUNARI_M, want: kabus.StockFrontOrderTypeFunariM},
 		{name: "不成（後場） を変換できる", arg: kabuspb.StockOrderType_STOCK_ORDER_TYPE_FUNARI_A, want: kabus.StockFrontOrderTypeFunariA},
 		{name: "IOC指値 を変換できる", arg: kabuspb.StockOrderType_STOCK_ORDER_TYPE_IOC_LO, want: kabus.StockFrontOrderTypeIOCLimit},
+		{name: "逆指値 を変換できる", arg: kabuspb.StockOrderType_STOCK_ORDER_TYPE_STOP, want: kabus.StockFrontOrderTypeReverseLimit},
 		{name: "未定義 を変換できる", arg: kabuspb.StockOrderType(-1), want: kabus.StockFrontOrderTypeUnspecified},
 	}
 
@@ -2240,6 +2242,7 @@ func Test_toFutureFrontOrderType(t *testing.T) {
 		{name: "引成（派生） を変換できる", arg: kabuspb.FutureOrderType_FUTURE_ORDER_TYPE_MOC, want: kabus.FutureFrontOrderTypeMarketClose},
 		{name: "指値 を変換できる", arg: kabuspb.FutureOrderType_FUTURE_ORDER_TYPE_LO, want: kabus.FutureFrontOrderTypeLimit},
 		{name: "引指（派生） を変換できる", arg: kabuspb.FutureOrderType_FUTURE_ORDER_TYPE_LOC, want: kabus.FutureFrontOrderTypeLimitClose},
+		{name: "逆指値 を変換できる", arg: kabuspb.FutureOrderType_FUTURE_ORDER_TYPE_STOP, want: kabus.FutureFrontOrderTypeReverseLimit},
 		{name: "未定義 を変換できる", arg: kabuspb.FutureOrderType(-1), want: kabus.FutureFrontOrderTypeUnspecified},
 	}
 
@@ -2293,6 +2296,7 @@ func Test_toOptionFrontOrderType(t *testing.T) {
 		{name: "引成（派生） を変換できる", arg: kabuspb.OptionOrderType_OPTION_ORDER_TYPE_MOC, want: kabus.OptionFrontOrderTypeMarketClose},
 		{name: "指値 を変換できる", arg: kabuspb.OptionOrderType_OPTION_ORDER_TYPE_LO, want: kabus.OptionFrontOrderTypeLimit},
 		{name: "引指（派生） を変換できる", arg: kabuspb.OptionOrderType_OPTION_ORDER_TYPE_LOC, want: kabus.OptionFrontOrderTypeLimitClose},
+		{name: "逆指値 を変換できる", arg: kabuspb.OptionOrderType_OPTION_ORDER_TYPE_STOP, want: kabus.OptionFrontOrderTypeReverseLimit},
 		{name: "未定義 を変換できる", arg: kabuspb.OptionOrderType(-1), want: kabus.OptionFrontOrderTypeUnspecified},
 	}
 
@@ -2971,7 +2975,7 @@ func Test_fromRegulationSide(t *testing.T) {
 		{name: "全対象 を変換できる", arg: kabus.RegulationSideAll, want: kabuspb.RegulationSide_REGULATION_SIDE_ALL},
 		{name: "売 を変換できる", arg: kabus.RegulationSideSell, want: kabuspb.RegulationSide_REGULATION_SIDE_SELL},
 		{name: "買 を変換できる", arg: kabus.RegulationSideBuy, want: kabuspb.RegulationSide_REGULATION_SIDE_BUY},
-		{name: "未定義 を変換できる", arg: kabus.RegulationSide(-1), want: kabuspb.RegulationSide_REGULATION_SIDE_UNSPECIFIED},
+		{name: "未定義 を変換できる", arg: kabus.RegulationSide("-1"), want: kabuspb.RegulationSide_REGULATION_SIDE_UNSPECIFIED},
 	}
 
 	for _, test := range tests {
@@ -3118,6 +3122,277 @@ func Test_toGetPositionInfo(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			got := toGetPositionInfo(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toTriggerSec(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.TriggerType
+		want kabus.TriggerSec
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.TriggerType_TRIGGER_TYPE_UNSPECIFIED, want: kabus.TriggerSecUnspecified},
+		{name: "発注銘柄 を変換できる", arg: kabuspb.TriggerType_TRIGGER_TYPE_ORDER_SYMBOL, want: kabus.TriggerSecOrderSymbol},
+		{name: "NK225指数 を変換できる", arg: kabuspb.TriggerType_TRIGGER_TYPE_NK225, want: kabus.TriggerSecOrderN225},
+		{name: "TOPIX指数 を変換できる", arg: kabuspb.TriggerType_TRIGGER_TYPE_TOPIX, want: kabus.TriggerSecOrderTOPIX},
+		{name: "定義なし を変換できる", arg: kabuspb.TriggerType(-1), want: kabus.TriggerSecUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toTriggerSec(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toUnderOver(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.UnderOver
+		want kabus.UnderOver
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.UnderOver_UNDER_OVER_UNSPECIFIED, want: kabus.UnderOverUnspecified},
+		{name: "以下 を変換できる", arg: kabuspb.UnderOver_UNDER_OVER_UNDER, want: kabus.UnderOverUnder},
+		{name: "以上 を変換できる", arg: kabuspb.UnderOver_UNDER_OVER_OVER, want: kabus.UnderOverOver},
+		{name: "定義なし を変換できる", arg: kabuspb.UnderOver(-1), want: kabus.UnderOverUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toUnderOver(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toStockAfterHitOrderType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.StockAfterHitOrderType
+		want kabus.StockAfterHitOrderType
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.StockAfterHitOrderType_STOCK_AFTER_HIT_ORDER_TYPE_UNSPECIFIED, want: kabus.StockAfterHitOrderTypeUnspecified},
+		{name: "成行 を変換できる", arg: kabuspb.StockAfterHitOrderType_STOCK_AFTER_HIT_ORDER_TYPE_MO, want: kabus.StockAfterHitOrderTypeMarket},
+		{name: "指値 を変換できる", arg: kabuspb.StockAfterHitOrderType_STOCK_AFTER_HIT_ORDER_TYPE_LO, want: kabus.StockAfterHitOrderTypeLimit},
+		{name: "不成 を変換できる", arg: kabuspb.StockAfterHitOrderType_STOCK_AFTER_HIT_ORDER_TYPE_FUNARI, want: kabus.StockAfterHitOrderTypeFunari},
+		{name: "定義なし を変換できる", arg: kabuspb.StockAfterHitOrderType(-1), want: kabus.StockAfterHitOrderTypeUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toStockAfterHitOrderType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toStockReverseLimitOrder(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  *kabuspb.StockStopOrder
+		want *kabus.StockReverseLimitOrder
+	}{
+		{name: "nilならnilを返す", arg: nil, want: nil},
+		{name: "値があれば変換して返す",
+			arg: &kabuspb.StockStopOrder{
+				TriggerType:       kabuspb.TriggerType_TRIGGER_TYPE_ORDER_SYMBOL,
+				TriggerPrice:      1000,
+				UnderOver:         kabuspb.UnderOver_UNDER_OVER_UNDER,
+				AfterHitOrderType: kabuspb.StockAfterHitOrderType_STOCK_AFTER_HIT_ORDER_TYPE_FUNARI,
+				AfterHitPrice:     1010,
+			},
+			want: &kabus.StockReverseLimitOrder{
+				TriggerSec:        kabus.TriggerSecOrderSymbol,
+				TriggerPrice:      1000,
+				UnderOver:         kabus.UnderOverUnder,
+				AfterHitOrderType: kabus.StockAfterHitOrderTypeFunari,
+				AfterHitPrice:     1010,
+			}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toStockReverseLimitOrder(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toMarginReverseLimitOrder(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  *kabuspb.MarginStopOrder
+		want *kabus.StockReverseLimitOrder
+	}{
+		{name: "nilならnilを返す", arg: nil, want: nil},
+		{name: "値があれば変換して返す",
+			arg: &kabuspb.MarginStopOrder{
+				TriggerType:       kabuspb.TriggerType_TRIGGER_TYPE_ORDER_SYMBOL,
+				TriggerPrice:      1000,
+				UnderOver:         kabuspb.UnderOver_UNDER_OVER_UNDER,
+				AfterHitOrderType: kabuspb.StockAfterHitOrderType_STOCK_AFTER_HIT_ORDER_TYPE_FUNARI,
+				AfterHitPrice:     1010,
+			},
+			want: &kabus.StockReverseLimitOrder{
+				TriggerSec:        kabus.TriggerSecOrderSymbol,
+				TriggerPrice:      1000,
+				UnderOver:         kabus.UnderOverUnder,
+				AfterHitOrderType: kabus.StockAfterHitOrderTypeFunari,
+				AfterHitPrice:     1010,
+			}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toMarginReverseLimitOrder(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toFutureAfterHitOrderType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.FutureAfterHitOrderType
+		want kabus.FutureAfterHitOrderType
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.FutureAfterHitOrderType_FUTURE_AFTER_HIT_ORDER_TYPE_UNSPECIFIED, want: kabus.FutureAfterHitOrderTypeUnspecified},
+		{name: "成行 を変換できる", arg: kabuspb.FutureAfterHitOrderType_FUTURE_AFTER_HIT_ORDER_TYPE_MO, want: kabus.FutureAfterHitOrderTypeMarket},
+		{name: "指値 を変換できる", arg: kabuspb.FutureAfterHitOrderType_FUTURE_AFTER_HIT_ORDER_TYPE_LO, want: kabus.FutureAfterHitOrderTypeLimit},
+		{name: "定義なし を変換できる", arg: kabuspb.FutureAfterHitOrderType(-1), want: kabus.FutureAfterHitOrderTypeUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toFutureAfterHitOrderType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toFutureReverseLimitOrder(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  *kabuspb.FutureStopOrder
+		want *kabus.FutureReverseLimitOrder
+	}{
+		{name: "nilならnilを返す", arg: nil, want: nil},
+		{name: "値があれば変換して返す",
+			arg: &kabuspb.FutureStopOrder{
+				TriggerPrice:      1000,
+				UnderOver:         kabuspb.UnderOver_UNDER_OVER_UNDER,
+				AfterHitOrderType: kabuspb.FutureAfterHitOrderType_FUTURE_AFTER_HIT_ORDER_TYPE_LO,
+				AfterHitPrice:     1010,
+			},
+			want: &kabus.FutureReverseLimitOrder{
+				TriggerPrice:      1000,
+				UnderOver:         kabus.UnderOverUnder,
+				AfterHitOrderType: kabus.FutureAfterHitOrderTypeLimit,
+				AfterHitPrice:     1010,
+			}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toFutureReverseLimitOrder(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toOptionAfterHitOrderType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.OptionAfterHitOrderType
+		want kabus.OptionAfterHitOrderType
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.OptionAfterHitOrderType_OPTION_AFTER_HIT_ORDER_TYPE_UNSPECIFIED, want: kabus.OptionAfterHitOrderTypeUnspecified},
+		{name: "成行 を変換できる", arg: kabuspb.OptionAfterHitOrderType_OPTION_AFTER_HIT_ORDER_TYPE_MO, want: kabus.OptionAfterHitOrderTypeMarket},
+		{name: "指値 を変換できる", arg: kabuspb.OptionAfterHitOrderType_OPTION_AFTER_HIT_ORDER_TYPE_LO, want: kabus.OptionAfterHitOrderTypeLimit},
+		{name: "定義なし を変換できる", arg: kabuspb.OptionAfterHitOrderType(-1), want: kabus.OptionAfterHitOrderTypeUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toOptionAfterHitOrderType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toOptionReverseLimitOrder(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  *kabuspb.OptionStopOrder
+		want *kabus.OptionReverseLimitOrder
+	}{
+		{name: "nilならnilを返す", arg: nil, want: nil},
+		{name: "値があれば変換して返す",
+			arg: &kabuspb.OptionStopOrder{
+				TriggerPrice:      1000,
+				UnderOver:         kabuspb.UnderOver_UNDER_OVER_UNDER,
+				AfterHitOrderType: kabuspb.OptionAfterHitOrderType_OPTION_AFTER_HIT_ORDER_TYPE_LO,
+				AfterHitPrice:     1010,
+			},
+			want: &kabus.OptionReverseLimitOrder{
+				TriggerPrice:      1000,
+				UnderOver:         kabus.UnderOverUnder,
+				AfterHitOrderType: kabus.OptionAfterHitOrderTypeLimit,
+				AfterHitPrice:     1010,
+			}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toOptionReverseLimitOrder(test.arg)
 			if !reflect.DeepEqual(test.want, got) {
 				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
 			}
