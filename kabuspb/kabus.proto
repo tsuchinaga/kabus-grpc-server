@@ -87,6 +87,9 @@ message SendStockOrderRequest {
 
   // 逆指値条件
   StockStopOrder stop_order = 12;
+
+  // 仮想売買
+  bool is_virtual = 99;
 }
 
 // 逆指値条件(現物)
@@ -404,6 +407,9 @@ message GetOrdersRequest {
   //   指定された取引区分と一致する注文のみレスポンスします
   //   複数の取引区分を指定することができません
   TradeType tradeType = 8;
+
+  // 仮想売買
+  bool is_virtual = 99;
 }
 
 // 残高照会リクエスト
@@ -419,6 +425,9 @@ message GetPositionsRequest{
 
   // 追加情報出力フラグ
   bool get_info = 4;
+
+  // 仮想売買
+  bool is_virtual = 99;
 }
 
 // 先物銘柄コード取得リクエスト

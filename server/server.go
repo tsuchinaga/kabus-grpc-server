@@ -20,12 +20,18 @@ func NewServer(
 type server struct {
 	kabuspb.UnimplementedKabusServiceServer
 	security              repositories.Security
+	virtual               repositories.Security
 	tokenService          services.TokenService
 	registerSymbolService services.RegisterSymbolService
 	boardStreamService    services.BoardStreamService
 }
 
 func (s *server) SendStockOrder(ctx context.Context, req *kabuspb.SendStockOrderRequest) (*kabuspb.OrderResponse, error) {
+	// 仮想証券会社の利用
+	if req.IsVirtual {
+		return s.virtual.SendOrderStock(ctx, "", req)
+	}
+
 	token, err := s.tokenService.GetToken(context.Background())
 	if err != nil {
 		return nil, err
@@ -116,6 +122,11 @@ func (s *server) GetBoard(ctx context.Context, req *kabuspb.GetBoardRequest) (*k
 }
 
 func (s *server) GetOrders(ctx context.Context, req *kabuspb.GetOrdersRequest) (*kabuspb.Orders, error) {
+	// 仮想証券会社の利用
+	if req.IsVirtual {
+		return s.virtual.Orders(ctx, "", req)
+	}
+
 	token, err := s.tokenService.GetToken(ctx)
 	if err != nil {
 		return nil, err
@@ -125,6 +136,11 @@ func (s *server) GetOrders(ctx context.Context, req *kabuspb.GetOrdersRequest) (
 }
 
 func (s *server) GetPositions(ctx context.Context, req *kabuspb.GetPositionsRequest) (*kabuspb.Positions, error) {
+	// 仮想証券会社の利用
+	if req.IsVirtual {
+		return s.virtual.Positions(ctx, "", req)
+	}
+
 	token, err := s.tokenService.GetToken(ctx)
 	if err != nil {
 		return nil, err
