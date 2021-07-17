@@ -343,6 +343,7 @@ func fromOrders(orders *kabus.OrdersResponse) *kabuspb.Orders {
 			DeliveryType:       fromDelivType(order.DelivType),
 			ExpireDay:          timestamppb.New(order.ExpireDay.Time),
 			MarginTradeType:    fromMarginTradeType(order.MarginTradeType),
+			MarginPremium:      order.MarginPremium,
 			Details:            fromOrderDetails(order.Details),
 		}
 	}
@@ -540,8 +541,8 @@ func fromMarginTradeType(marginTradeType kabus.MarginTradeType) kabuspb.MarginTr
 		return kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_SYSTEM
 	case kabus.MarginTradeTypeGeneralLong:
 		return kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_LONG
-	case kabus.MarginTradeTypeGeneralShort:
-		return kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_SHORT
+	case kabus.MarginTradeTypeGeneralDay:
+		return kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_DAY
 	}
 	return kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_UNSPECIFIED
 }
@@ -1103,8 +1104,8 @@ func toMarginTradeType(tradeType kabuspb.MarginTradeType) kabus.MarginTradeType 
 		return kabus.MarginTradeTypeSystem
 	case kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_LONG:
 		return kabus.MarginTradeTypeGeneralLong
-	case kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_SHORT:
-		return kabus.MarginTradeTypeGeneralShort
+	case kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_DAY:
+		return kabus.MarginTradeTypeGeneralDay
 	}
 	return kabus.MarginTradeTypeUnspecified
 }

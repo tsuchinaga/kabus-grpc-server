@@ -985,6 +985,9 @@ message Order {
   // 信用取引区分
   MarginTradeType margin_trade_type = 19;
 
+  // プレミアム料
+  double margin_premium = 21;
+
   // 注文詳細
   repeated OrderDetail details = 20;
 }
@@ -1744,8 +1747,10 @@ enum DeliveryType {
 enum MarginTradeType {
   MARGIN_TRADE_TYPE_UNSPECIFIED = 0; // 未指定
   MARGIN_TRADE_TYPE_SYSTEM = 1; // 制度信用
-  MARGIN_TRADE_TYPE_GENERAL_LONG = 2; // 一般信用
-  MARGIN_TRADE_TYPE_GENERAL_SHORT = 3; // 一般信用(売短)
+  MARGIN_TRADE_TYPE_GENERAL_LONG = 2; // 一般信用(長期)
+  // MARGIN_TRADE_TYPE_GENERAL_SHORT = 3 [deprecated = true]; // 一般信用(売短)
+  reserved 3;
+  MARGIN_TRADE_TYPE_GENERAL_DAY = 4; // 一般信用(デイトレ)
 }
 
 // 有効期間条件
