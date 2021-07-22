@@ -122,3 +122,14 @@ func (t *testGetBoardsStreamingServer) Send(*kabuspb.Board) error {
 	t.sendCount++
 	return t.send
 }
+
+type testVirtualSecurity struct {
+	repositories.VirtualSecurity
+	sendPrice      error
+	sendPriceCount int
+}
+
+func (t *testVirtualSecurity) SendPrice(_ context.Context, _ *kabuspb.Board) error {
+	t.sendPriceCount++
+	return t.sendPrice
+}

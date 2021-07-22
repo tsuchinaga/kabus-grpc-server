@@ -233,17 +233,39 @@ type testBoardStreamService struct {
 	connect error
 }
 
+func (t *testBoardStreamService) Start() {}
 func (t *testBoardStreamService) Connect(kabuspb.KabusService_GetBoardsStreamingServer) error {
 	return t.connect
 }
 
+type testVirtualSecurity struct {
+	repositories.VirtualSecurity
+	orders1         *kabuspb.Orders
+	orders2         error
+	positions1      *kabuspb.Positions
+	positions2      error
+	sendOrderStock1 *kabuspb.OrderResponse
+	sendOrderStock2 error
+}
+
+func (t *testVirtualSecurity) Orders(context.Context, string, *kabuspb.GetOrdersRequest) (*kabuspb.Orders, error) {
+	return t.orders1, t.orders2
+}
+func (t *testVirtualSecurity) Positions(context.Context, string, *kabuspb.GetPositionsRequest) (*kabuspb.Positions, error) {
+	return t.positions1, t.positions2
+}
+func (t *testVirtualSecurity) SendOrderStock(context.Context, string, *kabuspb.SendStockOrderRequest) (*kabuspb.OrderResponse, error) {
+	return t.sendOrderStock1, t.sendOrderStock2
+}
+
 func Test_NewServer(t *testing.T) {
 	security := &testSecurity{}
+	virtual := &testVirtualSecurity{}
 	tokenService := &testTokenService{}
 	registerSymbolService := &testRegisterSymbolService{}
 	boardStreamService := &testBoardStreamService{}
-	got := NewServer(security, tokenService, registerSymbolService, boardStreamService)
-	want := &server{security: security, tokenService: tokenService, registerSymbolService: registerSymbolService, boardStreamService: boardStreamService}
+	got := NewServer(security, virtual, tokenService, registerSymbolService, boardStreamService)
+	want := &server{security: security, virtual: virtual, tokenService: tokenService, registerSymbolService: registerSymbolService, boardStreamService: boardStreamService}
 	t.Parallel()
 	if !reflect.DeepEqual(want, got) {
 		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
@@ -323,7 +345,8 @@ func Test_server_RegisterSymbols(t *testing.T) {
 			server := &server{
 				security:              &testSecurity{register1: test.register1, register2: test.register2},
 				tokenService:          &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
-				registerSymbolService: registerSymbolService}
+				registerSymbolService: registerSymbolService,
+				boardStreamService:    &testBoardStreamService{}}
 			got1, got2 := server.RegisterSymbols(context.Background(), test.arg)
 			got3 := registerSymbolService.lastAddRequester
 			got4 := registerSymbolService.lastAddSymbols
@@ -379,7 +402,8 @@ func Test_server_UnregisterSymbols(t *testing.T) {
 			server := &server{
 				security:              &testSecurity{unregister1: test.unregister1, unregister2: test.unregister2},
 				tokenService:          &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
-				registerSymbolService: registerSymbolService}
+				registerSymbolService: registerSymbolService,
+				boardStreamService:    &testBoardStreamService{}}
 			got1, got2 := server.UnregisterSymbols(context.Background(), test.arg)
 			got3 := registerSymbolService.lastRemoveRequester
 			got4 := registerSymbolService.lastRemoveSymbols
@@ -636,13 +660,13 @@ func Test_server_GetOrders(t *testing.T) {
 			want: &kabuspb.Orders{Orders: []*kabuspb.Order{{Id: "20210331A02N36008399"}}}},
 		{name: "仮想証券会社を指定して、Ordersでエラーがあればエラーを返す",
 			server: &server{
-				virtual:      &testSecurity{orders2: errors.New("register error message")},
+				virtual:      &testVirtualSecurity{orders2: errors.New("register error message")},
 				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
 			arg:      &kabuspb.GetOrdersRequest{IsVirtual: true},
 			hasError: true},
 		{name: "仮想証券会社を指定して、Ordersの結果を結果を返す",
 			server: &server{
-				virtual:      &testSecurity{orders1: &kabuspb.Orders{Orders: []*kabuspb.Order{{Id: "20210331A02N36008399"}}}},
+				virtual:      &testVirtualSecurity{orders1: &kabuspb.Orders{Orders: []*kabuspb.Order{{Id: "20210331A02N36008399"}}}},
 				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
 			arg:  &kabuspb.GetOrdersRequest{IsVirtual: true},
 			want: &kabuspb.Orders{Orders: []*kabuspb.Order{{Id: "20210331A02N36008399"}}}},
@@ -687,13 +711,13 @@ func Test_server_GetPositions(t *testing.T) {
 			want: &kabuspb.Positions{Positions: []*kabuspb.Position{{ExecutionId: "20210331A02N36008399"}}}},
 		{name: "仮想証券会社を指定して、Positionsでエラーがあればエラーを返す",
 			server: &server{
-				virtual:      &testSecurity{positions2: errors.New("register error message")},
+				virtual:      &testVirtualSecurity{positions2: errors.New("register error message")},
 				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
 			arg:      &kabuspb.GetPositionsRequest{IsVirtual: true},
 			hasError: true},
 		{name: "仮想証券会社を指定して、Positionsの結果を結果を返す",
 			server: &server{
-				virtual:      &testSecurity{positions1: &kabuspb.Positions{Positions: []*kabuspb.Position{{ExecutionId: "20210331A02N36008399"}}}},
+				virtual:      &testVirtualSecurity{positions1: &kabuspb.Positions{Positions: []*kabuspb.Position{{ExecutionId: "20210331A02N36008399"}}}},
 				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
 			arg:  &kabuspb.GetPositionsRequest{IsVirtual: true},
 			want: &kabuspb.Positions{Positions: []*kabuspb.Position{{ExecutionId: "20210331A02N36008399"}}}},
@@ -972,13 +996,13 @@ func Test_server_SendStockOrder(t *testing.T) {
 			want: &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"}},
 		{name: "仮想証券会社を指定していて、エラーがあればエラーを返す",
 			server: &server{
-				virtual:      &testSecurity{sendOrderStock2: errors.New("register error message")},
+				virtual:      &testVirtualSecurity{sendOrderStock2: errors.New("register error message")},
 				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
 			arg:      &kabuspb.SendStockOrderRequest{IsVirtual: true},
 			hasError: true},
 		{name: "仮想証券会社を指定していて、エラーがなければ結果を返す",
 			server: &server{
-				virtual:      &testSecurity{sendOrderStock1: &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"}},
+				virtual:      &testVirtualSecurity{sendOrderStock1: &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"}},
 				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
 			arg:  &kabuspb.SendStockOrderRequest{IsVirtual: true},
 			want: &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"}},

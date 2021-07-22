@@ -287,10 +287,37 @@ func toExpiredAt(timestamp *timestamppb.Timestamp) time.Time {
 		return time.Time{}
 	}
 
-	t := timestamp.AsTime()
+	t := timestamp.AsTime().In(time.Local)
 	if t.IsZero() {
 		return time.Time{}
 	}
 
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.Local)
+}
+
+func toRegisterPrice(req *kabuspb.Board) vs.RegisterPriceRequest {
+	if req == nil {
+		return vs.RegisterPriceRequest{}
+	}
+
+	return vs.RegisterPriceRequest{
+		ExchangeType: toExchangeType(req.Exchange),
+		SymbolCode:   req.SymbolCode,
+		Price:        req.CurrentPrice,
+		PriceTime:    req.CurrentPriceTime.AsTime().In(time.Local),
+		Ask:          req.AskPrice,
+		AskTime:      req.AskTime.AsTime().In(time.Local),
+		Bid:          req.BidPrice,
+		BidTime:      req.BidTime.AsTime().In(time.Local),
+	}
+}
+
+func toExchangeType(exchange kabuspb.Exchange) vs.ExchangeType {
+	switch exchange {
+	case kabuspb.Exchange_EXCHANGE_TOUSHOU, kabuspb.Exchange_EXCHANGE_MEISHOU, kabuspb.Exchange_EXCHANGE_FUKUSHOU, kabuspb.Exchange_EXCHANGE_SATSUSHOU:
+		return vs.ExchangeTypeStock
+	case kabuspb.Exchange_EXCHANGE_ALL_SESSION, kabuspb.Exchange_EXCHANGE_DAY_SESSION, kabuspb.Exchange_EXCHANGE_NIGHT_SESSION:
+		return vs.ExchangeTypeFuture
+	}
+	return vs.ExchangeTypeUnspecified
 }

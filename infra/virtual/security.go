@@ -8,12 +8,12 @@ import (
 	vs "gitlab.com/tsuchinaga/kabus-virtual-security"
 )
 
-func NewSecurity(virtual vs.VirtualSecurity) repositories.Security {
+func NewSecurity(virtual vs.VirtualSecurity) repositories.VirtualSecurity {
 	return &security{virtual: virtual}
 }
 
 type security struct {
-	repositories.Security
+	repositories.VirtualSecurity
 	virtual vs.VirtualSecurity
 }
 
@@ -39,4 +39,12 @@ func (s *security) Positions(_ context.Context, _ string, _ *kabuspb.GetPosition
 		return nil, err
 	}
 	return fromStockPositions(res), nil
+}
+
+func (s *security) SendPrice(_ context.Context, req *kabuspb.Board) error {
+	if req == nil {
+		return nil
+	}
+
+	return s.virtual.RegisterPrice(toRegisterPrice(req))
 }

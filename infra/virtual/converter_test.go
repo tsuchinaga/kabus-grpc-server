@@ -606,3 +606,130 @@ func Test_fromStockPositions(t *testing.T) {
 		})
 	}
 }
+
+func Test_toExchangeType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.Exchange
+		want vs.ExchangeType
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.Exchange_EXCHANGE_UNSPECIFIED, want: vs.ExchangeTypeUnspecified},
+		{name: "東証 を変換できる", arg: kabuspb.Exchange_EXCHANGE_TOUSHOU, want: vs.ExchangeTypeStock},
+		{name: "名証 を変換できる", arg: kabuspb.Exchange_EXCHANGE_MEISHOU, want: vs.ExchangeTypeStock},
+		{name: "福証 を変換できる", arg: kabuspb.Exchange_EXCHANGE_FUKUSHOU, want: vs.ExchangeTypeStock},
+		{name: "札証 を変換できる", arg: kabuspb.Exchange_EXCHANGE_SATSUSHOU, want: vs.ExchangeTypeStock},
+		{name: "日通し を変換できる", arg: kabuspb.Exchange_EXCHANGE_ALL_SESSION, want: vs.ExchangeTypeFuture},
+		{name: "日中場 を変換できる", arg: kabuspb.Exchange_EXCHANGE_DAY_SESSION, want: vs.ExchangeTypeFuture},
+		{name: "夕場 を変換できる", arg: kabuspb.Exchange_EXCHANGE_NIGHT_SESSION, want: vs.ExchangeTypeFuture},
+		{name: "未定義 を変換できる", arg: kabuspb.Exchange(-1), want: vs.ExchangeTypeUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toExchangeType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toRegisterPrice(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  *kabuspb.Board
+		want vs.RegisterPriceRequest
+	}{
+		{name: "nilならゼロ値を返す", arg: nil, want: vs.RegisterPriceRequest{}},
+		{name: "各項目をマッピングして返す",
+			arg: &kabuspb.Board{
+				SymbolCode:               "5401",
+				SymbolName:               "新日鐵住金",
+				Exchange:                 kabuspb.Exchange_EXCHANGE_TOUSHOU,
+				ExchangeName:             "東証１部",
+				CurrentPrice:             2408,
+				CurrentPriceTime:         timestamppb.New(time.Date(2020, 7, 22, 15, 0, 0, 0, time.Local)),
+				CurrentPriceChangeStatus: "0058",
+				CurrentPriceStatus:       1,
+				CalculationPrice:         343.7,
+				PreviousClose:            1048,
+				PreviousCloseTime:        timestamppb.New(time.Date(2020, 7, 21, 0, 0, 0, 0, time.Local)),
+				ChangePreviousClose:      1360,
+				ChangePreviousClosePer:   129.77,
+				OpeningPrice:             2380,
+				OpeningPriceTime:         timestamppb.New(time.Date(2020, 7, 22, 9, 0, 0, 0, time.Local)),
+				HighPrice:                2418,
+				HighPriceTime:            timestamppb.New(time.Date(2020, 7, 22, 13, 25, 47, 0, time.Local)),
+				LowPrice:                 2370,
+				LowPriceTime:             timestamppb.New(time.Date(2020, 7, 22, 10, 0, 4, 0, time.Local)),
+				TradingVolume:            4571500,
+				TradingVolumeTime:        timestamppb.New(time.Date(2020, 7, 22, 15, 0, 0, 0, time.Local)),
+				Vwap:                     2394.4262,
+				TradingValue:             10946119350,
+				BidQuantity:              100,
+				BidPrice:                 2408.5,
+				BidTime:                  timestamppb.New(time.Date(2020, 7, 22, 14, 59, 59, 0, time.Local)),
+				BidSign:                  "0101",
+				MarketOrderSellQuantity:  0,
+				Sell1:                    &kabuspb.FirstQuote{Time: timestamppb.New(time.Date(2020, 7, 22, 14, 59, 59, 0, time.Local)), Sign: "0101", Price: 2408.5, Quantity: 100},
+				Sell2:                    &kabuspb.Quote{Price: 2409, Quantity: 800},
+				Sell3:                    &kabuspb.Quote{Price: 2409.5, Quantity: 2100},
+				Sell4:                    &kabuspb.Quote{Price: 2410, Quantity: 800},
+				Sell5:                    &kabuspb.Quote{Price: 2410.5, Quantity: 500},
+				Sell6:                    &kabuspb.Quote{Price: 2411, Quantity: 8400},
+				Sell7:                    &kabuspb.Quote{Price: 2411.5, Quantity: 1200},
+				Sell8:                    &kabuspb.Quote{Price: 2412, Quantity: 27200},
+				Sell9:                    &kabuspb.Quote{Price: 2412.5, Quantity: 400},
+				Sell10:                   &kabuspb.Quote{Price: 2413, Quantity: 16400},
+				AskQuantity:              200,
+				AskPrice:                 2407.5,
+				AskTime:                  timestamppb.New(time.Date(2020, 7, 22, 14, 59, 59, 0, time.Local)),
+				AskSign:                  "0101",
+				MarketOrderBuyQuantity:   0,
+				Buy1:                     &kabuspb.FirstQuote{Time: timestamppb.New(time.Date(2020, 7, 22, 14, 59, 59, 0, time.Local)), Sign: "0101", Price: 2407.5, Quantity: 200},
+				Buy2:                     &kabuspb.Quote{Price: 2407, Quantity: 400},
+				Buy3:                     &kabuspb.Quote{Price: 2406.5, Quantity: 1000},
+				Buy4:                     &kabuspb.Quote{Price: 2406, Quantity: 5800},
+				Buy5:                     &kabuspb.Quote{Price: 2405.5, Quantity: 7500},
+				Buy6:                     &kabuspb.Quote{Price: 2405, Quantity: 2200},
+				Buy7:                     &kabuspb.Quote{Price: 2404.5, Quantity: 16700},
+				Buy8:                     &kabuspb.Quote{Price: 2404, Quantity: 30100},
+				Buy9:                     &kabuspb.Quote{Price: 2403.5, Quantity: 1300},
+				Buy10:                    &kabuspb.Quote{Price: 2403, Quantity: 3000},
+				OverSellQuantity:         974900,
+				UnderBuyQuantity:         756000,
+				TotalMarketValue:         3266254659361.4,
+				ClearingPrice:            23000,
+				ImpliedVolatility:        22.11,
+				Gamma:                    0.000183,
+				Theta:                    -6.5073,
+				Vega:                     39.3109,
+				Delta:                    0.4794,
+			},
+			want: vs.RegisterPriceRequest{
+				ExchangeType: vs.ExchangeTypeStock,
+				SymbolCode:   "5401",
+				Price:        2408,
+				PriceTime:    time.Date(2020, 7, 22, 15, 0, 0, 0, time.Local),
+				Ask:          2407.5,
+				AskTime:      time.Date(2020, 7, 22, 14, 59, 59, 0, time.Local),
+				Bid:          2408.5,
+				BidTime:      time.Date(2020, 7, 22, 14, 59, 59, 0, time.Local),
+			}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toRegisterPrice(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}

@@ -11,16 +11,17 @@ import (
 
 func NewServer(
 	security repositories.Security,
+	virtual repositories.VirtualSecurity,
 	tokenService services.TokenService,
 	registerSymbolService services.RegisterSymbolService,
 	boardStreamService services.BoardStreamService) kabuspb.KabusServiceServer {
-	return &server{security: security, tokenService: tokenService, registerSymbolService: registerSymbolService, boardStreamService: boardStreamService}
+	return &server{security: security, virtual: virtual, tokenService: tokenService, registerSymbolService: registerSymbolService, boardStreamService: boardStreamService}
 }
 
 type server struct {
 	kabuspb.UnimplementedKabusServiceServer
 	security              repositories.Security
-	virtual               repositories.Security
+	virtual               repositories.VirtualSecurity
 	tokenService          services.TokenService
 	registerSymbolService services.RegisterSymbolService
 	boardStreamService    services.BoardStreamService
@@ -185,6 +186,7 @@ func (s *server) RegisterSymbols(ctx context.Context, req *kabuspb.RegisterSymbo
 	}
 
 	s.registerSymbolService.Add(req.RequesterName, req.Symbols)
+	s.boardStreamService.Start() // 銘柄を登録された段階で仮想証券会社への通知を始める
 
 	return &kabuspb.RegisteredSymbols{
 		Symbols: s.registerSymbolService.Get(req.RequesterName),
@@ -203,6 +205,7 @@ func (s *server) UnregisterSymbols(ctx context.Context, req *kabuspb.UnregisterS
 	}
 
 	s.registerSymbolService.Remove(req.RequesterName, req.Symbols)
+	s.boardStreamService.Start() // 銘柄を登録された段階で仮想証券会社への通知を始める
 
 	return &kabuspb.RegisteredSymbols{
 		Symbols: s.registerSymbolService.Get(req.RequesterName),

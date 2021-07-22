@@ -22,6 +22,7 @@ type testVirtualSecurity struct {
 	stockOrders2    error
 	stockPositions1 []*vs.StockPosition
 	stockPositions2 error
+	registerPrice1  error
 }
 
 func (t *testVirtualSecurity) StockOrder(*vs.StockOrderRequest) (*vs.OrderResult, error) {
@@ -33,8 +34,11 @@ func (t *testVirtualSecurity) StockOrders() ([]*vs.StockOrder, error) {
 func (t *testVirtualSecurity) StockPositions() ([]*vs.StockPosition, error) {
 	return t.stockPositions1, t.stockPositions2
 }
+func (t *testVirtualSecurity) RegisterPrice(vs.RegisterPriceRequest) error {
+	return t.registerPrice1
+}
 
-func Test_Name(t *testing.T) {
+func Test_NewSecurity(t *testing.T) {
 	t.Parallel()
 	sec := &testVirtualSecurity{}
 	want := &security{virtual: sec}
@@ -216,6 +220,40 @@ func Test_security_Positions(t *testing.T) {
 			got1, got2 := security.Positions(context.Background(), "no-token", nil)
 			if !reflect.DeepEqual(test.want1, got1) || !errors.Is(got2, test.want2) {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want1, test.want2, got1, got2)
+			}
+		})
+	}
+}
+
+func Test_security_SendPrice(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name          string
+		registerPrice error
+		arg           *kabuspb.Board
+		hasError      bool
+	}{
+		{name: "nilなら何もせずにnilを返す",
+			arg:      nil,
+			hasError: false},
+		{name: "registerPriceがerrを返したらerrを返す",
+			registerPrice: errors.New("error message"),
+			arg:           &kabuspb.Board{},
+			hasError:      true},
+		{name: "registerPriceがnilを返したらnilを返す",
+			registerPrice: nil,
+			arg:           &kabuspb.Board{},
+			hasError:      false},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			security := &security{virtual: &testVirtualSecurity{registerPrice1: test.registerPrice}}
+			got := security.SendPrice(context.Background(), test.arg)
+			if (got != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.hasError, got)
 			}
 		})
 	}
