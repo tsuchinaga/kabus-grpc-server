@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"gitlab.com/tsuchinaga/kabus-grpc-server/kabuspb"
 
@@ -17,6 +18,17 @@ func main() {
 	}
 
 	cli := kabuspb.NewKabusServiceClient(conn)
+
+	// 銘柄登録
+	{
+		res, err := cli.RegisterSymbols(context.Background(),
+			&kabuspb.RegisterSymbolsRequest{Symbols: []*kabuspb.RegisterSymbol{{SymbolCode: "1475", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}, RequesterName: "virtual-test"},
+		)
+		if err != nil {
+			panic(err)
+		}
+		log.Println(res)
+	}
 
 	// 成行エントリー
 	{
@@ -37,15 +49,25 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println("order id", res)
+		fmt.Println(res)
 	}
 
 	// 注文一覧
-	{
+	for {
+		isContinue := false
 		res, err := cli.GetOrders(context.Background(), &kabuspb.GetOrdersRequest{GetDetails: true, IsVirtual: true})
 		if err != nil {
 			panic(err)
 		}
-		log.Printf("%+v\n", res)
+		for _, o := range res.Orders {
+			log.Println(o)
+			if o.State != kabuspb.State_STATE_DONE {
+				isContinue = true
+			}
+		}
+		if !isContinue {
+			break
+		}
+		<-time.After(30 * time.Second)
 	}
 }
