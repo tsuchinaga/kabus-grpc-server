@@ -2,6 +2,7 @@ package security
 
 import (
 	"context"
+	"time"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -127,7 +128,7 @@ func (s *security) Orders(ctx context.Context, token string, req *kabuspb.GetOrd
 	res, err := s.restClient.OrdersWithContext(ctx, token, kabus.OrdersRequest{
 		Product:          toProduct(req.Product),
 		ID:               req.Id,
-		UpdateTime:       req.UpdateTime.AsTime(),
+		UpdateTime:       req.UpdateTime.AsTime().In(time.Local),
 		IsGetOrderDetail: toIsGetOrderDetail(req.GetDetails),
 		Symbol:           req.SymbolCode,
 		State:            toOrderState(req.State),
