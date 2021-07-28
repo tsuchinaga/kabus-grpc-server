@@ -5077,16 +5077,16 @@ type Board struct {
 	// 売買代金
 	//   株式・先物・オプション銘柄の場合のみ
 	TradingValue float64 `protobuf:"fixed64,23,opt,name=trading_value,json=tradingValue,proto3" json:"trading_value,omitempty"`
-	// 最良売気配数量
+	// 最良買気配数量
 	//   株式・先物・オプション銘柄の場合のみ
 	BidQuantity float64 `protobuf:"fixed64,24,opt,name=bid_quantity,json=bidQuantity,proto3" json:"bid_quantity,omitempty"`
-	// 最良売気配値段
+	// 最良買気配値段
 	//   株式・先物・オプション銘柄の場合のみ
 	BidPrice float64 `protobuf:"fixed64,25,opt,name=bid_price,json=bidPrice,proto3" json:"bid_price,omitempty"`
-	// 最良売気配時刻
+	// 最良買気配時刻
 	//  株式銘柄の場合のみ
 	BidTime *timestamppb.Timestamp `protobuf:"bytes,26,opt,name=bid_time,json=bidTime,proto3" json:"bid_time,omitempty"`
-	// 最良売気配フラグ
+	// 最良買気配フラグ
 	//   株式・先物・オプション銘柄の場合のみ
 	BidSign string `protobuf:"bytes,27,opt,name=bid_sign,json=bidSign,proto3" json:"bid_sign,omitempty"` // TODO enum化
 	// 売成行数量
@@ -5112,16 +5112,16 @@ type Board struct {
 	Sell9 *Quote `protobuf:"bytes,37,opt,name=sell9,proto3" json:"sell9,omitempty"`
 	// 売気配数量10本目
 	Sell10 *Quote `protobuf:"bytes,38,opt,name=sell10,proto3" json:"sell10,omitempty"`
-	// 最良買気配数量
+	// 最良売気配数量
 	//   株式・先物・オプション銘柄の場合のみ
 	AskQuantity float64 `protobuf:"fixed64,39,opt,name=ask_quantity,json=askQuantity,proto3" json:"ask_quantity,omitempty"`
-	// 最良買気配値段
+	// 最良売気配値段
 	//   株式・先物・オプション銘柄の場合のみ
 	AskPrice float64 `protobuf:"fixed64,40,opt,name=ask_price,json=askPrice,proto3" json:"ask_price,omitempty"`
-	// 最良買気配時刻
+	// 最良売気配時刻
 	//  株式銘柄の場合のみ
 	AskTime *timestamppb.Timestamp `protobuf:"bytes,41,opt,name=ask_time,json=askTime,proto3" json:"ask_time,omitempty"`
-	// 最良買気配フラグ
+	// 最良売気配フラグ
 	//   株式・先物・オプション銘柄の場合のみ
 	AskSign string `protobuf:"bytes,42,opt,name=ask_sign,json=askSign,proto3" json:"ask_sign,omitempty"` // TODO enum化
 	// 買成行数量

@@ -650,19 +650,19 @@ message Board {
   //   株式・先物・オプション銘柄の場合のみ
   double trading_value = 23;
 
-  // 最良売気配数量
+  // 最良買気配数量
   //   株式・先物・オプション銘柄の場合のみ
   double bid_quantity = 24;
 
-  // 最良売気配値段
+  // 最良買気配値段
   //   株式・先物・オプション銘柄の場合のみ
   double bid_price = 25;
 
-  // 最良売気配時刻
+  // 最良買気配時刻
   //  株式銘柄の場合のみ
   google.protobuf.Timestamp bid_time = 26;
 
-  // 最良売気配フラグ
+  // 最良買気配フラグ
   //   株式・先物・オプション銘柄の場合のみ
   string bid_sign = 27; // TODO enum化
 
@@ -700,19 +700,19 @@ message Board {
   // 売気配数量10本目
   Quote sell10 = 38;
 
-  // 最良買気配数量
+  // 最良売気配数量
   //   株式・先物・オプション銘柄の場合のみ
   double ask_quantity = 39;
 
-  // 最良買気配値段
+  // 最良売気配値段
   //   株式・先物・オプション銘柄の場合のみ
   double ask_price = 40;
 
-  // 最良買気配時刻
+  // 最良売気配時刻
   //  株式銘柄の場合のみ
   google.protobuf.Timestamp ask_time = 41;
 
-  // 最良買気配フラグ
+  // 最良売気配フラグ
   //   株式・先物・オプション銘柄の場合のみ
   string ask_sign = 42; // TODO enum化
 
