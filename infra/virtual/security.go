@@ -25,6 +25,14 @@ func (s *security) SendOrderStock(_ context.Context, _ string, req *kabuspb.Send
 	return fromOrderResult(res), nil
 }
 
+func (s *security) SendOrderMargin(_ context.Context, _ string, req *kabuspb.SendMarginOrderRequest) (*kabuspb.OrderResponse, error) {
+	res, err := s.virtual.MarginOrder(toMarginOrderRequest(req))
+	if err != nil {
+		return nil, err
+	}
+	return fromOrderResult(res), nil
+}
+
 func (s *security) Orders(_ context.Context, _ string, _ *kabuspb.GetOrdersRequest) (*kabuspb.Orders, error) {
 	res, err := s.virtual.StockOrders()
 	if err != nil {

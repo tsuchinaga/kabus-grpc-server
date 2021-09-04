@@ -21,7 +21,25 @@ func toStockOrderRequest(req *kabuspb.SendStockOrderRequest) *vs.StockOrderReque
 		Quantity:           req.Quantity,
 		LimitPrice:         req.Price,
 		ExpiredAt:          toExpiredAt(req.ExpireDay),
-		StopCondition:      toStopCondition(req.StopOrder),
+		StopCondition:      toStopConditionFromStockStopOrder(req.StopOrder),
+	}
+}
+
+func toMarginOrderRequest(req *kabuspb.SendMarginOrderRequest) *vs.MarginOrderRequest {
+	if req == nil {
+		return nil
+	}
+
+	return &vs.MarginOrderRequest{
+		TradeType:          toTradeType(req.TradeType),
+		Side:               toSide(req.Side),
+		ExecutionCondition: toStockExecutionCondition(req.OrderType),
+		SymbolCode:         req.SymbolCode,
+		Quantity:           req.Quantity,
+		LimitPrice:         req.Price,
+		ExpiredAt:          toExpiredAt(req.ExpireDay),
+		StopCondition:      toStopConditionFromMarginStopOrder(req.StopOrder),
+		ExitPositionList:   toExitPositionList(req.ClosePositions),
 	}
 }
 
@@ -153,7 +171,7 @@ func toStockExecutionCondition(orderType kabuspb.StockOrderType) vs.StockExecuti
 	return vs.StockExecutionConditionUnspecified
 }
 
-func toStopCondition(order *kabuspb.StockStopOrder) *vs.StockStopCondition {
+func toStopConditionFromStockStopOrder(order *kabuspb.StockStopOrder) *vs.StockStopCondition {
 	if order == nil {
 		return nil
 	}
@@ -320,4 +338,46 @@ func toExchangeType(exchange kabuspb.Exchange) vs.ExchangeType {
 		return vs.ExchangeTypeFuture
 	}
 	return vs.ExchangeTypeUnspecified
+}
+
+func toTradeType(tradeType kabuspb.TradeType) vs.TradeType {
+	switch tradeType {
+	case kabuspb.TradeType_TRADE_TYPE_ENTRY:
+		return vs.TradeTypeEntry
+	case kabuspb.TradeType_TRADE_TYPE_EXIT:
+		return vs.TradeTypeExit
+	}
+	return vs.TradeTypeUnspecified
+}
+
+func toStopConditionFromMarginStopOrder(order *kabuspb.MarginStopOrder) *vs.StockStopCondition {
+	if order == nil {
+		return nil
+	}
+
+	return &vs.StockStopCondition{
+		StopPrice:                  order.TriggerPrice,
+		ComparisonOperator:         toComparisonOperator(order.UnderOver),
+		ExecutionConditionAfterHit: toExecutionConditionAfterHit(order.AfterHitOrderType),
+		LimitPriceAfterHit:         order.AfterHitPrice,
+	}
+}
+
+func toExitPositionList(closePositions []*kabuspb.ClosePosition) []vs.ExitPosition {
+	if closePositions == nil {
+		return nil
+	}
+
+	res := make([]vs.ExitPosition, 0)
+	for _, cp := range closePositions {
+		if cp == nil {
+			continue
+		}
+		res = append(res, vs.ExitPosition{
+			PositionCode: cp.ExecutionId,
+			Quantity:     cp.Quantity,
+		})
+	}
+
+	return res
 }
