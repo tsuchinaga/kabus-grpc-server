@@ -33,20 +33,60 @@ func (s *security) SendOrderMargin(_ context.Context, _ string, req *kabuspb.Sen
 	return fromOrderResult(res), nil
 }
 
-func (s *security) Orders(_ context.Context, _ string, _ *kabuspb.GetOrdersRequest) (*kabuspb.Orders, error) {
-	res, err := s.virtual.StockOrders()
-	if err != nil {
-		return nil, err
+func (s *security) Orders(_ context.Context, _ string, req *kabuspb.GetOrdersRequest) (*kabuspb.Orders, error) {
+	res := make([]*kabuspb.Order, 0)
+
+	if req.Product == kabuspb.Product_PRODUCT_ALL || req.Product == kabuspb.Product_PRODUCT_STOCK {
+		stockOrders, err := s.virtual.StockOrders()
+		if err != nil {
+			return nil, err
+		}
+		orders := fromStockOrders(stockOrders)
+		for _, o := range orders.Orders {
+			res = append(res, o)
+		}
 	}
-	return fromStockOrders(res), nil
+
+	if req.Product == kabuspb.Product_PRODUCT_ALL || req.Product == kabuspb.Product_PRODUCT_MARGIN {
+		marginOrders, err := s.virtual.MarginOrders()
+		if err != nil {
+			return nil, err
+		}
+		orders := fromMarginOrders(marginOrders)
+		for _, o := range orders.Orders {
+			res = append(res, o)
+		}
+	}
+
+	return &kabuspb.Orders{Orders: res}, nil
 }
 
-func (s *security) Positions(_ context.Context, _ string, _ *kabuspb.GetPositionsRequest) (*kabuspb.Positions, error) {
-	res, err := s.virtual.StockPositions()
-	if err != nil {
-		return nil, err
+func (s *security) Positions(_ context.Context, _ string, req *kabuspb.GetPositionsRequest) (*kabuspb.Positions, error) {
+	res := make([]*kabuspb.Position, 0)
+
+	if req.Product == kabuspb.Product_PRODUCT_ALL || req.Product == kabuspb.Product_PRODUCT_STOCK {
+		stockPositions, err := s.virtual.StockPositions()
+		if err != nil {
+			return nil, err
+		}
+		positions := fromStockPositions(stockPositions)
+		for _, p := range positions.Positions {
+			res = append(res, p)
+		}
 	}
-	return fromStockPositions(res), nil
+
+	if req.Product == kabuspb.Product_PRODUCT_ALL || req.Product == kabuspb.Product_PRODUCT_MARGIN {
+		marginPositions, err := s.virtual.MarginPositions()
+		if err != nil {
+			return nil, err
+		}
+		positions := fromMarginPositions(marginPositions)
+		for _, p := range positions.Positions {
+			res = append(res, p)
+		}
+	}
+
+	return &kabuspb.Positions{Positions: res}, nil
 }
 
 func (s *security) SendPrice(_ context.Context, req *kabuspb.Board) error {
