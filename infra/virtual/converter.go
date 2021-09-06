@@ -21,7 +21,25 @@ func toStockOrderRequest(req *kabuspb.SendStockOrderRequest) *vs.StockOrderReque
 		Quantity:           req.Quantity,
 		LimitPrice:         req.Price,
 		ExpiredAt:          toExpiredAt(req.ExpireDay),
-		StopCondition:      toStopCondition(req.StopOrder),
+		StopCondition:      toStopConditionFromStockStopOrder(req.StopOrder),
+	}
+}
+
+func toMarginOrderRequest(req *kabuspb.SendMarginOrderRequest) *vs.MarginOrderRequest {
+	if req == nil {
+		return nil
+	}
+
+	return &vs.MarginOrderRequest{
+		TradeType:          toTradeType(req.TradeType),
+		Side:               toSide(req.Side),
+		ExecutionCondition: toStockExecutionCondition(req.OrderType),
+		SymbolCode:         req.SymbolCode,
+		Quantity:           req.Quantity,
+		LimitPrice:         req.Price,
+		ExpiredAt:          toExpiredAt(req.ExpireDay),
+		StopCondition:      toStopConditionFromMarginStopOrder(req.StopOrder),
+		ExitPositionList:   toExitPositionList(req.ClosePositions),
 	}
 }
 
@@ -37,13 +55,16 @@ func fromOrderResult(res *vs.OrderResult) *kabuspb.OrderResponse {
 }
 
 func fromStockOrders(res []*vs.StockOrder) *kabuspb.Orders {
-	orders := make([]*kabuspb.Order, len(res))
+	orders := make([]*kabuspb.Order, 0)
 	if res == nil {
 		return &kabuspb.Orders{Orders: orders}
 	}
 
-	for i, o := range res {
-		orders[i] = &kabuspb.Order{
+	for _, o := range res {
+		if o == nil {
+			continue
+		}
+		orders = append(orders, &kabuspb.Order{
 			Id:                 o.Code,
 			State:              fromOrderStatusToState(o.OrderStatus),
 			OrderState:         fromOrderStatusToOrderState(o.OrderStatus),
@@ -64,7 +85,7 @@ func fromStockOrders(res []*vs.StockOrder) *kabuspb.Orders {
 			ExpireDay:          timestamppb.New(o.ExpiredAt),
 			MarginTradeType:    kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_UNSPECIFIED,
 			Details:            fromContracts(o.Contracts),
-		}
+		})
 	}
 
 	return &kabuspb.Orders{
@@ -73,13 +94,16 @@ func fromStockOrders(res []*vs.StockOrder) *kabuspb.Orders {
 }
 
 func fromStockPositions(res []*vs.StockPosition) *kabuspb.Positions {
-	positions := make([]*kabuspb.Position, len(res))
+	positions := make([]*kabuspb.Position, 0)
 	if res == nil {
 		return &kabuspb.Positions{Positions: positions}
 	}
 
-	for i, p := range res {
-		positions[i] = &kabuspb.Position{
+	for _, p := range res {
+		if p == nil {
+			continue
+		}
+		positions = append(positions, &kabuspb.Position{
 			ExecutionId:     p.Code,
 			AccountType:     kabuspb.AccountType_ACCOUNT_TYPE_UNSPECIFIED,
 			SymbolCode:      p.SymbolCode,
@@ -101,7 +125,7 @@ func fromStockPositions(res []*vs.StockPosition) *kabuspb.Positions {
 			Valuation:       0, // TODO 必要なら
 			ProfitLoss:      0, // TODO 必要なら
 			ProfitLossRate:  0, // TODO 必要なら
-		}
+		})
 	}
 
 	return &kabuspb.Positions{Positions: positions}
@@ -153,7 +177,7 @@ func toStockExecutionCondition(orderType kabuspb.StockOrderType) vs.StockExecuti
 	return vs.StockExecutionConditionUnspecified
 }
 
-func toStopCondition(order *kabuspb.StockStopOrder) *vs.StockStopCondition {
+func toStopConditionFromStockStopOrder(order *kabuspb.StockStopOrder) *vs.StockStopCondition {
 	if order == nil {
 		return nil
 	}
@@ -320,4 +344,134 @@ func toExchangeType(exchange kabuspb.Exchange) vs.ExchangeType {
 		return vs.ExchangeTypeFuture
 	}
 	return vs.ExchangeTypeUnspecified
+}
+
+func toTradeType(tradeType kabuspb.TradeType) vs.TradeType {
+	switch tradeType {
+	case kabuspb.TradeType_TRADE_TYPE_ENTRY:
+		return vs.TradeTypeEntry
+	case kabuspb.TradeType_TRADE_TYPE_EXIT:
+		return vs.TradeTypeExit
+	}
+	return vs.TradeTypeUnspecified
+}
+
+func toStopConditionFromMarginStopOrder(order *kabuspb.MarginStopOrder) *vs.StockStopCondition {
+	if order == nil {
+		return nil
+	}
+
+	return &vs.StockStopCondition{
+		StopPrice:                  order.TriggerPrice,
+		ComparisonOperator:         toComparisonOperator(order.UnderOver),
+		ExecutionConditionAfterHit: toExecutionConditionAfterHit(order.AfterHitOrderType),
+		LimitPriceAfterHit:         order.AfterHitPrice,
+	}
+}
+
+func toExitPositionList(closePositions []*kabuspb.ClosePosition) []vs.ExitPosition {
+	if closePositions == nil {
+		return nil
+	}
+
+	res := make([]vs.ExitPosition, 0)
+	for _, cp := range closePositions {
+		if cp == nil {
+			continue
+		}
+		res = append(res, vs.ExitPosition{
+			PositionCode: cp.ExecutionId,
+			Quantity:     cp.Quantity,
+		})
+	}
+
+	return res
+}
+
+func fromMarginOrders(res []*vs.MarginOrder) *kabuspb.Orders {
+	orders := make([]*kabuspb.Order, 0)
+	if res == nil {
+		return &kabuspb.Orders{Orders: orders}
+	}
+
+	for _, o := range res {
+		if o == nil {
+			continue
+		}
+
+		orders = append(orders, &kabuspb.Order{
+			Id:                 o.Code,
+			State:              fromOrderStatusToState(o.OrderStatus),
+			OrderState:         fromOrderStatusToOrderState(o.OrderStatus),
+			OrderType:          fromStockExecutionCondition(o.ExecutionCondition),
+			ReceiveTime:        timestamppb.New(o.OrderedAt),
+			SymbolCode:         o.SymbolCode,
+			SymbolName:         "",                                               // TODO 必要なら
+			Exchange:           kabuspb.OrderExchange_ORDER_EXCHANGE_UNSPECIFIED, // TODO 必要なら
+			ExchangeName:       "",                                               // TODO 必要なら
+			TimeInForce:        kabuspb.TimeInForce_TIME_IN_FORCE_UNSPECIFIED,
+			Price:              o.LimitPrice,
+			OrderQuantity:      o.OrderQuantity,
+			CumulativeQuantity: o.ContractedQuantity,
+			Side:               fromSide(o.Side),
+			TradeType:          fromTradeType(o.TradeType),
+			AccountType:        kabuspb.AccountType_ACCOUNT_TYPE_UNSPECIFIED,
+			DeliveryType:       kabuspb.DeliveryType_DELIVERY_TYPE_UNSPECIFIED,
+			ExpireDay:          timestamppb.New(o.ExpiredAt),
+			MarginTradeType:    kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_UNSPECIFIED,
+			Details:            fromContracts(o.Contracts),
+		})
+	}
+
+	return &kabuspb.Orders{
+		Orders: orders,
+	}
+}
+
+func fromTradeType(tradeType vs.TradeType) kabuspb.TradeType {
+	switch tradeType {
+	case vs.TradeTypeEntry:
+		return kabuspb.TradeType_TRADE_TYPE_ENTRY
+	case vs.TradeTypeExit:
+		return kabuspb.TradeType_TRADE_TYPE_EXIT
+	}
+	return kabuspb.TradeType_TRADE_TYPE_UNSPECIFIED
+}
+
+func fromMarginPositions(res []*vs.MarginPosition) *kabuspb.Positions {
+	positions := make([]*kabuspb.Position, 0)
+	if res == nil {
+		return &kabuspb.Positions{Positions: positions}
+	}
+
+	for _, p := range res {
+		if p == nil {
+			continue
+		}
+		positions = append(positions, &kabuspb.Position{
+			ExecutionId:     p.Code,
+			AccountType:     kabuspb.AccountType_ACCOUNT_TYPE_UNSPECIFIED,
+			SymbolCode:      p.SymbolCode,
+			SymbolName:      "",                                    // TODO 必要なら
+			Exchange:        kabuspb.Exchange_EXCHANGE_UNSPECIFIED, // TODO 必要なら
+			ExchangeName:    "",                                    // TODO 必要なら
+			SecurityType:    kabuspb.SecurityType_SECURITY_TYPE_UNSPECIFIED,
+			ExecutionDay:    timestamppb.New(p.ContractedAt),
+			Price:           p.Price,
+			LeavesQuantity:  p.OwnedQuantity,
+			HoldQuantity:    p.HoldQuantity,
+			Side:            fromSide(p.Side),
+			Expenses:        0,
+			Commission:      0,
+			CommissionTax:   0,
+			ExpireDay:       nil,
+			MarginTradeType: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_UNSPECIFIED,
+			CurrentPrice:    0, // TODO 必要なら
+			Valuation:       0, // TODO 必要なら
+			ProfitLoss:      0, // TODO 必要なら
+			ProfitLossRate:  0, // TODO 必要なら
+		})
+	}
+
+	return &kabuspb.Positions{Positions: positions}
 }

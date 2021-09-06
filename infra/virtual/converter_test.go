@@ -125,7 +125,7 @@ func Test_toExecutionConditionAfterHit(t *testing.T) {
 	}
 }
 
-func Test_toStopCondition(t *testing.T) {
+func Test_toStopConditionFromStockStopOrder(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		name string
@@ -151,7 +151,7 @@ func Test_toStopCondition(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			got := toStopCondition(test.arg)
+			got := toStopConditionFromStockStopOrder(test.arg)
 			if !reflect.DeepEqual(test.want, got) {
 				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
 			}
@@ -487,6 +487,7 @@ func Test_fromStockOrders(t *testing.T) {
 	}{
 		{name: "nilなら空配列を返す", arg: nil, want: &kabuspb.Orders{Orders: []*kabuspb.Order{}}},
 		{name: "空配列でも空配列を返す", arg: []*vs.StockOrder{}, want: &kabuspb.Orders{Orders: []*kabuspb.Order{}}},
+		{name: "要素がnilならスキップする", arg: []*vs.StockOrder{nil, nil, nil}, want: &kabuspb.Orders{Orders: []*kabuspb.Order{}}},
 		{name: "各要素を対応付けて返す",
 			arg: []*vs.StockOrder{
 				{
@@ -554,6 +555,7 @@ func Test_fromStockPositions(t *testing.T) {
 	}{
 		{name: "nilなら空配列を返す", arg: nil, want: &kabuspb.Positions{Positions: []*kabuspb.Position{}}},
 		{name: "空配列でも空配列を返す", arg: []*vs.StockPosition{}, want: &kabuspb.Positions{Positions: []*kabuspb.Position{}}},
+		{name: "各要素がnilならスキップする", arg: []*vs.StockPosition{nil, nil, nil}, want: &kabuspb.Positions{Positions: []*kabuspb.Position{}}},
 		{name: "各要素を対応付けて返す",
 			arg: []*vs.StockPosition{
 				{
@@ -727,6 +729,316 @@ func Test_toRegisterPrice(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			got := toRegisterPrice(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toTradeType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  kabuspb.TradeType
+		want vs.TradeType
+	}{
+		{name: "未指定 を変換できる", arg: kabuspb.TradeType_TRADE_TYPE_UNSPECIFIED, want: vs.TradeTypeUnspecified},
+		{name: "Entry を変換できる", arg: kabuspb.TradeType_TRADE_TYPE_ENTRY, want: vs.TradeTypeEntry},
+		{name: "Exit を変換できる", arg: kabuspb.TradeType_TRADE_TYPE_EXIT, want: vs.TradeTypeExit},
+		{name: "未定義 を変換できる", arg: kabuspb.TradeType(-1), want: vs.TradeTypeUnspecified},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toTradeType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toStopConditionFromMarginStopOrder(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  *kabuspb.MarginStopOrder
+		want *vs.StockStopCondition
+	}{
+		{name: "nilならnilを返す"},
+		{name: "変換して返せる",
+			arg: &kabuspb.MarginStopOrder{
+				TriggerType:       kabuspb.TriggerType_TRIGGER_TYPE_ORDER_SYMBOL,
+				TriggerPrice:      1000,
+				UnderOver:         kabuspb.UnderOver_UNDER_OVER_UNDER,
+				AfterHitOrderType: kabuspb.StockAfterHitOrderType_STOCK_AFTER_HIT_ORDER_TYPE_LO,
+				AfterHitPrice:     995,
+			},
+			want: &vs.StockStopCondition{
+				StopPrice:                  1000,
+				ComparisonOperator:         vs.ComparisonOperatorLE,
+				ExecutionConditionAfterHit: vs.StockExecutionConditionLO,
+				LimitPriceAfterHit:         995,
+			}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toStopConditionFromMarginStopOrder(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_toExitPositionList(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  []*kabuspb.ClosePosition
+		want []vs.ExitPosition
+	}{
+		{name: "nilならnilが返される", arg: nil, want: nil},
+		{name: "配列が空なら空配列が返される", arg: []*kabuspb.ClosePosition{}, want: []vs.ExitPosition{}},
+		{name: "配列内のnilはスキップされる", arg: []*kabuspb.ClosePosition{nil, nil, nil}, want: []vs.ExitPosition{}},
+		{name: "配列内の各項目が変換されて返される",
+			arg: []*kabuspb.ClosePosition{
+				{ExecutionId: "mpo-uuid-01", Quantity: 100},
+				{ExecutionId: "mpo-uuid-02", Quantity: 50},
+				{ExecutionId: "mpo-uuid-03", Quantity: 200},
+			},
+			want: []vs.ExitPosition{
+				{PositionCode: "mpo-uuid-01", Quantity: 100},
+				{PositionCode: "mpo-uuid-02", Quantity: 50},
+				{PositionCode: "mpo-uuid-03", Quantity: 200},
+			}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toExitPositionList(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.arg, got)
+			}
+		})
+	}
+}
+
+func Test_toMarginOrderRequest(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  *kabuspb.SendMarginOrderRequest
+		want *vs.MarginOrderRequest
+	}{
+		{name: "nilならnilを返す", arg: nil, want: nil},
+		{name: "各要素を対応付けて返す",
+			arg: &kabuspb.SendMarginOrderRequest{
+				Password:        "password",
+				SymbolCode:      "1234",
+				Exchange:        kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU,
+				Side:            kabuspb.Side_SIDE_BUY,
+				TradeType:       kabuspb.TradeType_TRADE_TYPE_EXIT,
+				MarginTradeType: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_SYSTEM,
+				DeliveryType:    kabuspb.DeliveryType_DELIVERY_TYPE_CASH,
+				AccountType:     kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC,
+				Quantity:        300,
+				ClosePositions: []*kabuspb.ClosePosition{
+					{ExecutionId: "mpo-uuid-01", Quantity: 100},
+					{ExecutionId: "mpo-uuid-02", Quantity: 200},
+				},
+				OrderType: kabuspb.StockOrderType_STOCK_ORDER_TYPE_LO,
+				Price:     1000,
+				ExpireDay: nil,
+				StopOrder: nil,
+				IsVirtual: true,
+			},
+			want: &vs.MarginOrderRequest{
+				TradeType:          vs.TradeTypeExit,
+				Side:               vs.SideBuy,
+				ExecutionCondition: vs.StockExecutionConditionLO,
+				SymbolCode:         "1234",
+				Quantity:           300,
+				LimitPrice:         1000,
+				ExpiredAt:          time.Time{},
+				StopCondition:      nil,
+				ExitPositionList: []vs.ExitPosition{
+					{PositionCode: "mpo-uuid-01", Quantity: 100},
+					{PositionCode: "mpo-uuid-02", Quantity: 200},
+				},
+			}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := toMarginOrderRequest(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromMarginOrders(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  []*vs.MarginOrder
+		want *kabuspb.Orders
+	}{
+		{name: "nilなら空配列を返す", arg: nil, want: &kabuspb.Orders{Orders: []*kabuspb.Order{}}},
+		{name: "空配列でも空配列を返す", arg: []*vs.MarginOrder{}, want: &kabuspb.Orders{Orders: []*kabuspb.Order{}}},
+		{name: "要素がnilならスキップする", arg: []*vs.MarginOrder{nil, nil, nil}, want: &kabuspb.Orders{Orders: []*kabuspb.Order{}}},
+		{name: "各要素を対応付けて返す",
+			arg: []*vs.MarginOrder{
+				{
+					Code:               "mor-1234",
+					OrderStatus:        vs.OrderStatusDone,
+					TradeType:          vs.TradeTypeEntry,
+					Side:               vs.SideBuy,
+					ExecutionCondition: vs.StockExecutionConditionMO,
+					SymbolCode:         "1234",
+					OrderQuantity:      100,
+					ContractedQuantity: 100,
+					CanceledQuantity:   0,
+					LimitPrice:         0,
+					ExpiredAt:          time.Date(2021, 7, 16, 0, 0, 0, 0, time.Local),
+					StopCondition:      nil,
+					OrderedAt:          time.Date(2021, 7, 16, 9, 0, 0, 0, time.Local),
+					CanceledAt:         time.Time{},
+					Contracts:          []*vs.Contract{},
+					Message:            "",
+				},
+			},
+			want: &kabuspb.Orders{Orders: []*kabuspb.Order{
+				{
+					Id:                 "mor-1234",
+					State:              kabuspb.State_STATE_DONE,
+					OrderState:         kabuspb.OrderState_ORDER_STATE_DONE,
+					OrderType:          kabuspb.OrderType_ORDER_TYPE_ZARABA,
+					ReceiveTime:        timestamppb.New(time.Date(2021, 7, 16, 9, 0, 0, 0, time.Local)),
+					SymbolCode:         "1234",
+					SymbolName:         "",
+					Exchange:           0,
+					ExchangeName:       "",
+					TimeInForce:        kabuspb.TimeInForce_TIME_IN_FORCE_UNSPECIFIED,
+					Price:              0,
+					OrderQuantity:      100,
+					CumulativeQuantity: 100,
+					Side:               kabuspb.Side_SIDE_BUY,
+					TradeType:          kabuspb.TradeType_TRADE_TYPE_ENTRY,
+					AccountType:        kabuspb.AccountType_ACCOUNT_TYPE_UNSPECIFIED,
+					DeliveryType:       kabuspb.DeliveryType_DELIVERY_TYPE_UNSPECIFIED,
+					ExpireDay:          timestamppb.New(time.Date(2021, 7, 16, 0, 0, 0, 0, time.Local)),
+					MarginTradeType:    kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_UNSPECIFIED,
+					Details:            []*kabuspb.OrderDetail{},
+				},
+			}}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromMarginOrders(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromTradeType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  vs.TradeType
+		want kabuspb.TradeType
+	}{
+		{name: "未指定 を変換できる", arg: vs.TradeTypeUnspecified, want: kabuspb.TradeType_TRADE_TYPE_UNSPECIFIED},
+		{name: "買い を変換できる", arg: vs.TradeTypeEntry, want: kabuspb.TradeType_TRADE_TYPE_ENTRY},
+		{name: "売り を変換できる", arg: vs.TradeTypeExit, want: kabuspb.TradeType_TRADE_TYPE_EXIT},
+		{name: "未定義 を変換できる", arg: vs.TradeType("foo"), want: kabuspb.TradeType_TRADE_TYPE_UNSPECIFIED},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromTradeType(test.arg)
+			if !reflect.DeepEqual(test.want, got) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
+			}
+		})
+	}
+}
+
+func Test_fromMarginPositions(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		arg  []*vs.MarginPosition
+		want *kabuspb.Positions
+	}{
+		{name: "nilなら空配列を返す", arg: nil, want: &kabuspb.Positions{Positions: []*kabuspb.Position{}}},
+		{name: "空配列でも空配列を返す", arg: []*vs.MarginPosition{}, want: &kabuspb.Positions{Positions: []*kabuspb.Position{}}},
+		{name: "各要素がnilならスキップする", arg: []*vs.MarginPosition{nil, nil, nil}, want: &kabuspb.Positions{Positions: []*kabuspb.Position{}}},
+		{name: "各要素を対応付けて返す",
+			arg: []*vs.MarginPosition{
+				{
+					Code:               "spo-1234",
+					OrderCode:          "sor-234",
+					SymbolCode:         "1234",
+					Side:               vs.SideBuy,
+					ContractedQuantity: 300,
+					OwnedQuantity:      300,
+					HoldQuantity:       100,
+					Price:              1000,
+					ContractedAt:       time.Date(2021, 7, 16, 14, 0, 0, 0, time.Local),
+				},
+			},
+			want: &kabuspb.Positions{Positions: []*kabuspb.Position{
+				{
+					ExecutionId:     "spo-1234",
+					AccountType:     kabuspb.AccountType_ACCOUNT_TYPE_UNSPECIFIED,
+					SymbolCode:      "1234",
+					SymbolName:      "",
+					Exchange:        0,
+					ExchangeName:    "",
+					SecurityType:    kabuspb.SecurityType_SECURITY_TYPE_UNSPECIFIED,
+					ExecutionDay:    timestamppb.New(time.Date(2021, 7, 16, 14, 0, 0, 0, time.Local)),
+					Price:           1000,
+					LeavesQuantity:  300,
+					HoldQuantity:    100,
+					Side:            kabuspb.Side_SIDE_BUY,
+					Expenses:        0,
+					Commission:      0,
+					CommissionTax:   0,
+					ExpireDay:       nil,
+					MarginTradeType: 0,
+					CurrentPrice:    0,
+					Valuation:       0,
+					ProfitLoss:      0,
+					ProfitLossRate:  0,
+				},
+			}}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got := fromMarginPositions(test.arg)
 			if !reflect.DeepEqual(test.want, got) {
 				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
 			}

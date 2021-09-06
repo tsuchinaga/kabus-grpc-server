@@ -157,6 +157,9 @@ message SendMarginOrderRequest {
 
   // 逆指値条件
   MarginStopOrder stop_order = 14;
+
+  // 仮想売買
+  bool is_virtual = 99;
 }
 
 // 逆指値条件(信用)

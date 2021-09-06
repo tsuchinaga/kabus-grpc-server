@@ -42,6 +42,11 @@ func (s *server) SendStockOrder(ctx context.Context, req *kabuspb.SendStockOrder
 }
 
 func (s *server) SendMarginOrder(ctx context.Context, req *kabuspb.SendMarginOrderRequest) (*kabuspb.OrderResponse, error) {
+	// 仮想証券会社の利用
+	if req.IsVirtual {
+		return s.virtual.SendOrderMargin(ctx, "", req)
+	}
+
 	token, err := s.tokenService.GetToken(context.Background())
 	if err != nil {
 		return nil, err
