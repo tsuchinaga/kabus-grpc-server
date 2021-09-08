@@ -89,6 +89,18 @@ func (s *security) Positions(_ context.Context, _ string, req *kabuspb.GetPositi
 	return &kabuspb.Positions{Positions: res}, nil
 }
 
+func (s *security) CancelOrder(_ context.Context, _ string, req *kabuspb.CancelOrderRequest) (*kabuspb.OrderResponse, error) {
+	var err error
+	prefix := string([]rune(req.OrderId)[:3])
+	switch prefix {
+	case "sor": // 現物
+		err = s.virtual.CancelStockOrder(&vs.CancelOrderRequest{OrderCode: req.OrderId})
+	case "mor": // 信用
+		err = s.virtual.CancelMarginOrder(&vs.CancelOrderRequest{OrderCode: req.OrderId})
+	}
+	return &kabuspb.OrderResponse{}, err
+}
+
 func (s *security) SendPrice(_ context.Context, req *kabuspb.Board) error {
 	if req == nil {
 		return nil

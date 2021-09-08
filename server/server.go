@@ -74,6 +74,11 @@ func (s *server) SendOptionOrder(ctx context.Context, req *kabuspb.SendOptionOrd
 }
 
 func (s *server) CancelOrder(ctx context.Context, req *kabuspb.CancelOrderRequest) (*kabuspb.OrderResponse, error) {
+	// 仮想証券会社の利用
+	if req.IsVirtual {
+		return s.virtual.CancelOrder(ctx, "", req)
+	}
+
 	token, err := s.tokenService.GetToken(ctx)
 	if err != nil {
 		return nil, err
