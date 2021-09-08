@@ -611,6 +611,39 @@ func Test_security_SendPrice(t *testing.T) {
 	}
 }
 
+func Test_security_SendOrderMargin(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		security vs.VirtualSecurity
+		want1    *kabuspb.OrderResponse
+		want2    error
+	}{
+		{name: "errが返されたらerrを返す",
+			security: &testVirtualSecurity{marginOrder2: vs.NilArgumentError},
+			want1:    nil,
+			want2:    vs.NilArgumentError,
+		},
+		{name: "errがなければ結果を返す",
+			security: &testVirtualSecurity{marginOrder1: &vs.OrderResult{OrderCode: "sor-1"}},
+			want1:    &kabuspb.OrderResponse{ResultCode: 0, OrderId: "sor-1"},
+			want2:    nil,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			security := &security{virtual: test.security}
+			got1, got2 := security.SendOrderMargin(context.Background(), "no-token", nil)
+			if !reflect.DeepEqual(test.want1, got1) || !errors.Is(got2, test.want2) {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want1, test.want2, got1, got2)
+			}
+		})
+	}
+}
+
 func Test_security_CancelOrder(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
