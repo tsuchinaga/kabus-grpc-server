@@ -312,6 +312,9 @@ message CancelOrderRequest {
 
   // 注文番号
   string order_id = 2;
+
+  // 仮想売買
+  bool is_virtual = 99;
 }
 
 // 取引余力（現物）リクエスト

@@ -16,28 +16,35 @@ import (
 
 type testVirtualSecurity struct {
 	vs.VirtualSecurity
-	stockOrder1          *vs.OrderResult
-	stockOrder2          error
-	stockOrders1         []*vs.StockOrder
-	stockOrders2         error
-	stockOrdersCount     int
-	stockPositions1      []*vs.StockPosition
-	stockPositions2      error
-	stockPositionsCount  int
-	registerPrice1       error
-	marginOrder1         *vs.OrderResult
-	marginOrder2         error
-	cancelMarginOrder    error
-	marginOrders1        []*vs.MarginOrder
-	marginOrders2        error
-	marginOrdersCount    int
-	marginPositions1     []*vs.MarginPosition
-	marginPositions2     error
-	marginPositionsCount int
+	stockOrder1            *vs.OrderResult
+	stockOrder2            error
+	cancelStockOrder       error
+	cancelStockOrderCount  int
+	stockOrders1           []*vs.StockOrder
+	stockOrders2           error
+	stockOrdersCount       int
+	stockPositions1        []*vs.StockPosition
+	stockPositions2        error
+	stockPositionsCount    int
+	registerPrice1         error
+	marginOrder1           *vs.OrderResult
+	marginOrder2           error
+	cancelMarginOrder      error
+	cancelMarginOrderCount int
+	marginOrders1          []*vs.MarginOrder
+	marginOrders2          error
+	marginOrdersCount      int
+	marginPositions1       []*vs.MarginPosition
+	marginPositions2       error
+	marginPositionsCount   int
 }
 
 func (t *testVirtualSecurity) StockOrder(*vs.StockOrderRequest) (*vs.OrderResult, error) {
 	return t.stockOrder1, t.stockOrder2
+}
+func (t *testVirtualSecurity) CancelStockOrder(*vs.CancelOrderRequest) error {
+	t.cancelStockOrderCount++
+	return t.cancelStockOrder
 }
 func (t *testVirtualSecurity) StockOrders() ([]*vs.StockOrder, error) {
 	t.stockOrdersCount++
@@ -54,6 +61,7 @@ func (t *testVirtualSecurity) MarginOrder(*vs.MarginOrderRequest) (*vs.OrderResu
 	return t.marginOrder1, t.marginOrder2
 }
 func (t *testVirtualSecurity) CancelMarginOrder(*vs.CancelOrderRequest) error {
+	t.cancelMarginOrderCount++
 	return t.cancelMarginOrder
 }
 func (t *testVirtualSecurity) MarginOrders() ([]*vs.MarginOrder, error) {
@@ -598,6 +606,57 @@ func Test_security_SendPrice(t *testing.T) {
 			got := security.SendPrice(context.Background(), test.arg)
 			if (got != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.hasError, got)
+			}
+		})
+	}
+}
+
+func Test_security_CancelOrder(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                       string
+		virtual                    *testVirtualSecurity
+		arg3                       *kabuspb.CancelOrderRequest
+		want1                      *kabuspb.OrderResponse
+		want2                      error
+		wantCancelStockOrderCount  int
+		wantCancelMarginOrderCount int
+	}{
+		{name: "注文コードが空文字なら何もしない",
+			virtual: &testVirtualSecurity{},
+			arg3:    &kabuspb.CancelOrderRequest{OrderId: ""},
+			want1:   &kabuspb.OrderResponse{}},
+		{name: "注文コードの先頭3文字が想定外の形なら何もしない",
+			virtual: &testVirtualSecurity{},
+			arg3:    &kabuspb.CancelOrderRequest{OrderId: "ORIGINAL-ORDER-CODE"},
+			want1:   &kabuspb.OrderResponse{}},
+		{name: "注文コードの先頭3文字がsorなら現物注文の取消を叩く",
+			virtual:                   &testVirtualSecurity{cancelStockOrder: vs.NoDataError},
+			arg3:                      &kabuspb.CancelOrderRequest{OrderId: "sor-uuid-001"},
+			want1:                     &kabuspb.OrderResponse{},
+			want2:                     vs.NoDataError,
+			wantCancelStockOrderCount: 1},
+		{name: "注文コードの先頭3文字がmorなら信用注文の取消を叩く",
+			virtual:                    &testVirtualSecurity{cancelMarginOrder: vs.NoDataError},
+			arg3:                       &kabuspb.CancelOrderRequest{OrderId: "mor-uuid-001"},
+			want1:                      &kabuspb.OrderResponse{},
+			want2:                      vs.NoDataError,
+			wantCancelMarginOrderCount: 1},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			security := &security{virtual: test.virtual}
+			got1, got2 := security.CancelOrder(context.Background(), "", test.arg3)
+			if !reflect.DeepEqual(test.want1, got1) ||
+				!errors.Is(got2, test.want2) ||
+				test.wantCancelStockOrderCount != test.virtual.cancelStockOrderCount ||
+				test.wantCancelMarginOrderCount != test.virtual.cancelMarginOrderCount {
+				t.Errorf("%s error\nwant: %+v, %+v, %+v, %+v\ngot: %+v, %+v, %+v, %+v\n", t.Name(),
+					test.want1, test.want2, test.wantCancelStockOrderCount, test.wantCancelMarginOrderCount,
+					got1, got2, test.virtual.cancelStockOrder, test.virtual.cancelMarginOrder)
 			}
 		})
 	}
