@@ -343,6 +343,7 @@ func fromOrders(orders *kabus.OrdersResponse) *kabuspb.Orders {
 			DeliveryType:       fromDelivType(order.DelivType),
 			ExpireDay:          timestamppb.New(order.ExpireDay.Time),
 			MarginTradeType:    fromMarginTradeType(order.MarginTradeType),
+			MarginPremium:      order.MarginPremium,
 			Details:            fromOrderDetails(order.Details),
 		}
 	}
@@ -540,8 +541,8 @@ func fromMarginTradeType(marginTradeType kabus.MarginTradeType) kabuspb.MarginTr
 		return kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_SYSTEM
 	case kabus.MarginTradeTypeGeneralLong:
 		return kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_LONG
-	case kabus.MarginTradeTypeGeneralShort:
-		return kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_SHORT
+	case kabus.MarginTradeTypeGeneralDay:
+		return kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_DAY
 	}
 	return kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_UNSPECIFIED
 }
@@ -1103,8 +1104,8 @@ func toMarginTradeType(tradeType kabuspb.MarginTradeType) kabus.MarginTradeType 
 		return kabus.MarginTradeTypeSystem
 	case kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_LONG:
 		return kabus.MarginTradeTypeGeneralLong
-	case kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_SHORT:
-		return kabus.MarginTradeTypeGeneralShort
+	case kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_DAY:
+		return kabus.MarginTradeTypeGeneralDay
 	}
 	return kabus.MarginTradeTypeUnspecified
 }
@@ -1338,10 +1339,10 @@ func fromPriceMessage(board kabus.PriceMessage) *kabuspb.Board {
 		TradingVolumeTime:        timestamppb.New(board.TradingVolumeTime),
 		Vwap:                     board.VWAP,
 		TradingValue:             board.TradingValue,
-		BidQuantity:              board.BidQty,
-		BidPrice:                 board.BidPrice,
-		BidTime:                  timestamppb.New(board.BidTime),
-		BidSign:                  fromBidAskSign(board.BidSign),
+		BidQuantity:              board.AskQty,
+		BidPrice:                 board.AskPrice,
+		BidTime:                  timestamppb.New(board.AskTime),
+		BidSign:                  fromBidAskSign(board.AskSign),
 		MarketOrderSellQuantity:  board.MarketOrderSellQty,
 		Sell1:                    fromFirstBoardSign(board.Sell1),
 		Sell2:                    fromBoardSign(board.Sell2),
@@ -1353,10 +1354,10 @@ func fromPriceMessage(board kabus.PriceMessage) *kabuspb.Board {
 		Sell8:                    fromBoardSign(board.Sell8),
 		Sell9:                    fromBoardSign(board.Sell9),
 		Sell10:                   fromBoardSign(board.Sell10),
-		AskQuantity:              board.AskQty,
-		AskPrice:                 board.AskPrice,
-		AskTime:                  timestamppb.New(board.AskTime),
-		AskSign:                  fromBidAskSign(board.AskSign),
+		AskQuantity:              board.BidQty,
+		AskPrice:                 board.BidPrice,
+		AskTime:                  timestamppb.New(board.BidTime),
+		AskSign:                  fromBidAskSign(board.BidSign),
 		MarketOrderBuyQuantity:   board.MarketOrderBuyQty,
 		Buy1:                     fromFirstBoardSign(board.Buy1),
 		Buy2:                     fromBoardSign(board.Buy2),

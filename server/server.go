@@ -11,21 +11,28 @@ import (
 
 func NewServer(
 	security repositories.Security,
+	virtual repositories.VirtualSecurity,
 	tokenService services.TokenService,
 	registerSymbolService services.RegisterSymbolService,
 	boardStreamService services.BoardStreamService) kabuspb.KabusServiceServer {
-	return &server{security: security, tokenService: tokenService, registerSymbolService: registerSymbolService, boardStreamService: boardStreamService}
+	return &server{security: security, virtual: virtual, tokenService: tokenService, registerSymbolService: registerSymbolService, boardStreamService: boardStreamService}
 }
 
 type server struct {
 	kabuspb.UnimplementedKabusServiceServer
 	security              repositories.Security
+	virtual               repositories.VirtualSecurity
 	tokenService          services.TokenService
 	registerSymbolService services.RegisterSymbolService
 	boardStreamService    services.BoardStreamService
 }
 
 func (s *server) SendStockOrder(ctx context.Context, req *kabuspb.SendStockOrderRequest) (*kabuspb.OrderResponse, error) {
+	// 仮想証券会社の利用
+	if req.IsVirtual {
+		return s.virtual.SendOrderStock(ctx, "", req)
+	}
+
 	token, err := s.tokenService.GetToken(context.Background())
 	if err != nil {
 		return nil, err
@@ -35,6 +42,11 @@ func (s *server) SendStockOrder(ctx context.Context, req *kabuspb.SendStockOrder
 }
 
 func (s *server) SendMarginOrder(ctx context.Context, req *kabuspb.SendMarginOrderRequest) (*kabuspb.OrderResponse, error) {
+	// 仮想証券会社の利用
+	if req.IsVirtual {
+		return s.virtual.SendOrderMargin(ctx, "", req)
+	}
+
 	token, err := s.tokenService.GetToken(context.Background())
 	if err != nil {
 		return nil, err
@@ -62,6 +74,11 @@ func (s *server) SendOptionOrder(ctx context.Context, req *kabuspb.SendOptionOrd
 }
 
 func (s *server) CancelOrder(ctx context.Context, req *kabuspb.CancelOrderRequest) (*kabuspb.OrderResponse, error) {
+	// 仮想証券会社の利用
+	if req.IsVirtual {
+		return s.virtual.CancelOrder(ctx, "", req)
+	}
+
 	token, err := s.tokenService.GetToken(ctx)
 	if err != nil {
 		return nil, err
@@ -116,6 +133,11 @@ func (s *server) GetBoard(ctx context.Context, req *kabuspb.GetBoardRequest) (*k
 }
 
 func (s *server) GetOrders(ctx context.Context, req *kabuspb.GetOrdersRequest) (*kabuspb.Orders, error) {
+	// 仮想証券会社の利用
+	if req.IsVirtual {
+		return s.virtual.Orders(ctx, "", req)
+	}
+
 	token, err := s.tokenService.GetToken(ctx)
 	if err != nil {
 		return nil, err
@@ -125,6 +147,11 @@ func (s *server) GetOrders(ctx context.Context, req *kabuspb.GetOrdersRequest) (
 }
 
 func (s *server) GetPositions(ctx context.Context, req *kabuspb.GetPositionsRequest) (*kabuspb.Positions, error) {
+	// 仮想証券会社の利用
+	if req.IsVirtual {
+		return s.virtual.Positions(ctx, "", req)
+	}
+
 	token, err := s.tokenService.GetToken(ctx)
 	if err != nil {
 		return nil, err
@@ -169,6 +196,7 @@ func (s *server) RegisterSymbols(ctx context.Context, req *kabuspb.RegisterSymbo
 	}
 
 	s.registerSymbolService.Add(req.RequesterName, req.Symbols)
+	s.boardStreamService.Start() // 銘柄を登録された段階で仮想証券会社への通知を始める
 
 	return &kabuspb.RegisteredSymbols{
 		Symbols: s.registerSymbolService.Get(req.RequesterName),
@@ -187,6 +215,7 @@ func (s *server) UnregisterSymbols(ctx context.Context, req *kabuspb.UnregisterS
 	}
 
 	s.registerSymbolService.Remove(req.RequesterName, req.Symbols)
+	s.boardStreamService.Start() // 銘柄を登録された段階で仮想証券会社への通知を始める
 
 	return &kabuspb.RegisteredSymbols{
 		Symbols: s.registerSymbolService.Get(req.RequesterName),

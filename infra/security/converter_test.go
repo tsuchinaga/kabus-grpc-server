@@ -484,6 +484,7 @@ func Test_fromOrders(t *testing.T) {
 				DelivType:       kabus.DelivTypeCash,
 				ExpireDay:       kabus.YmdNUM{Time: time.Date(2021, 3, 31, 0, 0, 0, 0, time.Local)},
 				MarginTradeType: kabus.MarginTradeTypeUnspecified,
+				MarginPremium:   55.0,
 				Details:         []kabus.OrderDetail{},
 			}},
 			want: &kabuspb.Orders{Orders: []*kabuspb.Order{{
@@ -506,6 +507,7 @@ func Test_fromOrders(t *testing.T) {
 				DeliveryType:       kabuspb.DeliveryType_DELIVERY_TYPE_CASH,
 				ExpireDay:          timestamppb.New(time.Date(2021, 3, 31, 0, 0, 0, 0, time.Local)),
 				MarginTradeType:    kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_UNSPECIFIED,
+				MarginPremium:      55.0,
 				Details:            []*kabuspb.OrderDetail{},
 			}}}},
 		{name: "渡す要素が2つなら要素が2つの配列が返される",
@@ -529,6 +531,7 @@ func Test_fromOrders(t *testing.T) {
 				DelivType:       kabus.DelivTypeCash,
 				ExpireDay:       kabus.YmdNUM{Time: time.Date(2021, 3, 31, 0, 0, 0, 0, time.Local)},
 				MarginTradeType: kabus.MarginTradeTypeUnspecified,
+				MarginPremium:   55.0,
 				Details:         []kabus.OrderDetail{},
 			}, {
 				ID:              "20210331A02N36008399",
@@ -550,6 +553,7 @@ func Test_fromOrders(t *testing.T) {
 				DelivType:       kabus.DelivTypeUnspecified,
 				ExpireDay:       kabus.YmdNUM{Time: time.Date(2021, 3, 31, 0, 0, 0, 0, time.Local)},
 				MarginTradeType: kabus.MarginTradeTypeUnspecified,
+				MarginPremium:   88.0,
 				Details:         []kabus.OrderDetail{},
 			}},
 			want: &kabuspb.Orders{Orders: []*kabuspb.Order{{
@@ -572,6 +576,7 @@ func Test_fromOrders(t *testing.T) {
 				DeliveryType:       kabuspb.DeliveryType_DELIVERY_TYPE_CASH,
 				ExpireDay:          timestamppb.New(time.Date(2021, 3, 31, 0, 0, 0, 0, time.Local)),
 				MarginTradeType:    kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_UNSPECIFIED,
+				MarginPremium:      55.0,
 				Details:            []*kabuspb.OrderDetail{},
 			}, {
 				Id:                 "20210331A02N36008399",
@@ -593,6 +598,7 @@ func Test_fromOrders(t *testing.T) {
 				DeliveryType:       kabuspb.DeliveryType_DELIVERY_TYPE_UNSPECIFIED,
 				ExpireDay:          timestamppb.New(time.Date(2021, 3, 31, 0, 0, 0, 0, time.Local)),
 				MarginTradeType:    kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_UNSPECIFIED,
+				MarginPremium:      88.0,
 				Details:            []*kabuspb.OrderDetail{},
 			}}}},
 	}
@@ -1075,8 +1081,8 @@ func Test_fromMarginTradeType(t *testing.T) {
 	}{
 		{name: "未指定 を変換できる", arg: kabus.MarginTradeTypeUnspecified, want: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_UNSPECIFIED},
 		{name: "制度信用 を変換できる", arg: kabus.MarginTradeTypeSystem, want: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_SYSTEM},
-		{name: "一般信用 を変換できる", arg: kabus.MarginTradeTypeGeneralLong, want: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_LONG},
-		{name: "一般信用(売短) を変換できる", arg: kabus.MarginTradeTypeGeneralShort, want: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_SHORT},
+		{name: "一般信用(長期) を変換できる", arg: kabus.MarginTradeTypeGeneralLong, want: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_LONG},
+		{name: "一般信用(デイトレ) を変換できる", arg: kabus.MarginTradeTypeGeneralDay, want: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_DAY},
 		{name: "未定義 を変換できる", arg: kabus.MarginTradeType(-1), want: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_UNSPECIFIED},
 	}
 
@@ -1995,8 +2001,8 @@ func Test_toMarginTradeType(t *testing.T) {
 	}{
 		{name: "未指定 を変換できる", arg: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_UNSPECIFIED, want: kabus.MarginTradeTypeUnspecified},
 		{name: "制度信用 を変換できる", arg: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_SYSTEM, want: kabus.MarginTradeTypeSystem},
-		{name: "一般信用 を変換できる", arg: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_LONG, want: kabus.MarginTradeTypeGeneralLong},
-		{name: "一般信用(売短) を変換できる", arg: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_SHORT, want: kabus.MarginTradeTypeGeneralShort},
+		{name: "一般信用(長期) を変換できる", arg: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_LONG, want: kabus.MarginTradeTypeGeneralLong},
+		{name: "一般信用(デイトレ) を変換できる", arg: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_GENERAL_DAY, want: kabus.MarginTradeTypeGeneralDay},
 		{name: "未定義 を変換できる", arg: kabuspb.MarginTradeType(-1), want: kabus.MarginTradeTypeUnspecified},
 	}
 
@@ -2769,8 +2775,8 @@ func Test_fromPriceMessage(t *testing.T) {
 		TradingVolumeTime:        timestamppb.New(time.Date(2020, 7, 22, 15, 0, 0, 0, time.Local)),
 		Vwap:                     2394.4262,
 		TradingValue:             10946119350,
-		BidQuantity:              100,
-		BidPrice:                 2408.5,
+		BidQuantity:              200,
+		BidPrice:                 2407.5,
 		BidTime:                  timestamppb.New(time.Date(2020, 7, 22, 14, 59, 59, 0, time.Local)),
 		BidSign:                  "0101",
 		MarketOrderSellQuantity:  0,
@@ -2784,8 +2790,8 @@ func Test_fromPriceMessage(t *testing.T) {
 		Sell8:                    &kabuspb.Quote{Price: 2412, Quantity: 27200},
 		Sell9:                    &kabuspb.Quote{Price: 2412.5, Quantity: 400},
 		Sell10:                   &kabuspb.Quote{Price: 2413, Quantity: 16400},
-		AskQuantity:              200,
-		AskPrice:                 2407.5,
+		AskQuantity:              100,
+		AskPrice:                 2408.5,
 		AskTime:                  timestamppb.New(time.Date(2020, 7, 22, 14, 59, 59, 0, time.Local)),
 		AskSign:                  "0101",
 		MarketOrderBuyQuantity:   0,

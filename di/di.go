@@ -5,9 +5,11 @@ import (
 	"gitlab.com/tsuchinaga/kabus-grpc-server/infra"
 	"gitlab.com/tsuchinaga/kabus-grpc-server/infra/security"
 	"gitlab.com/tsuchinaga/kabus-grpc-server/infra/stores"
+	"gitlab.com/tsuchinaga/kabus-grpc-server/infra/virtual"
 	"gitlab.com/tsuchinaga/kabus-grpc-server/kabuspb"
 	"gitlab.com/tsuchinaga/kabus-grpc-server/server"
 	"gitlab.com/tsuchinaga/kabus-grpc-server/server/services"
+	vs "gitlab.com/tsuchinaga/kabus-virtual-security"
 )
 
 func InjectedServer() kabuspb.KabusServiceServer {
@@ -15,6 +17,7 @@ func InjectedServer() kabuspb.KabusServiceServer {
 	return server.NewServer(
 		security.NewSecurity(
 			kabus.NewRESTClient(setting.IsProduction())),
+		virtual.NewSecurity(vs.NewVirtualSecurity()),
 		services.NewTokenService(
 			stores.GetTokenStore(),
 			security.NewSecurity(
@@ -25,5 +28,6 @@ func InjectedServer() kabuspb.KabusServiceServer {
 			stores.GetRegisterSymbolStore()),
 		services.NewBoardStreamService(
 			stores.GetBoardStreamStore(),
-			security.GetBoardWS(setting.IsProduction())))
+			security.GetBoardWS(setting.IsProduction()),
+			virtual.NewSecurity(vs.NewVirtualSecurity())))
 }

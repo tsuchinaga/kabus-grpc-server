@@ -87,6 +87,9 @@ message SendStockOrderRequest {
 
   // 逆指値条件
   StockStopOrder stop_order = 12;
+
+  // 仮想売買
+  bool is_virtual = 99;
 }
 
 // 逆指値条件(現物)
@@ -154,6 +157,9 @@ message SendMarginOrderRequest {
 
   // 逆指値条件
   MarginStopOrder stop_order = 14;
+
+  // 仮想売買
+  bool is_virtual = 99;
 }
 
 // 逆指値条件(信用)
@@ -306,6 +312,9 @@ message CancelOrderRequest {
 
   // 注文番号
   string order_id = 2;
+
+  // 仮想売買
+  bool is_virtual = 99;
 }
 
 // 取引余力（現物）リクエスト
@@ -404,6 +413,9 @@ message GetOrdersRequest {
   //   指定された取引区分と一致する注文のみレスポンスします
   //   複数の取引区分を指定することができません
   TradeType tradeType = 8;
+
+  // 仮想売買
+  bool is_virtual = 99;
 }
 
 // 残高照会リクエスト
@@ -419,6 +431,9 @@ message GetPositionsRequest{
 
   // 追加情報出力フラグ
   bool get_info = 4;
+
+  // 仮想売買
+  bool is_virtual = 99;
 }
 
 // 先物銘柄コード取得リクエスト
@@ -641,19 +656,19 @@ message Board {
   //   株式・先物・オプション銘柄の場合のみ
   double trading_value = 23;
 
-  // 最良売気配数量
+  // 最良買気配数量
   //   株式・先物・オプション銘柄の場合のみ
   double bid_quantity = 24;
 
-  // 最良売気配値段
+  // 最良買気配値段
   //   株式・先物・オプション銘柄の場合のみ
   double bid_price = 25;
 
-  // 最良売気配時刻
+  // 最良買気配時刻
   //  株式銘柄の場合のみ
   google.protobuf.Timestamp bid_time = 26;
 
-  // 最良売気配フラグ
+  // 最良買気配フラグ
   //   株式・先物・オプション銘柄の場合のみ
   string bid_sign = 27; // TODO enum化
 
@@ -691,19 +706,19 @@ message Board {
   // 売気配数量10本目
   Quote sell10 = 38;
 
-  // 最良買気配数量
+  // 最良売気配数量
   //   株式・先物・オプション銘柄の場合のみ
   double ask_quantity = 39;
 
-  // 最良買気配値段
+  // 最良売気配値段
   //   株式・先物・オプション銘柄の場合のみ
   double ask_price = 40;
 
-  // 最良買気配時刻
+  // 最良売気配時刻
   //  株式銘柄の場合のみ
   google.protobuf.Timestamp ask_time = 41;
 
-  // 最良買気配フラグ
+  // 最良売気配フラグ
   //   株式・先物・オプション銘柄の場合のみ
   string ask_sign = 42; // TODO enum化
 
@@ -984,6 +999,9 @@ message Order {
 
   // 信用取引区分
   MarginTradeType margin_trade_type = 19;
+
+  // プレミアム料
+  double margin_premium = 21;
 
   // 注文詳細
   repeated OrderDetail details = 20;
@@ -1744,8 +1762,10 @@ enum DeliveryType {
 enum MarginTradeType {
   MARGIN_TRADE_TYPE_UNSPECIFIED = 0; // 未指定
   MARGIN_TRADE_TYPE_SYSTEM = 1; // 制度信用
-  MARGIN_TRADE_TYPE_GENERAL_LONG = 2; // 一般信用
-  MARGIN_TRADE_TYPE_GENERAL_SHORT = 3; // 一般信用(売短)
+  MARGIN_TRADE_TYPE_GENERAL_LONG = 2; // 一般信用(長期)
+  // MARGIN_TRADE_TYPE_GENERAL_SHORT = 3 [deprecated = true]; // 一般信用(売短)
+  reserved 3;
+  MARGIN_TRADE_TYPE_GENERAL_DAY = 4; // 一般信用(デイトレ)
 }
 
 // 有効期間条件

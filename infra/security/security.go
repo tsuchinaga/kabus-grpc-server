@@ -2,6 +2,7 @@ package security
 
 import (
 	"context"
+	"time"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -48,10 +49,10 @@ func (s *security) Board(ctx context.Context, token string, req *kabuspb.GetBoar
 		TradingVolumeTime:        timestamppb.New(res.TradingVolumeTime),
 		Vwap:                     res.VWAP,
 		TradingValue:             res.TradingValue,
-		BidQuantity:              res.BidQty,
-		BidPrice:                 res.BidPrice,
-		BidTime:                  timestamppb.New(res.BidTime),
-		BidSign:                  fromBidAskSign(res.BidSign),
+		BidQuantity:              res.AskQty,
+		BidPrice:                 res.AskPrice,
+		BidTime:                  timestamppb.New(res.AskTime),
+		BidSign:                  fromBidAskSign(res.AskSign),
 		MarketOrderSellQuantity:  res.MarketOrderSellQty,
 		Sell1:                    fromFirstBoardSign(res.Sell1),
 		Sell2:                    fromBoardSign(res.Sell2),
@@ -63,10 +64,10 @@ func (s *security) Board(ctx context.Context, token string, req *kabuspb.GetBoar
 		Sell8:                    fromBoardSign(res.Sell8),
 		Sell9:                    fromBoardSign(res.Sell9),
 		Sell10:                   fromBoardSign(res.Sell10),
-		AskQuantity:              res.AskQty,
-		AskPrice:                 res.AskPrice,
-		AskTime:                  timestamppb.New(res.AskTime),
-		AskSign:                  fromBidAskSign(res.AskSign),
+		AskQuantity:              res.BidQty,
+		AskPrice:                 res.BidPrice,
+		AskTime:                  timestamppb.New(res.BidTime),
+		AskSign:                  fromBidAskSign(res.BidSign),
 		MarketOrderBuyQuantity:   res.MarketOrderBuyQty,
 		Buy1:                     fromFirstBoardSign(res.Buy1),
 		Buy2:                     fromBoardSign(res.Buy2),
@@ -127,7 +128,7 @@ func (s *security) Orders(ctx context.Context, token string, req *kabuspb.GetOrd
 	res, err := s.restClient.OrdersWithContext(ctx, token, kabus.OrdersRequest{
 		Product:          toProduct(req.Product),
 		ID:               req.Id,
-		UpdateTime:       req.UpdateTime.AsTime(),
+		UpdateTime:       req.UpdateTime.AsTime().In(time.Local),
 		IsGetOrderDetail: toIsGetOrderDetail(req.GetDetails),
 		Symbol:           req.SymbolCode,
 		State:            toOrderState(req.State),

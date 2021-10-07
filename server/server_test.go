@@ -233,17 +233,49 @@ type testBoardStreamService struct {
 	connect error
 }
 
+func (t *testBoardStreamService) Start() {}
 func (t *testBoardStreamService) Connect(kabuspb.KabusService_GetBoardsStreamingServer) error {
 	return t.connect
 }
 
+type testVirtualSecurity struct {
+	repositories.VirtualSecurity
+	orders1          *kabuspb.Orders
+	orders2          error
+	positions1       *kabuspb.Positions
+	positions2       error
+	sendOrderStock1  *kabuspb.OrderResponse
+	sendOrderStock2  error
+	sendOrderMargin1 *kabuspb.OrderResponse
+	sendOrderMargin2 error
+	cancelOrder1     *kabuspb.OrderResponse
+	cancelOrder2     error
+}
+
+func (t *testVirtualSecurity) Orders(context.Context, string, *kabuspb.GetOrdersRequest) (*kabuspb.Orders, error) {
+	return t.orders1, t.orders2
+}
+func (t *testVirtualSecurity) Positions(context.Context, string, *kabuspb.GetPositionsRequest) (*kabuspb.Positions, error) {
+	return t.positions1, t.positions2
+}
+func (t *testVirtualSecurity) SendOrderStock(context.Context, string, *kabuspb.SendStockOrderRequest) (*kabuspb.OrderResponse, error) {
+	return t.sendOrderStock1, t.sendOrderStock2
+}
+func (t *testVirtualSecurity) SendOrderMargin(context.Context, string, *kabuspb.SendMarginOrderRequest) (*kabuspb.OrderResponse, error) {
+	return t.sendOrderMargin1, t.sendOrderMargin2
+}
+func (t *testVirtualSecurity) CancelOrder(context.Context, string, *kabuspb.CancelOrderRequest) (*kabuspb.OrderResponse, error) {
+	return t.cancelOrder1, t.cancelOrder2
+}
+
 func Test_NewServer(t *testing.T) {
 	security := &testSecurity{}
+	virtual := &testVirtualSecurity{}
 	tokenService := &testTokenService{}
 	registerSymbolService := &testRegisterSymbolService{}
 	boardStreamService := &testBoardStreamService{}
-	got := NewServer(security, tokenService, registerSymbolService, boardStreamService)
-	want := &server{security: security, tokenService: tokenService, registerSymbolService: registerSymbolService, boardStreamService: boardStreamService}
+	got := NewServer(security, virtual, tokenService, registerSymbolService, boardStreamService)
+	want := &server{security: security, virtual: virtual, tokenService: tokenService, registerSymbolService: registerSymbolService, boardStreamService: boardStreamService}
 	t.Parallel()
 	if !reflect.DeepEqual(want, got) {
 		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want, got)
@@ -323,7 +355,8 @@ func Test_server_RegisterSymbols(t *testing.T) {
 			server := &server{
 				security:              &testSecurity{register1: test.register1, register2: test.register2},
 				tokenService:          &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
-				registerSymbolService: registerSymbolService}
+				registerSymbolService: registerSymbolService,
+				boardStreamService:    &testBoardStreamService{}}
 			got1, got2 := server.RegisterSymbols(context.Background(), test.arg)
 			got3 := registerSymbolService.lastAddRequester
 			got4 := registerSymbolService.lastAddSymbols
@@ -379,7 +412,8 @@ func Test_server_UnregisterSymbols(t *testing.T) {
 			server := &server{
 				security:              &testSecurity{unregister1: test.unregister1, unregister2: test.unregister2},
 				tokenService:          &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
-				registerSymbolService: registerSymbolService}
+				registerSymbolService: registerSymbolService,
+				boardStreamService:    &testBoardStreamService{}}
 			got1, got2 := server.UnregisterSymbols(context.Background(), test.arg)
 			got3 := registerSymbolService.lastRemoveRequester
 			got4 := registerSymbolService.lastRemoveSymbols
@@ -612,30 +646,47 @@ func Test_server_GetOrders(t *testing.T) {
 		getToken2 error
 		orders1   *kabuspb.Orders
 		orders2   error
+		server    kabuspb.KabusServiceServer
+		arg       *kabuspb.GetOrdersRequest
 		want      *kabuspb.Orders
 		hasError  bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
-			getToken2: errors.New("get token error message"),
-			hasError:  true},
+			server: &server{
+				tokenService: &testTokenService{getToken2: errors.New("get token error message")}},
+			arg:      &kabuspb.GetOrdersRequest{IsVirtual: false},
+			hasError: true},
 		{name: "Ordersでエラーがあればエラーを返す",
-			getToken1: "TOKEN_STRING",
-			orders2:   errors.New("register error message"),
-			hasError:  true},
+			server: &server{
+				security:     &testSecurity{orders2: errors.New("register error message")},
+				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
+			arg:      &kabuspb.GetOrdersRequest{IsVirtual: false},
+			hasError: true},
 		{name: "Ordersの結果を結果を返す",
-			getToken1: "TOKEN_STRING",
-			orders1:   &kabuspb.Orders{Orders: []*kabuspb.Order{{Id: "20210331A02N36008399"}}},
-			want:      &kabuspb.Orders{Orders: []*kabuspb.Order{{Id: "20210331A02N36008399"}}}},
+			server: &server{
+				security:     &testSecurity{orders1: &kabuspb.Orders{Orders: []*kabuspb.Order{{Id: "20210331A02N36008399"}}}},
+				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
+			arg:  &kabuspb.GetOrdersRequest{IsVirtual: false},
+			want: &kabuspb.Orders{Orders: []*kabuspb.Order{{Id: "20210331A02N36008399"}}}},
+		{name: "仮想証券会社を指定して、Ordersでエラーがあればエラーを返す",
+			server: &server{
+				virtual:      &testVirtualSecurity{orders2: errors.New("register error message")},
+				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
+			arg:      &kabuspb.GetOrdersRequest{IsVirtual: true},
+			hasError: true},
+		{name: "仮想証券会社を指定して、Ordersの結果を結果を返す",
+			server: &server{
+				virtual:      &testVirtualSecurity{orders1: &kabuspb.Orders{Orders: []*kabuspb.Order{{Id: "20210331A02N36008399"}}}},
+				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
+			arg:  &kabuspb.GetOrdersRequest{IsVirtual: true},
+			want: &kabuspb.Orders{Orders: []*kabuspb.Order{{Id: "20210331A02N36008399"}}}},
 	}
 
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			server := &server{
-				security:     &testSecurity{orders1: test.orders1, orders2: test.orders2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
-			got1, got2 := server.GetOrders(context.Background(), &kabuspb.GetOrdersRequest{})
+			got1, got2 := test.server.GetOrders(context.Background(), test.arg)
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}
@@ -646,35 +697,47 @@ func Test_server_GetOrders(t *testing.T) {
 func Test_server_GetPositions(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name       string
-		getToken1  string
-		getToken2  error
-		positions1 *kabuspb.Positions
-		positions2 error
-		want       *kabuspb.Positions
-		hasError   bool
+		name     string
+		server   kabuspb.KabusServiceServer
+		arg      *kabuspb.GetPositionsRequest
+		want     *kabuspb.Positions
+		hasError bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
-			getToken2: errors.New("get token error message"),
-			hasError:  true},
+			server:   &server{tokenService: &testTokenService{getToken2: errors.New("get token error message")}},
+			arg:      &kabuspb.GetPositionsRequest{IsVirtual: false},
+			hasError: true},
 		{name: "Positionsでエラーがあればエラーを返す",
-			getToken1:  "TOKEN_STRING",
-			positions2: errors.New("register error message"),
-			hasError:   true},
+			server: &server{
+				security:     &testSecurity{positions2: errors.New("register error message")},
+				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
+			arg:      &kabuspb.GetPositionsRequest{IsVirtual: false},
+			hasError: true},
 		{name: "Positionsの結果を結果を返す",
-			getToken1:  "TOKEN_STRING",
-			positions1: &kabuspb.Positions{Positions: []*kabuspb.Position{{ExecutionId: "20210331A02N36008399"}}},
-			want:       &kabuspb.Positions{Positions: []*kabuspb.Position{{ExecutionId: "20210331A02N36008399"}}}},
+			server: &server{
+				security:     &testSecurity{positions1: &kabuspb.Positions{Positions: []*kabuspb.Position{{ExecutionId: "20210331A02N36008399"}}}},
+				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
+			arg:  &kabuspb.GetPositionsRequest{IsVirtual: false},
+			want: &kabuspb.Positions{Positions: []*kabuspb.Position{{ExecutionId: "20210331A02N36008399"}}}},
+		{name: "仮想証券会社を指定して、Positionsでエラーがあればエラーを返す",
+			server: &server{
+				virtual:      &testVirtualSecurity{positions2: errors.New("register error message")},
+				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
+			arg:      &kabuspb.GetPositionsRequest{IsVirtual: true},
+			hasError: true},
+		{name: "仮想証券会社を指定して、Positionsの結果を結果を返す",
+			server: &server{
+				virtual:      &testVirtualSecurity{positions1: &kabuspb.Positions{Positions: []*kabuspb.Position{{ExecutionId: "20210331A02N36008399"}}}},
+				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
+			arg:  &kabuspb.GetPositionsRequest{IsVirtual: true},
+			want: &kabuspb.Positions{Positions: []*kabuspb.Position{{ExecutionId: "20210331A02N36008399"}}}},
 	}
 
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			server := &server{
-				security:     &testSecurity{positions1: test.positions1, positions2: test.positions2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
-			got1, got2 := server.GetPositions(context.Background(), &kabuspb.GetPositionsRequest{})
+			got1, got2 := test.server.GetPositions(context.Background(), test.arg)
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}
@@ -919,35 +982,47 @@ func Test_server_GetIndustryRanking(t *testing.T) {
 func Test_server_SendStockOrder(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name            string
-		getToken1       string
-		getToken2       error
-		sendOrderStock1 *kabuspb.OrderResponse
-		sendOrderStock2 error
-		want            *kabuspb.OrderResponse
-		hasError        bool
+		name     string
+		server   kabuspb.KabusServiceServer
+		want     *kabuspb.OrderResponse
+		arg      *kabuspb.SendStockOrderRequest
+		hasError bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
-			getToken2: errors.New("get token error message"),
-			hasError:  true},
+			server:   &server{tokenService: &testTokenService{getToken2: errors.New("get token error message")}},
+			arg:      &kabuspb.SendStockOrderRequest{IsVirtual: false},
+			hasError: true},
 		{name: "エラーがあればエラーを返す",
-			getToken1:       "TOKEN_STRING",
-			sendOrderStock2: errors.New("register error message"),
-			hasError:        true},
+			server: &server{
+				security:     &testSecurity{sendOrderStock2: errors.New("register error message")},
+				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
+			arg:      &kabuspb.SendStockOrderRequest{IsVirtual: false},
+			hasError: true},
 		{name: "エラーがなければ結果を返す",
-			getToken1:       "TOKEN_STRING",
-			sendOrderStock1: &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"},
-			want:            &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"}},
+			server: &server{
+				security:     &testSecurity{sendOrderStock1: &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"}},
+				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
+			arg:  &kabuspb.SendStockOrderRequest{IsVirtual: false},
+			want: &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"}},
+		{name: "仮想証券会社を指定していて、エラーがあればエラーを返す",
+			server: &server{
+				virtual:      &testVirtualSecurity{sendOrderStock2: errors.New("register error message")},
+				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
+			arg:      &kabuspb.SendStockOrderRequest{IsVirtual: true},
+			hasError: true},
+		{name: "仮想証券会社を指定していて、エラーがなければ結果を返す",
+			server: &server{
+				virtual:      &testVirtualSecurity{sendOrderStock1: &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"}},
+				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
+			arg:  &kabuspb.SendStockOrderRequest{IsVirtual: true},
+			want: &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"}},
 	}
 
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			server := &server{
-				security:     &testSecurity{sendOrderStock1: test.sendOrderStock1, sendOrderStock2: test.sendOrderStock2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
-			got1, got2 := server.SendStockOrder(context.Background(), &kabuspb.SendStockOrderRequest{})
+			got1, got2 := test.server.SendStockOrder(context.Background(), test.arg)
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}
@@ -958,25 +1033,35 @@ func Test_server_SendStockOrder(t *testing.T) {
 func Test_server_SendMarginOrder(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name             string
-		getToken1        string
-		getToken2        error
-		sendOrderMargin1 *kabuspb.OrderResponse
-		sendOrderMargin2 error
-		want             *kabuspb.OrderResponse
-		hasError         bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		sendOrderMargin1        *kabuspb.OrderResponse
+		sendOrderMargin2        error
+		virtualSendOrderMargin1 *kabuspb.OrderResponse
+		virtualSendOrderMargin2 error
+		arg2                    *kabuspb.SendMarginOrderRequest
+		want                    *kabuspb.OrderResponse
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
+			arg2:      &kabuspb.SendMarginOrderRequest{},
 			hasError:  true},
 		{name: "エラーがあればエラーを返す",
 			getToken1:        "TOKEN_STRING",
 			sendOrderMargin2: errors.New("register error message"),
+			arg2:             &kabuspb.SendMarginOrderRequest{},
 			hasError:         true},
 		{name: "エラーがなければ結果を返す",
 			getToken1:        "TOKEN_STRING",
 			sendOrderMargin1: &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"},
+			arg2:             &kabuspb.SendMarginOrderRequest{},
 			want:             &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"}},
+		{name: "仮想証券会社が指定されていれば仮想証券会社の結果を返す",
+			virtualSendOrderMargin1: &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"},
+			arg2:                    &kabuspb.SendMarginOrderRequest{IsVirtual: true},
+			want:                    &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"}},
 	}
 
 	for _, test := range tests {
@@ -985,8 +1070,9 @@ func Test_server_SendMarginOrder(t *testing.T) {
 			t.Parallel()
 			server := &server{
 				security:     &testSecurity{sendOrderMargin1: test.sendOrderMargin1, sendOrderMargin2: test.sendOrderMargin2},
+				virtual:      &testVirtualSecurity{sendOrderMargin1: test.virtualSendOrderMargin1, sendOrderMargin2: test.virtualSendOrderMargin2},
 				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
-			got1, got2 := server.SendMarginOrder(context.Background(), &kabuspb.SendMarginOrderRequest{})
+			got1, got2 := server.SendMarginOrder(context.Background(), test.arg2)
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}
@@ -1075,25 +1161,35 @@ func Test_server_SendOptionOrder(t *testing.T) {
 func Test_server_CancelOrder(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name         string
-		getToken1    string
-		getToken2    error
-		cancelOrder1 *kabuspb.OrderResponse
-		cancelOrder2 error
-		want         *kabuspb.OrderResponse
-		hasError     bool
+		name                string
+		getToken1           string
+		getToken2           error
+		cancelOrder1        *kabuspb.OrderResponse
+		cancelOrder2        error
+		virtualCancelOrder1 *kabuspb.OrderResponse
+		virtualCancelOrder2 error
+		arg2                *kabuspb.CancelOrderRequest
+		want                *kabuspb.OrderResponse
+		hasError            bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
+			arg2:      &kabuspb.CancelOrderRequest{},
 			getToken2: errors.New("get token error message"),
 			hasError:  true},
 		{name: "エラーがあればエラーを返す",
+			arg2:         &kabuspb.CancelOrderRequest{},
 			getToken1:    "TOKEN_STRING",
 			cancelOrder2: errors.New("register error message"),
 			hasError:     true},
 		{name: "エラーがなければ結果を返す",
+			arg2:         &kabuspb.CancelOrderRequest{},
 			getToken1:    "TOKEN_STRING",
 			cancelOrder1: &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"},
 			want:         &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"}},
+		{name: "仮想証券会社が指定されていれば、仮想証券会社を叩く",
+			arg2:                &kabuspb.CancelOrderRequest{IsVirtual: true},
+			virtualCancelOrder1: &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"},
+			want:                &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"}},
 	}
 
 	for _, test := range tests {
@@ -1102,8 +1198,9 @@ func Test_server_CancelOrder(t *testing.T) {
 			t.Parallel()
 			server := &server{
 				security:     &testSecurity{cancelOrder1: test.cancelOrder1, cancelOrder2: test.cancelOrder2},
+				virtual:      &testVirtualSecurity{cancelOrder1: test.virtualCancelOrder1, cancelOrder2: test.virtualCancelOrder2},
 				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
-			got1, got2 := server.CancelOrder(context.Background(), &kabuspb.CancelOrderRequest{})
+			got1, got2 := server.CancelOrder(context.Background(), test.arg2)
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}
