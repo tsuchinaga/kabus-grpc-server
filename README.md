@@ -16,7 +16,7 @@ kabusapiを叩くためのgRPCサーバー
 
 ## run
 
-`$ go run main.go -e=p -p=Password1234`
+`$ go run cmd/kabus_grpc_server.go -e=p -p=Password1234`
 
 * `e`: 環境。本番がp、検証がd。デフォルトd
 * `p`: パスワード。
