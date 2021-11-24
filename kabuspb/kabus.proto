@@ -1612,6 +1612,13 @@ message SoftLimit {
   string kabus_version = 6;
 }
 
+message RequestError {
+  int32 status_code = 1;
+  string body = 2;
+  int32 code = 3;
+  string message = 4;
+}
+
 // 市場
 enum Exchange {
   EXCHANGE_UNSPECIFIED = 0; // 指定なし
