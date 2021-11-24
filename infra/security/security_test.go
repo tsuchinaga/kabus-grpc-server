@@ -1530,3 +1530,31 @@ func Test_security_SoftLimit(t *testing.T) {
 		})
 	}
 }
+
+func Test_security_toRequestError(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name  string
+		arg1  error
+		want1 string
+	}{
+		{name: "パース対象でない型が返されたら、そのまま返す",
+			arg1:  errors.New("custom error"),
+			want1: "custom error"},
+		{name: "ErrorResponse型が返されたら、詰めて返す",
+			arg1:  kabus.ErrorResponse{StatusCode: 500, Body: `{"Code":47,"Message":"該当注文は既に取消済です"}`, Code: 47, Message: "該当注文は既に取消済です"},
+			want1: `rpc error: code = Internal desc = 該当注文は既に取消済です`},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			security := &security{}
+			got1 := security.toRequestError(test.arg1).Error()
+			if !reflect.DeepEqual(test.want1, got1) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want1, got1)
+			}
+		})
+	}
+}

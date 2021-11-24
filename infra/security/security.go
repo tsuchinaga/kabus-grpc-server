@@ -4,6 +4,9 @@ import (
 	"context"
 	"time"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"gitlab.com/tsuchinaga/kabus-grpc-server/server/repositories"
@@ -23,7 +26,7 @@ type security struct {
 func (s *security) Board(ctx context.Context, token string, req *kabuspb.GetBoardRequest) (*kabuspb.Board, error) {
 	res, err := s.restClient.BoardWithContext(ctx, token, kabus.BoardRequest{Symbol: req.SymbolCode, Exchange: toExchange(req.Exchange)})
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return &kabuspb.Board{
 		SymbolCode:               res.Symbol,
@@ -94,7 +97,7 @@ func (s *security) Board(ctx context.Context, token string, req *kabuspb.GetBoar
 func (s *security) Symbol(ctx context.Context, token string, req *kabuspb.GetSymbolRequest) (*kabuspb.Symbol, error) {
 	res, err := s.restClient.SymbolWithContext(ctx, token, kabus.SymbolRequest{Symbol: req.SymbolCode, Exchange: toExchange(req.Exchange), AddInfo: toGetSymbolInfo(req.GetInfo)})
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return &kabuspb.Symbol{
 		Code:               res.Symbol,
@@ -136,7 +139,7 @@ func (s *security) Orders(ctx context.Context, token string, req *kabuspb.GetOrd
 		CashMargin:       toCashMargin(req.TradeType),
 	})
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 
 	return fromOrders(res), nil
@@ -150,7 +153,7 @@ func (s *security) Positions(ctx context.Context, token string, req *kabuspb.Get
 		AddInfo: toGetPositionInfo(req.GetInfo),
 	})
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 
 	return fromPositions(res), nil
@@ -162,7 +165,7 @@ func (s *security) SymbolNameFuture(ctx context.Context, token string, req *kabu
 		DerivMonth: toYmNum(req.DerivativeMonth),
 	})
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return &kabuspb.SymbolCodeInfo{Code: res.Symbol, Name: res.SymbolName}, nil
 }
@@ -174,7 +177,7 @@ func (s *security) SymbolNameOption(ctx context.Context, token string, req *kabu
 		StrikePrice: int(req.StrikePrice),
 	})
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return &kabuspb.SymbolCodeInfo{Code: res.Symbol, Name: res.SymbolName}, nil
 }
@@ -182,7 +185,7 @@ func (s *security) SymbolNameOption(ctx context.Context, token string, req *kabu
 func (s *security) Token(ctx context.Context, password string) (string, error) {
 	token, err := s.restClient.TokenWithContext(ctx, kabus.TokenRequest{APIPassword: password})
 	if err != nil {
-		return "", err
+		return "", s.toRequestError(err)
 	}
 	return token.Token, nil
 }
@@ -194,7 +197,7 @@ func (s *security) RegisterSymbols(ctx context.Context, token string, req *kabus
 	}
 	res, err := s.restClient.RegisterWithContext(ctx, token, kabus.RegisterRequest{Symbols: symbols})
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 
 	resSymbols := make([]*kabuspb.RegisterSymbol, len(res.RegisterList))
@@ -211,7 +214,7 @@ func (s *security) UnregisterSymbols(ctx context.Context, token string, req *kab
 	}
 	res, err := s.restClient.UnregisterWithContext(ctx, token, kabus.UnregisterRequest{Symbols: symbols})
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 
 	resSymbols := make([]*kabuspb.RegisterSymbol, len(res.RegisterList))
@@ -224,7 +227,7 @@ func (s *security) UnregisterSymbols(ctx context.Context, token string, req *kab
 func (s *security) UnregisterAll(ctx context.Context, token string, _ *kabuspb.UnregisterAllSymbolsRequest) (*kabuspb.RegisteredSymbols, error) {
 	res, err := s.restClient.UnregisterAllWithContext(ctx, token)
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 
 	resSymbols := make([]*kabuspb.RegisterSymbol, len(res.RegisterList))
@@ -240,7 +243,7 @@ func (s *security) PriceRanking(ctx context.Context, token string, req *kabuspb.
 		ExchangeDivision: toExchangeDivision(req.ExchangeDivision),
 	})
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return fromRankingToPriceRanking(res), nil
 }
@@ -251,7 +254,7 @@ func (s *security) TickRanking(ctx context.Context, token string, req *kabuspb.G
 		ExchangeDivision: toExchangeDivision(req.ExchangeDivision),
 	})
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return fromRankingToTickRanking(res), nil
 }
@@ -262,7 +265,7 @@ func (s *security) VolumeRanking(ctx context.Context, token string, req *kabuspb
 		ExchangeDivision: toExchangeDivision(req.ExchangeDivision),
 	})
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return fromRankingToVolumeRanking(res), nil
 }
@@ -273,7 +276,7 @@ func (s *security) ValueRanking(ctx context.Context, token string, req *kabuspb.
 		ExchangeDivision: toExchangeDivision(req.ExchangeDivision),
 	})
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return fromRankingToValueRanking(res), nil
 }
@@ -284,7 +287,7 @@ func (s *security) MarginRanking(ctx context.Context, token string, req *kabuspb
 		ExchangeDivision: toExchangeDivision(req.ExchangeDivision),
 	})
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return fromRankingToMarginRanking(res), nil
 }
@@ -295,7 +298,7 @@ func (s *security) IndustryRanking(ctx context.Context, token string, req *kabus
 		ExchangeDivision: toExchangeDivision(req.ExchangeDivision),
 	})
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return fromRankingToIndustryRanking(res), nil
 }
@@ -303,7 +306,7 @@ func (s *security) IndustryRanking(ctx context.Context, token string, req *kabus
 func (s *security) SendOrderStock(ctx context.Context, token string, req *kabuspb.SendStockOrderRequest) (*kabuspb.OrderResponse, error) {
 	res, err := s.restClient.SendOrderStockWithContext(ctx, token, toSendOrderStockRequestFromSendStockOrderRequest(req))
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return &kabuspb.OrderResponse{ResultCode: int32(res.Result), OrderId: res.OrderID}, nil
 }
@@ -311,7 +314,7 @@ func (s *security) SendOrderStock(ctx context.Context, token string, req *kabusp
 func (s *security) SendOrderMargin(ctx context.Context, token string, req *kabuspb.SendMarginOrderRequest) (*kabuspb.OrderResponse, error) {
 	res, err := s.restClient.SendOrderStockWithContext(ctx, token, toSendOrderStockRequestFromSendMarginOrderRequest(req))
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return &kabuspb.OrderResponse{ResultCode: int32(res.Result), OrderId: res.OrderID}, nil
 }
@@ -319,7 +322,7 @@ func (s *security) SendOrderMargin(ctx context.Context, token string, req *kabus
 func (s *security) SendOrderFuture(ctx context.Context, token string, req *kabuspb.SendFutureOrderRequest) (*kabuspb.OrderResponse, error) {
 	res, err := s.restClient.SendOrderFutureWithContext(ctx, token, toSendOrderFutureRequest(req))
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return &kabuspb.OrderResponse{ResultCode: int32(res.Result), OrderId: res.OrderID}, nil
 }
@@ -327,7 +330,7 @@ func (s *security) SendOrderFuture(ctx context.Context, token string, req *kabus
 func (s *security) SendOrderOption(ctx context.Context, token string, req *kabuspb.SendOptionOrderRequest) (*kabuspb.OrderResponse, error) {
 	res, err := s.restClient.SendOrderOptionWithContext(ctx, token, toSendOrderOptionRequest(req))
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return &kabuspb.OrderResponse{ResultCode: int32(res.Result), OrderId: res.OrderID}, nil
 }
@@ -335,7 +338,7 @@ func (s *security) SendOrderOption(ctx context.Context, token string, req *kabus
 func (s *security) CancelOrder(ctx context.Context, token string, req *kabuspb.CancelOrderRequest) (*kabuspb.OrderResponse, error) {
 	res, err := s.restClient.CancelOrderWithContext(ctx, token, toCancelOrderRequest(req))
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return &kabuspb.OrderResponse{ResultCode: int32(res.Result), OrderId: res.OrderID}, nil
 }
@@ -352,7 +355,7 @@ func (s *security) GetStockWallet(ctx context.Context, token string, req *kabusp
 	}
 
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return &kabuspb.StockWallet{StockAccountWallet: res.StockAccountWallet}, nil
 }
@@ -369,7 +372,7 @@ func (s *security) GetMarginWallet(ctx context.Context, token string, req *kabus
 	}
 
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return &kabuspb.MarginWallet{
 		MarginAccountWallet:          res.MarginAccountWallet,
@@ -391,7 +394,7 @@ func (s *security) GetFutureWallet(ctx context.Context, token string, req *kabus
 	}
 
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return &kabuspb.FutureWallet{FutureTradeLimit: res.FutureTradeLimit, MarginRequirement: res.MarginRequirement}, nil
 }
@@ -408,7 +411,7 @@ func (s *security) GetOptionWallet(ctx context.Context, token string, req *kabus
 	}
 
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return &kabuspb.OptionWallet{
 		OptionBuyTradeLimit:  res.OptionBuyTradeLimit,
@@ -420,7 +423,7 @@ func (s *security) GetOptionWallet(ctx context.Context, token string, req *kabus
 func (s *security) Exchange(ctx context.Context, token string, req *kabuspb.GetExchangeRequest) (*kabuspb.ExchangeInfo, error) {
 	res, err := s.restClient.ExchangeWithContext(ctx, token, kabus.ExchangeRequest{Symbol: toExchangeSymbol(req.Currency)})
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return &kabuspb.ExchangeInfo{
 		Currency: fromExchangeSymbolDetail(res.Symbol),
@@ -435,7 +438,7 @@ func (s *security) Exchange(ctx context.Context, token string, req *kabuspb.GetE
 func (s *security) Regulation(ctx context.Context, token string, req *kabuspb.GetRegulationRequest) (*kabuspb.Regulation, error) {
 	res, err := s.restClient.RegulationWithContext(ctx, token, kabus.RegulationRequest{Symbol: req.SymbolCode, Exchange: toStockExchange(req.Exchange)})
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return &kabuspb.Regulation{
 		SymbolCode:         res.Symbol,
@@ -446,7 +449,7 @@ func (s *security) Regulation(ctx context.Context, token string, req *kabuspb.Ge
 func (s *security) PrimaryExchange(ctx context.Context, token string, req *kabuspb.GetPrimaryExchangeRequest) (*kabuspb.PrimaryExchange, error) {
 	res, err := s.restClient.PrimaryExchangeWithContext(ctx, token, kabus.PrimaryExchangeRequest{Symbol: req.SymbolCode})
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return &kabuspb.PrimaryExchange{SymbolCode: res.Symbol, PrimaryExchange: fromStockExchange(res.PrimaryExchange)}, nil
 }
@@ -454,7 +457,7 @@ func (s *security) PrimaryExchange(ctx context.Context, token string, req *kabus
 func (s *security) SoftLimit(ctx context.Context, token string, _ *kabuspb.GetSoftLimitRequest) (*kabuspb.SoftLimit, error) {
 	res, err := s.restClient.SoftLimitWithContext(ctx, token, kabus.SoftLimitRequest{})
 	if err != nil {
-		return nil, err
+		return nil, s.toRequestError(err)
 	}
 	return &kabuspb.SoftLimit{
 		Stock:        res.Stock,
@@ -464,4 +467,20 @@ func (s *security) SoftLimit(ctx context.Context, token string, _ *kabuspb.GetSo
 		Option:       res.Option,
 		KabusVersion: res.KabuSVersion,
 	}, nil
+}
+
+// toRequestError - エラーコードをprotobuf定義のエラーに変えれるなら変えて返す、変えれないならそのまま返す
+func (s *security) toRequestError(err error) error {
+	switch e := err.(type) {
+	case kabus.ErrorResponse:
+		st := status.New(codes.Internal, e.Message)
+		dt, _ := st.WithDetails(&kabuspb.RequestError{
+			StatusCode: int32(e.StatusCode),
+			Body:       e.Body,
+			Code:       int32(e.Code),
+			Message:    e.Message,
+		})
+		return dt.Err()
+	}
+	return err
 }
