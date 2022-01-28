@@ -18,62 +18,63 @@ import (
 
 type testSecurity struct {
 	repositories.Security
-	register1         *kabuspb.RegisteredSymbols
-	register2         error
-	unregister1       *kabuspb.RegisteredSymbols
-	unregister2       error
-	unregisterAll1    *kabuspb.RegisteredSymbols
-	unregisterAll2    error
-	symbolNameFuture1 *kabuspb.SymbolCodeInfo
-	symbolNameFuture2 error
-	symbolNameOption1 *kabuspb.SymbolCodeInfo
-	symbolNameOption2 error
-	board1            *kabuspb.Board
-	board2            error
-	symbol1           *kabuspb.Symbol
-	symbol2           error
-	orders1           *kabuspb.Orders
-	orders2           error
-	positions1        *kabuspb.Positions
-	positions2        error
-	priceRanking1     *kabuspb.PriceRanking
-	priceRanking2     error
-	tickRanking1      *kabuspb.TickRanking
-	tickRanking2      error
-	volumeRanking1    *kabuspb.VolumeRanking
-	volumeRanking2    error
-	valueRanking1     *kabuspb.ValueRanking
-	valueRanking2     error
-	marginRanking1    *kabuspb.MarginRanking
-	marginRanking2    error
-	industryRanking1  *kabuspb.IndustryRanking
-	industryRanking2  error
-	sendOrderStock1   *kabuspb.OrderResponse
-	sendOrderStock2   error
-	sendOrderMargin1  *kabuspb.OrderResponse
-	sendOrderMargin2  error
-	sendOrderFuture1  *kabuspb.OrderResponse
-	sendOrderFuture2  error
-	sendOrderOption1  *kabuspb.OrderResponse
-	sendOrderOption2  error
-	cancelOrder1      *kabuspb.OrderResponse
-	cancelOrder2      error
-	getStockWallet1   *kabuspb.StockWallet
-	getStockWallet2   error
-	getMarginWallet1  *kabuspb.MarginWallet
-	getMarginWallet2  error
-	getFutureWallet1  *kabuspb.FutureWallet
-	getFutureWallet2  error
-	getOptionWallet1  *kabuspb.OptionWallet
-	getOptionWallet2  error
-	exchange1         *kabuspb.ExchangeInfo
-	exchange2         error
-	regulation1       *kabuspb.Regulation
-	regulation2       error
-	primaryExchange1  *kabuspb.PrimaryExchange
-	primaryExchange2  error
-	softLimit1        *kabuspb.SoftLimit
-	softLimit2        error
+	register1               *kabuspb.RegisteredSymbols
+	register2               error
+	unregister1             *kabuspb.RegisteredSymbols
+	unregister2             error
+	unregisterAll1          *kabuspb.RegisteredSymbols
+	unregisterAll2          error
+	symbolNameFuture1       *kabuspb.SymbolCodeInfo
+	symbolNameFuture2       error
+	symbolNameOption1       *kabuspb.SymbolCodeInfo
+	symbolNameOption2       error
+	board1                  *kabuspb.Board
+	board2                  error
+	symbol1                 *kabuspb.Symbol
+	symbol2                 error
+	orders1                 *kabuspb.Orders
+	orders2                 error
+	positions1              *kabuspb.Positions
+	positions2              error
+	priceRanking1           *kabuspb.PriceRanking
+	priceRanking2           error
+	tickRanking1            *kabuspb.TickRanking
+	tickRanking2            error
+	volumeRanking1          *kabuspb.VolumeRanking
+	volumeRanking2          error
+	valueRanking1           *kabuspb.ValueRanking
+	valueRanking2           error
+	marginRanking1          *kabuspb.MarginRanking
+	marginRanking2          error
+	industryRanking1        *kabuspb.IndustryRanking
+	industryRanking2        error
+	sendOrderStock1         *kabuspb.OrderResponse
+	sendOrderStock2         error
+	sendOrderMargin1        *kabuspb.OrderResponse
+	sendOrderMargin2        error
+	sendOrderFuture1        *kabuspb.OrderResponse
+	sendOrderFuture2        error
+	sendOrderOption1        *kabuspb.OrderResponse
+	sendOrderOption2        error
+	cancelOrder1            *kabuspb.OrderResponse
+	cancelOrder2            error
+	getStockWallet1         *kabuspb.StockWallet
+	getStockWallet2         error
+	getMarginWallet1        *kabuspb.MarginWallet
+	getMarginWallet2        error
+	getFutureWallet1        *kabuspb.FutureWallet
+	getFutureWallet2        error
+	getOptionWallet1        *kabuspb.OptionWallet
+	getOptionWallet2        error
+	exchange1               *kabuspb.ExchangeInfo
+	exchange2               error
+	regulation1             *kabuspb.Regulation
+	regulation2             error
+	primaryExchange1        *kabuspb.PrimaryExchange
+	primaryExchange2        error
+	softLimit1              *kabuspb.SoftLimit
+	softLimit2              error
+	isMissMatchApiKeyError1 bool
 }
 
 func (t *testSecurity) RegisterSymbols(context.Context, string, *kabuspb.RegisterSymbolsRequest) (*kabuspb.RegisteredSymbols, error) {
@@ -186,6 +187,10 @@ func (t *testSecurity) PrimaryExchange(context.Context, string, *kabuspb.GetPrim
 
 func (t *testSecurity) SoftLimit(context.Context, string, *kabuspb.GetSoftLimitRequest) (*kabuspb.SoftLimit, error) {
 	return t.softLimit1, t.softLimit2
+}
+
+func (t *testSecurity) IsMissMatchApiKeyError(error) bool {
+	return t.isMissMatchApiKeyError1
 }
 
 type testTokenService struct {
@@ -316,18 +321,21 @@ func Test_server_GetRegisteredSymbols(t *testing.T) {
 func Test_server_RegisterSymbols(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name      string
-		getToken1 string
-		getToken2 error
-		register1 *kabuspb.RegisteredSymbols
-		register2 error
-		countAll  int
-		get       []*kabuspb.RegisterSymbol
-		arg       *kabuspb.RegisterSymbolsRequest
-		want      *kabuspb.RegisteredSymbols
-		hasError  bool
-		wantAdd1  string
-		wantAdd2  []*kabuspb.RegisterSymbol
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		register1               *kabuspb.RegisteredSymbols
+		register2               error
+		isMissMatchApiKeyError1 bool
+		countAll                int
+		get                     []*kabuspb.RegisterSymbol
+		arg                     *kabuspb.RegisterSymbolsRequest
+		want                    *kabuspb.RegisteredSymbols
+		hasError                bool
+		wantAdd1                string
+		wantAdd2                []*kabuspb.RegisterSymbol
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -336,6 +344,18 @@ func Test_server_RegisterSymbols(t *testing.T) {
 			getToken1: "TOKEN_STRING",
 			register2: errors.New("register error message"),
 			hasError:  true},
+		{name: "RegisterのエラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			register2:               errors.New("miss match api key error message"),
+			refresh2:                errors.New("refresh error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "RegisterのエラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			register2:               errors.New("miss match api key error message"),
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "リクエストをStoreに保存してから結果を返す",
 			getToken1: "TOKEN_STRING",
 			register1: &kabuspb.RegisteredSymbols{Symbols: []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
@@ -353,8 +373,8 @@ func Test_server_RegisterSymbols(t *testing.T) {
 			t.Parallel()
 			registerSymbolService := &testRegisterSymbolService{countAll: test.countAll, get: test.get}
 			server := &server{
-				security:              &testSecurity{register1: test.register1, register2: test.register2},
-				tokenService:          &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
+				security:              &testSecurity{register1: test.register1, register2: test.register2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService:          &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2},
 				registerSymbolService: registerSymbolService,
 				boardStreamService:    &testBoardStreamService{}}
 			got1, got2 := server.RegisterSymbols(context.Background(), test.arg)
@@ -372,18 +392,21 @@ func Test_server_RegisterSymbols(t *testing.T) {
 func Test_server_UnregisterSymbols(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name        string
-		getToken1   string
-		getToken2   error
-		unregister1 *kabuspb.RegisteredSymbols
-		unregister2 error
-		want        *kabuspb.RegisteredSymbols
-		hasError    bool
-		countAll    int
-		get         []*kabuspb.RegisterSymbol
-		arg         *kabuspb.UnregisterSymbolsRequest
-		wantRemove1 string
-		wantRemove2 []*kabuspb.RegisterSymbol
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		unregister1             *kabuspb.RegisteredSymbols
+		unregister2             error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.RegisteredSymbols
+		hasError                bool
+		countAll                int
+		get                     []*kabuspb.RegisterSymbol
+		arg                     *kabuspb.UnregisterSymbolsRequest
+		wantRemove1             string
+		wantRemove2             []*kabuspb.RegisterSymbol
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -392,6 +415,18 @@ func Test_server_UnregisterSymbols(t *testing.T) {
 			getToken1:   "TOKEN_STRING",
 			unregister2: errors.New("register error message"),
 			hasError:    true},
+		{name: "UnregisterのエラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			unregister2:             errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "UnregisterのエラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			unregister2:             errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "リクエストの結果をStoreに保存してから結果を返す",
 			getToken1:   "TOKEN_STRING",
 			unregister1: &kabuspb.RegisteredSymbols{Symbols: []*kabuspb.RegisterSymbol{{SymbolCode: "2345", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
@@ -410,8 +445,8 @@ func Test_server_UnregisterSymbols(t *testing.T) {
 			t.Parallel()
 			registerSymbolService := &testRegisterSymbolService{countAll: test.countAll, get: test.get}
 			server := &server{
-				security:              &testSecurity{unregister1: test.unregister1, unregister2: test.unregister2},
-				tokenService:          &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
+				security:              &testSecurity{unregister1: test.unregister1, unregister2: test.unregister2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService:          &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2},
 				registerSymbolService: registerSymbolService,
 				boardStreamService:    &testBoardStreamService{}}
 			got1, got2 := server.UnregisterSymbols(context.Background(), test.arg)
@@ -427,18 +462,21 @@ func Test_server_UnregisterSymbols(t *testing.T) {
 func Test_server_UnregisterAllSymbols(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name           string
-		getToken1      string
-		getToken2      error
-		unregisterAll1 *kabuspb.RegisteredSymbols
-		unregisterAll2 error
-		want           *kabuspb.RegisteredSymbols
-		hasError       bool
-		countAll       int
-		get            []*kabuspb.RegisterSymbol
-		arg            *kabuspb.UnregisterAllSymbolsRequest
-		wantRemove1    string
-		wantRemove2    []*kabuspb.RegisterSymbol
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		unregisterAll1          *kabuspb.RegisteredSymbols
+		unregisterAll2          error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.RegisteredSymbols
+		hasError                bool
+		countAll                int
+		get                     []*kabuspb.RegisterSymbol
+		arg                     *kabuspb.UnregisterAllSymbolsRequest
+		wantRemove1             string
+		wantRemove2             []*kabuspb.RegisterSymbol
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -447,6 +485,18 @@ func Test_server_UnregisterAllSymbols(t *testing.T) {
 			getToken1:      "TOKEN_STRING",
 			unregisterAll2: errors.New("register error message"),
 			hasError:       true},
+		{name: "UnregisterAllのエラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			unregisterAll2:          errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "UnregisterAllのエラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			unregisterAll2:          errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "UnregisterAllの結果をStoreに保存してから結果を返す",
 			getToken1:      "TOKEN_STRING",
 			unregisterAll1: &kabuspb.RegisteredSymbols{Symbols: []*kabuspb.RegisterSymbol{{SymbolCode: "1234", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU}}},
@@ -464,8 +514,8 @@ func Test_server_UnregisterAllSymbols(t *testing.T) {
 			t.Parallel()
 			registerSymbolService := &testRegisterSymbolService{countAll: test.countAll, get: test.get}
 			server := &server{
-				security:              &testSecurity{unregisterAll1: test.unregisterAll1, unregisterAll2: test.unregisterAll2},
-				tokenService:          &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2},
+				security:              &testSecurity{unregisterAll1: test.unregisterAll1, unregisterAll2: test.unregisterAll2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService:          &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2},
 				registerSymbolService: registerSymbolService}
 			got1, got2 := server.UnregisterAllSymbols(context.Background(), test.arg)
 			got3 := registerSymbolService.lastRemoveRequester
@@ -480,13 +530,16 @@ func Test_server_UnregisterAllSymbols(t *testing.T) {
 func Test_server_GetFutureSymbolCodeInfo(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name              string
-		getToken1         string
-		getToken2         error
-		symbolNameFuture1 *kabuspb.SymbolCodeInfo
-		symbolNameFuture2 error
-		want              *kabuspb.SymbolCodeInfo
-		hasError          bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		symbolNameFuture1       *kabuspb.SymbolCodeInfo
+		symbolNameFuture2       error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.SymbolCodeInfo
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -495,6 +548,18 @@ func Test_server_GetFutureSymbolCodeInfo(t *testing.T) {
 			getToken1:         "TOKEN_STRING",
 			symbolNameFuture2: errors.New("register error message"),
 			hasError:          true},
+		{name: "SymbolNameFutureのエラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			symbolNameFuture2:       errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "SymbolNameFutureのエラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			symbolNameFuture2:       errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "SymbolNameFutureの結果を結果を返す",
 			getToken1:         "TOKEN_STRING",
 			symbolNameFuture1: &kabuspb.SymbolCodeInfo{Code: "166060018", Name: "日経平均先物 21/06"},
@@ -506,8 +571,8 @@ func Test_server_GetFutureSymbolCodeInfo(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{symbolNameFuture1: test.symbolNameFuture1, symbolNameFuture2: test.symbolNameFuture2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				security:     &testSecurity{symbolNameFuture1: test.symbolNameFuture1, symbolNameFuture2: test.symbolNameFuture2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.GetFutureSymbolCodeInfo(context.Background(), &kabuspb.GetFutureSymbolCodeInfoRequest{
 				FutureCode:      kabuspb.FutureCode_FUTURE_CODE_NK225,
 				DerivativeMonth: timestamppb.Now()})
@@ -521,13 +586,16 @@ func Test_server_GetFutureSymbolCodeInfo(t *testing.T) {
 func Test_server_GetOptionSymbolCodeInfo(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name              string
-		getToken1         string
-		getToken2         error
-		symbolNameOption1 *kabuspb.SymbolCodeInfo
-		symbolNameOption2 error
-		want              *kabuspb.SymbolCodeInfo
-		hasError          bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		symbolNameOption1       *kabuspb.SymbolCodeInfo
+		symbolNameOption2       error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.SymbolCodeInfo
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -536,6 +604,18 @@ func Test_server_GetOptionSymbolCodeInfo(t *testing.T) {
 			getToken1:         "TOKEN_STRING",
 			symbolNameOption2: errors.New("register error message"),
 			hasError:          true},
+		{name: "SymbolNameOptionのエラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			symbolNameOption2:       errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "SymbolNameOptionのエラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			symbolNameOption2:       errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "SymbolNameOptionの結果を結果を返す",
 			getToken1:         "TOKEN_STRING",
 			symbolNameOption1: &kabuspb.SymbolCodeInfo{Code: "166060018", Name: "日経平均先物 21/06"},
@@ -547,8 +627,8 @@ func Test_server_GetOptionSymbolCodeInfo(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{symbolNameOption1: test.symbolNameOption1, symbolNameOption2: test.symbolNameOption2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				security:     &testSecurity{symbolNameOption1: test.symbolNameOption1, symbolNameOption2: test.symbolNameOption2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.GetOptionSymbolCodeInfo(context.Background(), &kabuspb.GetOptionSymbolCodeInfoRequest{
 				DerivativeMonth: timestamppb.Now(),
 				CallOrPut:       kabuspb.CallPut_CALL_PUT_CALL,
@@ -563,13 +643,16 @@ func Test_server_GetOptionSymbolCodeInfo(t *testing.T) {
 func Test_server_GetBoard(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name      string
-		getToken1 string
-		getToken2 error
-		board1    *kabuspb.Board
-		board2    error
-		want      *kabuspb.Board
-		hasError  bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		board1                  *kabuspb.Board
+		board2                  error
+		refresh1                string
+		refresh2                error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.Board
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -578,6 +661,18 @@ func Test_server_GetBoard(t *testing.T) {
 			getToken1: "TOKEN_STRING",
 			board2:    errors.New("register error message"),
 			hasError:  true},
+		{name: "BoardのエラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			board2:                  errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "BoardのエラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			board2:                  errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "Boardの結果を結果を返す",
 			getToken1: "TOKEN_STRING",
 			board1:    &kabuspb.Board{SymbolCode: "5401", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU},
@@ -589,8 +684,8 @@ func Test_server_GetBoard(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{board1: test.board1, board2: test.board2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				security:     &testSecurity{board1: test.board1, board2: test.board2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.GetBoard(context.Background(), &kabuspb.GetBoardRequest{SymbolCode: "5401", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -602,13 +697,16 @@ func Test_server_GetBoard(t *testing.T) {
 func Test_server_GetSymbol(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name      string
-		getToken1 string
-		getToken2 error
-		symbol1   *kabuspb.Symbol
-		symbol2   error
-		want      *kabuspb.Symbol
-		hasError  bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		symbol1                 *kabuspb.Symbol
+		symbol2                 error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.Symbol
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -617,6 +715,18 @@ func Test_server_GetSymbol(t *testing.T) {
 			getToken1: "TOKEN_STRING",
 			symbol2:   errors.New("register error message"),
 			hasError:  true},
+		{name: "SymbolのエラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			symbol2:                 errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "SymbolのエラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			symbol2:                 errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "Symbolの結果を結果を返す",
 			getToken1: "TOKEN_STRING",
 			symbol1:   &kabuspb.Symbol{Code: "5401", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU},
@@ -628,8 +738,8 @@ func Test_server_GetSymbol(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{symbol1: test.symbol1, symbol2: test.symbol2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				security:     &testSecurity{symbol1: test.symbol1, symbol2: test.symbol2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.GetSymbol(context.Background(), &kabuspb.GetSymbolRequest{SymbolCode: "5401", Exchange: kabuspb.Exchange_EXCHANGE_TOUSHOU})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -641,15 +751,11 @@ func Test_server_GetSymbol(t *testing.T) {
 func Test_server_GetOrders(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name      string
-		getToken1 string
-		getToken2 error
-		orders1   *kabuspb.Orders
-		orders2   error
-		server    kabuspb.KabusServiceServer
-		arg       *kabuspb.GetOrdersRequest
-		want      *kabuspb.Orders
-		hasError  bool
+		name     string
+		server   kabuspb.KabusServiceServer
+		arg      *kabuspb.GetOrdersRequest
+		want     *kabuspb.Orders
+		hasError bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			server: &server{
@@ -660,6 +766,18 @@ func Test_server_GetOrders(t *testing.T) {
 			server: &server{
 				security:     &testSecurity{orders2: errors.New("register error message")},
 				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
+			arg:      &kabuspb.GetOrdersRequest{IsVirtual: false},
+			hasError: true},
+		{name: "OrdersのエラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			server: &server{
+				security:     &testSecurity{orders2: errors.New("miss match api key error message"), isMissMatchApiKeyError1: true},
+				tokenService: &testTokenService{getToken1: "TOKEN_STRING", refresh2: errors.New("refresh error message")}},
+			arg:      &kabuspb.GetOrdersRequest{IsVirtual: false},
+			hasError: true},
+		{name: "OrdersのエラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			server: &server{
+				security:     &testSecurity{orders2: errors.New("miss match api key error message"), isMissMatchApiKeyError1: true},
+				tokenService: &testTokenService{getToken1: "TOKEN_STRING", refresh1: "REFRESHED_TOKEN_STRING"}},
 			arg:      &kabuspb.GetOrdersRequest{IsVirtual: false},
 			hasError: true},
 		{name: "Ordersの結果を結果を返す",
@@ -713,6 +831,18 @@ func Test_server_GetPositions(t *testing.T) {
 				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
 			arg:      &kabuspb.GetPositionsRequest{IsVirtual: false},
 			hasError: true},
+		{name: "PositionsのエラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			server: &server{
+				security:     &testSecurity{positions2: errors.New("miss match api key error message"), isMissMatchApiKeyError1: true},
+				tokenService: &testTokenService{getToken1: "TOKEN_STRING", refresh2: errors.New("refresh error message")}},
+			arg:      &kabuspb.GetPositionsRequest{IsVirtual: false},
+			hasError: true},
+		{name: "PositionsのエラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			server: &server{
+				security:     &testSecurity{positions2: errors.New("miss match api key error message"), isMissMatchApiKeyError1: true},
+				tokenService: &testTokenService{getToken1: "TOKEN_STRING", refresh1: "REFRESHED_TOKEN_STRING"}},
+			arg:      &kabuspb.GetPositionsRequest{IsVirtual: false},
+			hasError: true},
 		{name: "Positionsの結果を結果を返す",
 			server: &server{
 				security:     &testSecurity{positions1: &kabuspb.Positions{Positions: []*kabuspb.Position{{ExecutionId: "20210331A02N36008399"}}}},
@@ -748,13 +878,16 @@ func Test_server_GetPositions(t *testing.T) {
 func Test_server_GetPriceRanking(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name          string
-		getToken1     string
-		getToken2     error
-		priceRanking1 *kabuspb.PriceRanking
-		priceRanking2 error
-		want          *kabuspb.PriceRanking
-		hasError      bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		priceRanking1           *kabuspb.PriceRanking
+		priceRanking2           error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.PriceRanking
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -763,6 +896,18 @@ func Test_server_GetPriceRanking(t *testing.T) {
 			getToken1:     "TOKEN_STRING",
 			priceRanking2: errors.New("register error message"),
 			hasError:      true},
+		{name: "PriceRankingのエラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			priceRanking2:           errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "PriceRankingのエラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			priceRanking2:           errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "PriceRankingの結果を結果を返す",
 			getToken1:     "TOKEN_STRING",
 			priceRanking1: &kabuspb.PriceRanking{Type: kabuspb.PriceRankingType_PRICE_RANKING_TYPE_INCREASE_RATE},
@@ -774,8 +919,8 @@ func Test_server_GetPriceRanking(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{priceRanking1: test.priceRanking1, priceRanking2: test.priceRanking2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				security:     &testSecurity{priceRanking1: test.priceRanking1, priceRanking2: test.priceRanking2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.GetPriceRanking(context.Background(), &kabuspb.GetPriceRankingRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -787,13 +932,16 @@ func Test_server_GetPriceRanking(t *testing.T) {
 func Test_server_GetTickRanking(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name         string
-		getToken1    string
-		getToken2    error
-		tickRanking1 *kabuspb.TickRanking
-		tickRanking2 error
-		want         *kabuspb.TickRanking
-		hasError     bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		tickRanking1            *kabuspb.TickRanking
+		tickRanking2            error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.TickRanking
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -802,6 +950,18 @@ func Test_server_GetTickRanking(t *testing.T) {
 			getToken1:    "TOKEN_STRING",
 			tickRanking2: errors.New("register error message"),
 			hasError:     true},
+		{name: "TickRankingのエラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			tickRanking2:            errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "TickRankingのエラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			tickRanking2:            errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "TickRankingの結果を結果を返す",
 			getToken1:    "TOKEN_STRING",
 			tickRanking1: &kabuspb.TickRanking{ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL},
@@ -813,8 +973,8 @@ func Test_server_GetTickRanking(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{tickRanking1: test.tickRanking1, tickRanking2: test.tickRanking2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				security:     &testSecurity{tickRanking1: test.tickRanking1, tickRanking2: test.tickRanking2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.GetTickRanking(context.Background(), &kabuspb.GetTickRankingRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -826,13 +986,16 @@ func Test_server_GetTickRanking(t *testing.T) {
 func Test_server_GetVolumeRanking(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name           string
-		getToken1      string
-		getToken2      error
-		volumeRanking1 *kabuspb.VolumeRanking
-		volumeRanking2 error
-		want           *kabuspb.VolumeRanking
-		hasError       bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		volumeRanking1          *kabuspb.VolumeRanking
+		volumeRanking2          error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.VolumeRanking
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -841,6 +1004,18 @@ func Test_server_GetVolumeRanking(t *testing.T) {
 			getToken1:      "TOKEN_STRING",
 			volumeRanking2: errors.New("register error message"),
 			hasError:       true},
+		{name: "VolumeRankingのエラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			volumeRanking2:          errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "VolumeRankingのエラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			volumeRanking2:          errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "VolumeRankingの結果を結果を返す",
 			getToken1:      "TOKEN_STRING",
 			volumeRanking1: &kabuspb.VolumeRanking{ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL},
@@ -852,8 +1027,8 @@ func Test_server_GetVolumeRanking(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{volumeRanking1: test.volumeRanking1, volumeRanking2: test.volumeRanking2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				security:     &testSecurity{volumeRanking1: test.volumeRanking1, volumeRanking2: test.volumeRanking2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.GetVolumeRanking(context.Background(), &kabuspb.GetVolumeRankingRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -865,13 +1040,16 @@ func Test_server_GetVolumeRanking(t *testing.T) {
 func Test_server_GetValueRanking(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name          string
-		getToken1     string
-		getToken2     error
-		valueRanking1 *kabuspb.ValueRanking
-		valueRanking2 error
-		want          *kabuspb.ValueRanking
-		hasError      bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		valueRanking1           *kabuspb.ValueRanking
+		valueRanking2           error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.ValueRanking
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -880,6 +1058,18 @@ func Test_server_GetValueRanking(t *testing.T) {
 			getToken1:     "TOKEN_STRING",
 			valueRanking2: errors.New("register error message"),
 			hasError:      true},
+		{name: "ValueRankingのエラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			valueRanking2:           errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "ValueRankingのエラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			valueRanking2:           errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "ValueRankingの結果を結果を返す",
 			getToken1:     "TOKEN_STRING",
 			valueRanking1: &kabuspb.ValueRanking{ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL},
@@ -891,8 +1081,8 @@ func Test_server_GetValueRanking(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{valueRanking1: test.valueRanking1, valueRanking2: test.valueRanking2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				security:     &testSecurity{valueRanking1: test.valueRanking1, valueRanking2: test.valueRanking2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.GetValueRanking(context.Background(), &kabuspb.GetValueRankingRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -904,13 +1094,16 @@ func Test_server_GetValueRanking(t *testing.T) {
 func Test_server_GetMarginRanking(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name           string
-		getToken1      string
-		getToken2      error
-		marginRanking1 *kabuspb.MarginRanking
-		marginRanking2 error
-		want           *kabuspb.MarginRanking
-		hasError       bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		marginRanking1          *kabuspb.MarginRanking
+		marginRanking2          error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.MarginRanking
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -919,6 +1112,18 @@ func Test_server_GetMarginRanking(t *testing.T) {
 			getToken1:      "TOKEN_STRING",
 			marginRanking2: errors.New("register error message"),
 			hasError:       true},
+		{name: "MarginRankingのエラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			marginRanking2:          errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "MarginRankingのエラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			marginRanking2:          errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "MarginRankingの結果を結果を返す",
 			getToken1:      "TOKEN_STRING",
 			marginRanking1: &kabuspb.MarginRanking{ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL},
@@ -930,8 +1135,8 @@ func Test_server_GetMarginRanking(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{marginRanking1: test.marginRanking1, marginRanking2: test.marginRanking2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				security:     &testSecurity{marginRanking1: test.marginRanking1, marginRanking2: test.marginRanking2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.GetMarginRanking(context.Background(), &kabuspb.GetMarginRankingRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -943,13 +1148,16 @@ func Test_server_GetMarginRanking(t *testing.T) {
 func Test_server_GetIndustryRanking(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name             string
-		getToken1        string
-		getToken2        error
-		industryRanking1 *kabuspb.IndustryRanking
-		industryRanking2 error
-		want             *kabuspb.IndustryRanking
-		hasError         bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		industryRanking1        *kabuspb.IndustryRanking
+		industryRanking2        error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.IndustryRanking
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -958,6 +1166,18 @@ func Test_server_GetIndustryRanking(t *testing.T) {
 			getToken1:        "TOKEN_STRING",
 			industryRanking2: errors.New("register error message"),
 			hasError:         true},
+		{name: "IndustryRankingのエラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			industryRanking2:        errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "IndustryRankingのエラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			industryRanking2:        errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			hasError:                true},
 		{name: "IndustryRankingの結果を結果を返す",
 			getToken1:        "TOKEN_STRING",
 			industryRanking1: &kabuspb.IndustryRanking{ExchangeDivision: kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL},
@@ -969,8 +1189,8 @@ func Test_server_GetIndustryRanking(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{industryRanking1: test.industryRanking1, industryRanking2: test.industryRanking2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				security:     &testSecurity{industryRanking1: test.industryRanking1, industryRanking2: test.industryRanking2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.GetIndustryRanking(context.Background(), &kabuspb.GetIndustryRankingRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -996,6 +1216,18 @@ func Test_server_SendStockOrder(t *testing.T) {
 			server: &server{
 				security:     &testSecurity{sendOrderStock2: errors.New("register error message")},
 				tokenService: &testTokenService{getToken1: "TOKEN_STRING"}},
+			arg:      &kabuspb.SendStockOrderRequest{IsVirtual: false},
+			hasError: true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			server: &server{
+				security:     &testSecurity{sendOrderStock2: errors.New("miss match api key error message"), isMissMatchApiKeyError1: true},
+				tokenService: &testTokenService{getToken1: "TOKEN_STRING", refresh2: errors.New("refresh error message")}},
+			arg:      &kabuspb.SendStockOrderRequest{IsVirtual: false},
+			hasError: true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			server: &server{
+				security:     &testSecurity{sendOrderStock2: errors.New("miss match api key error message"), isMissMatchApiKeyError1: true},
+				tokenService: &testTokenService{getToken1: "TOKEN_STRING", refresh1: "REFRESHED_TOKEN_STRING"}},
 			arg:      &kabuspb.SendStockOrderRequest{IsVirtual: false},
 			hasError: true},
 		{name: "エラーがなければ結果を返す",
@@ -1036,10 +1268,13 @@ func Test_server_SendMarginOrder(t *testing.T) {
 		name                    string
 		getToken1               string
 		getToken2               error
+		refresh1                string
+		refresh2                error
 		sendOrderMargin1        *kabuspb.OrderResponse
 		sendOrderMargin2        error
 		virtualSendOrderMargin1 *kabuspb.OrderResponse
 		virtualSendOrderMargin2 error
+		isMissMatchApiKeyError1 bool
 		arg2                    *kabuspb.SendMarginOrderRequest
 		want                    *kabuspb.OrderResponse
 		hasError                bool
@@ -1053,6 +1288,20 @@ func Test_server_SendMarginOrder(t *testing.T) {
 			sendOrderMargin2: errors.New("register error message"),
 			arg2:             &kabuspb.SendMarginOrderRequest{},
 			hasError:         true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			sendOrderMargin2:        errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			arg2:                    &kabuspb.SendMarginOrderRequest{},
+			hasError:                true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			sendOrderMargin2:        errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			arg2:                    &kabuspb.SendMarginOrderRequest{},
+			hasError:                true},
 		{name: "エラーがなければ結果を返す",
 			getToken1:        "TOKEN_STRING",
 			sendOrderMargin1: &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"},
@@ -1069,9 +1318,9 @@ func Test_server_SendMarginOrder(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{sendOrderMargin1: test.sendOrderMargin1, sendOrderMargin2: test.sendOrderMargin2},
+				security:     &testSecurity{sendOrderMargin1: test.sendOrderMargin1, sendOrderMargin2: test.sendOrderMargin2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
 				virtual:      &testVirtualSecurity{sendOrderMargin1: test.virtualSendOrderMargin1, sendOrderMargin2: test.virtualSendOrderMargin2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.SendMarginOrder(context.Background(), test.arg2)
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -1083,13 +1332,16 @@ func Test_server_SendMarginOrder(t *testing.T) {
 func Test_server_SendFutureOrder(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name             string
-		getToken1        string
-		getToken2        error
-		sendOrderFuture1 *kabuspb.OrderResponse
-		sendOrderFuture2 error
-		want             *kabuspb.OrderResponse
-		hasError         bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		sendOrderFuture1        *kabuspb.OrderResponse
+		sendOrderFuture2        error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.OrderResponse
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -1098,6 +1350,18 @@ func Test_server_SendFutureOrder(t *testing.T) {
 			getToken1:        "TOKEN_STRING",
 			sendOrderFuture2: errors.New("register error message"),
 			hasError:         true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			sendOrderFuture2:        errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			sendOrderFuture2:        errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "エラーがなければ結果を返す",
 			getToken1:        "TOKEN_STRING",
 			sendOrderFuture1: &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"},
@@ -1109,8 +1373,8 @@ func Test_server_SendFutureOrder(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{sendOrderFuture1: test.sendOrderFuture1, sendOrderFuture2: test.sendOrderFuture2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				security:     &testSecurity{sendOrderFuture1: test.sendOrderFuture1, sendOrderFuture2: test.sendOrderFuture2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.SendFutureOrder(context.Background(), &kabuspb.SendFutureOrderRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -1122,13 +1386,16 @@ func Test_server_SendFutureOrder(t *testing.T) {
 func Test_server_SendOptionOrder(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name             string
-		getToken1        string
-		getToken2        error
-		sendOrderOption1 *kabuspb.OrderResponse
-		sendOrderOption2 error
-		want             *kabuspb.OrderResponse
-		hasError         bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		sendOrderOption1        *kabuspb.OrderResponse
+		sendOrderOption2        error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.OrderResponse
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -1137,6 +1404,18 @@ func Test_server_SendOptionOrder(t *testing.T) {
 			getToken1:        "TOKEN_STRING",
 			sendOrderOption2: errors.New("register error message"),
 			hasError:         true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			sendOrderOption2:        errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			sendOrderOption2:        errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "エラーがなければ結果を返す",
 			getToken1:        "TOKEN_STRING",
 			sendOrderOption1: &kabuspb.OrderResponse{ResultCode: 0, OrderId: "ORDER-ID"},
@@ -1148,8 +1427,8 @@ func Test_server_SendOptionOrder(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{sendOrderOption1: test.sendOrderOption1, sendOrderOption2: test.sendOrderOption2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				security:     &testSecurity{sendOrderOption1: test.sendOrderOption1, sendOrderOption2: test.sendOrderOption2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.SendOptionOrder(context.Background(), &kabuspb.SendOptionOrderRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -1161,16 +1440,19 @@ func Test_server_SendOptionOrder(t *testing.T) {
 func Test_server_CancelOrder(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name                string
-		getToken1           string
-		getToken2           error
-		cancelOrder1        *kabuspb.OrderResponse
-		cancelOrder2        error
-		virtualCancelOrder1 *kabuspb.OrderResponse
-		virtualCancelOrder2 error
-		arg2                *kabuspb.CancelOrderRequest
-		want                *kabuspb.OrderResponse
-		hasError            bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		cancelOrder1            *kabuspb.OrderResponse
+		cancelOrder2            error
+		virtualCancelOrder1     *kabuspb.OrderResponse
+		virtualCancelOrder2     error
+		isMissMatchApiKeyError1 bool
+		arg2                    *kabuspb.CancelOrderRequest
+		want                    *kabuspb.OrderResponse
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			arg2:      &kabuspb.CancelOrderRequest{},
@@ -1181,6 +1463,20 @@ func Test_server_CancelOrder(t *testing.T) {
 			getToken1:    "TOKEN_STRING",
 			cancelOrder2: errors.New("register error message"),
 			hasError:     true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			cancelOrder2:            errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			arg2:                    &kabuspb.CancelOrderRequest{},
+			hasError:                true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			cancelOrder2:            errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			arg2:                    &kabuspb.CancelOrderRequest{},
+			hasError:                true},
 		{name: "エラーがなければ結果を返す",
 			arg2:         &kabuspb.CancelOrderRequest{},
 			getToken1:    "TOKEN_STRING",
@@ -1197,9 +1493,9 @@ func Test_server_CancelOrder(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{cancelOrder1: test.cancelOrder1, cancelOrder2: test.cancelOrder2},
+				security:     &testSecurity{cancelOrder1: test.cancelOrder1, cancelOrder2: test.cancelOrder2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
 				virtual:      &testVirtualSecurity{cancelOrder1: test.virtualCancelOrder1, cancelOrder2: test.virtualCancelOrder2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.CancelOrder(context.Background(), test.arg2)
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -1211,13 +1507,16 @@ func Test_server_CancelOrder(t *testing.T) {
 func Test_server_GetStockWallet(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name            string
-		getToken1       string
-		getToken2       error
-		getStockWallet1 *kabuspb.StockWallet
-		getStockWallet2 error
-		want            *kabuspb.StockWallet
-		hasError        bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		getStockWallet1         *kabuspb.StockWallet
+		getStockWallet2         error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.StockWallet
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -1226,6 +1525,18 @@ func Test_server_GetStockWallet(t *testing.T) {
 			getToken1:       "TOKEN_STRING",
 			getStockWallet2: errors.New("register error message"),
 			hasError:        true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			getStockWallet2:         errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			getStockWallet2:         errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "エラーがなければ結果を返す",
 			getToken1:       "TOKEN_STRING",
 			getStockWallet1: &kabuspb.StockWallet{StockAccountWallet: 300000},
@@ -1237,8 +1548,8 @@ func Test_server_GetStockWallet(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{getStockWallet1: test.getStockWallet1, getStockWallet2: test.getStockWallet2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				security:     &testSecurity{getStockWallet1: test.getStockWallet1, getStockWallet2: test.getStockWallet2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.GetStockWallet(context.Background(), &kabuspb.GetStockWalletRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -1250,13 +1561,16 @@ func Test_server_GetStockWallet(t *testing.T) {
 func Test_server_GetMarginWallet(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name             string
-		getToken1        string
-		getToken2        error
-		getMarginWallet1 *kabuspb.MarginWallet
-		getMarginWallet2 error
-		want             *kabuspb.MarginWallet
-		hasError         bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		getMarginWallet1        *kabuspb.MarginWallet
+		getMarginWallet2        error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.MarginWallet
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -1265,6 +1579,18 @@ func Test_server_GetMarginWallet(t *testing.T) {
 			getToken1:        "TOKEN_STRING",
 			getMarginWallet2: errors.New("register error message"),
 			hasError:         true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			getMarginWallet2:        errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			getMarginWallet2:        errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			hasError:                true},
 		{name: "エラーがなければ結果を返す",
 			getToken1:        "TOKEN_STRING",
 			getMarginWallet1: &kabuspb.MarginWallet{MarginAccountWallet: 300000},
@@ -1276,8 +1602,8 @@ func Test_server_GetMarginWallet(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{getMarginWallet1: test.getMarginWallet1, getMarginWallet2: test.getMarginWallet2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				security:     &testSecurity{getMarginWallet1: test.getMarginWallet1, getMarginWallet2: test.getMarginWallet2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.GetMarginWallet(context.Background(), &kabuspb.GetMarginWalletRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -1289,13 +1615,16 @@ func Test_server_GetMarginWallet(t *testing.T) {
 func Test_server_GetFutureWallet(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name             string
-		getToken1        string
-		getToken2        error
-		getFutureWallet1 *kabuspb.FutureWallet
-		getFutureWallet2 error
-		want             *kabuspb.FutureWallet
-		hasError         bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		getFutureWallet1        *kabuspb.FutureWallet
+		getFutureWallet2        error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.FutureWallet
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -1304,6 +1633,18 @@ func Test_server_GetFutureWallet(t *testing.T) {
 			getToken1:        "TOKEN_STRING",
 			getFutureWallet2: errors.New("register error message"),
 			hasError:         true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			getFutureWallet2:        errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			getFutureWallet2:        errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "エラーがなければ結果を返す",
 			getToken1:        "TOKEN_STRING",
 			getFutureWallet1: &kabuspb.FutureWallet{FutureTradeLimit: 300000, MarginRequirement: 0},
@@ -1315,8 +1656,8 @@ func Test_server_GetFutureWallet(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{getFutureWallet1: test.getFutureWallet1, getFutureWallet2: test.getFutureWallet2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				security:     &testSecurity{getFutureWallet1: test.getFutureWallet1, getFutureWallet2: test.getFutureWallet2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.GetFutureWallet(context.Background(), &kabuspb.GetFutureWalletRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -1328,13 +1669,16 @@ func Test_server_GetFutureWallet(t *testing.T) {
 func Test_server_GetOptionWallet(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name             string
-		getToken1        string
-		getToken2        error
-		getOptionWallet1 *kabuspb.OptionWallet
-		getOptionWallet2 error
-		want             *kabuspb.OptionWallet
-		hasError         bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		getOptionWallet1        *kabuspb.OptionWallet
+		getOptionWallet2        error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.OptionWallet
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -1343,6 +1687,18 @@ func Test_server_GetOptionWallet(t *testing.T) {
 			getToken1:        "TOKEN_STRING",
 			getOptionWallet2: errors.New("register error message"),
 			hasError:         true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			getOptionWallet2:        errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			getOptionWallet2:        errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "エラーがなければ結果を返す",
 			getToken1:        "TOKEN_STRING",
 			getOptionWallet1: &kabuspb.OptionWallet{OptionBuyTradeLimit: 300000, OptionSellTradeLimit: 300000, MarginRequirement: 0},
@@ -1354,8 +1710,8 @@ func Test_server_GetOptionWallet(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{getOptionWallet1: test.getOptionWallet1, getOptionWallet2: test.getOptionWallet2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				security:     &testSecurity{getOptionWallet1: test.getOptionWallet1, getOptionWallet2: test.getOptionWallet2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.GetOptionWallet(context.Background(), &kabuspb.GetOptionWalletRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -1367,13 +1723,16 @@ func Test_server_GetOptionWallet(t *testing.T) {
 func Test_server_GetExchange(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name      string
-		getToken1 string
-		getToken2 error
-		exchange1 *kabuspb.ExchangeInfo
-		exchange2 error
-		want      *kabuspb.ExchangeInfo
-		hasError  bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		exchange1               *kabuspb.ExchangeInfo
+		exchange2               error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.ExchangeInfo
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -1382,6 +1741,18 @@ func Test_server_GetExchange(t *testing.T) {
 			getToken1: "TOKEN_STRING",
 			exchange2: errors.New("register error message"),
 			hasError:  true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			exchange2:               errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			exchange2:               errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "エラーがなければ結果を返す",
 			getToken1: "TOKEN_STRING",
 			exchange1: &kabuspb.ExchangeInfo{
@@ -1407,8 +1778,8 @@ func Test_server_GetExchange(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{exchange1: test.exchange1, exchange2: test.exchange2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				security:     &testSecurity{exchange1: test.exchange1, exchange2: test.exchange2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.GetExchange(context.Background(), &kabuspb.GetExchangeRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -1420,13 +1791,16 @@ func Test_server_GetExchange(t *testing.T) {
 func Test_server_GetRegulation(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name        string
-		getToken1   string
-		getToken2   error
-		regulation1 *kabuspb.Regulation
-		regulation2 error
-		want        *kabuspb.Regulation
-		hasError    bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		regulation1             *kabuspb.Regulation
+		regulation2             error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.Regulation
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -1435,6 +1809,18 @@ func Test_server_GetRegulation(t *testing.T) {
 			getToken1:   "TOKEN_STRING",
 			regulation2: errors.New("register error message"),
 			hasError:    true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			regulation2:             errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			regulation2:             errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "エラーがなければ結果を返す",
 			getToken1: "TOKEN_STRING",
 			regulation1: &kabuspb.Regulation{
@@ -1488,8 +1874,8 @@ func Test_server_GetRegulation(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{regulation1: test.regulation1, regulation2: test.regulation2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				security:     &testSecurity{regulation1: test.regulation1, regulation2: test.regulation2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.GetRegulation(context.Background(), &kabuspb.GetRegulationRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -1501,13 +1887,16 @@ func Test_server_GetRegulation(t *testing.T) {
 func Test_server_GetPrimaryExchange(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name             string
-		getToken1        string
-		getToken2        error
-		primaryExchange1 *kabuspb.PrimaryExchange
-		primaryExchange2 error
-		want             *kabuspb.PrimaryExchange
-		hasError         bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		primaryExchange1        *kabuspb.PrimaryExchange
+		primaryExchange2        error
+		isMissMatchApiKeyError1 bool
+		want                    *kabuspb.PrimaryExchange
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -1516,6 +1905,18 @@ func Test_server_GetPrimaryExchange(t *testing.T) {
 			getToken1:        "TOKEN_STRING",
 			primaryExchange2: errors.New("register error message"),
 			hasError:         true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			primaryExchange2:        errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			primaryExchange2:        errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "エラーがなければ結果を返す",
 			getToken1: "TOKEN_STRING",
 			primaryExchange1: &kabuspb.PrimaryExchange{
@@ -1533,8 +1934,8 @@ func Test_server_GetPrimaryExchange(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{primaryExchange1: test.primaryExchange1, primaryExchange2: test.primaryExchange2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				security:     &testSecurity{primaryExchange1: test.primaryExchange1, primaryExchange2: test.primaryExchange2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.GetPrimaryExchange(context.Background(), &kabuspb.GetPrimaryExchangeRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
@@ -1546,13 +1947,16 @@ func Test_server_GetPrimaryExchange(t *testing.T) {
 func Test_server_GetSoftLimit(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		name       string
-		getToken1  string
-		getToken2  error
-		softLimit1 *kabuspb.SoftLimit
-		softLimit2 error
-		want       *kabuspb.SoftLimit
-		hasError   bool
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		isMissMatchApiKeyError1 bool
+		softLimit1              *kabuspb.SoftLimit
+		softLimit2              error
+		want                    *kabuspb.SoftLimit
+		hasError                bool
 	}{
 		{name: "token取得でエラーがあればエラーを返す",
 			getToken2: errors.New("get token error message"),
@@ -1561,6 +1965,18 @@ func Test_server_GetSoftLimit(t *testing.T) {
 			getToken1:  "TOKEN_STRING",
 			softLimit2: errors.New("register error message"),
 			hasError:   true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			softLimit2:              errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			softLimit2:              errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
 		{name: "エラーがなければ結果を返す",
 			getToken1: "TOKEN_STRING",
 			softLimit1: &kabuspb.SoftLimit{
@@ -1586,8 +2002,8 @@ func Test_server_GetSoftLimit(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 			server := &server{
-				security:     &testSecurity{softLimit1: test.softLimit1, softLimit2: test.softLimit2},
-				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2}}
+				security:     &testSecurity{softLimit1: test.softLimit1, softLimit2: test.softLimit2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
 			got1, got2 := server.GetSoftLimit(context.Background(), &kabuspb.GetSoftLimitRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)

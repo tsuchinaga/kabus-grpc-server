@@ -484,3 +484,19 @@ func (s *security) toRequestError(err error) error {
 	}
 	return err
 }
+
+// IsMissMatchApiKeyError - 引数のエラーがAPIキー不一致エラーかを返す
+func (s *security) IsMissMatchApiKeyError(err error) bool {
+	if st, ok := status.FromError(err); ok { // grpcのエラーならハンドリング処理に入る
+		// 詳細をループする
+		for _, d := range st.Details() {
+			switch e := d.(type) {
+			case *kabuspb.RequestError:
+				if e.Code == 4001009 { // 4001009: APIキー不一致
+					return true
+				}
+			}
+		}
+	}
+	return false
+}

@@ -7,6 +7,9 @@ import (
 	"testing"
 	"time"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"gitlab.com/tsuchinaga/kabus-grpc-server/kabuspb"
@@ -1552,6 +1555,60 @@ func Test_security_toRequestError(t *testing.T) {
 			t.Parallel()
 			security := &security{}
 			got1 := security.toRequestError(test.arg1).Error()
+			if !reflect.DeepEqual(test.want1, got1) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want1, got1)
+			}
+		})
+	}
+}
+
+func Test_security_IsMissMatchApiKeyError(t *testing.T) {
+	t.Parallel()
+
+	st := status.New(codes.Internal, "エラーメッセージ")
+
+	st1, _ := st.WithDetails(&kabuspb.Board{})
+	st2, _ := st.WithDetails(&kabuspb.RequestError{
+		StatusCode: int32(401),
+		Body:       `{"Code":4001007,"Message":"ログイン認証エラー"}`,
+		Code:       int32(4001007),
+		Message:    "ログイン認証エラー",
+	})
+	st3, _ := st.WithDetails(&kabuspb.RequestError{
+		StatusCode: int32(401),
+		Body:       `{"Code":4001009,"Message":"APIキー不一致"}`,
+		Code:       int32(4001009),
+		Message:    "APIキー不一致",
+	})
+
+	tests := []struct {
+		name  string
+		arg1  error
+		want1 bool
+	}{
+		{name: "grpcのエラーでなければfalse",
+			arg1:  errors.New("テストエラー"),
+			want1: false},
+		{name: "grpcのエラーでも詳細がなければfalse",
+			arg1:  status.New(codes.Internal, "エラーメッセージ").Err(),
+			want1: false},
+		{name: "grpcのエラーの詳細でも、RequestErrorタイプでなければfalse",
+			arg1:  st1.Err(),
+			want1: false},
+		{name: "grpcのエラーの詳細でRequestErrorタイプでも、APIキー不一致エラーでなければfalse",
+			arg1:  st2.Err(),
+			want1: false},
+		{name: "grpcのエラーの詳細でRequestErrorタイプでAPIキー不一致エラーが含まれていればtrue",
+			arg1:  st3.Err(),
+			want1: true},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			security := &security{}
+			got1 := security.IsMissMatchApiKeyError(test.arg1)
 			if !reflect.DeepEqual(test.want1, got1) {
 				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want1, got1)
 			}
