@@ -191,7 +191,7 @@ func (t *testSecurity) SoftLimit(context.Context, string, *kabuspb.GetSoftLimitR
 	return t.softLimit1, t.softLimit2
 }
 
-func (t *testSecurity) MarginPremium(context.Context, string, *kabuspb.MarginPremiumRequest) (*kabuspb.MarginPremium, error) {
+func (t *testSecurity) MarginPremium(context.Context, string, *kabuspb.GetMarginPremiumRequest) (*kabuspb.MarginPremium, error) {
 	return t.marginPremium1, t.marginPremium2
 }
 
@@ -2120,7 +2120,7 @@ func Test_server_MarginPremium(t *testing.T) {
 			server := &server{
 				security:     &testSecurity{marginPremium1: test.marginPremium1, marginPremium2: test.marginPremium2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
 				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
-			got1, got2 := server.MarginPremium(context.Background(), &kabuspb.MarginPremiumRequest{})
+			got1, got2 := server.GetMarginPremium(context.Background(), &kabuspb.GetMarginPremiumRequest{})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}

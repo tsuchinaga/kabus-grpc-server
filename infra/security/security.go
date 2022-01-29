@@ -469,7 +469,7 @@ func (s *security) SoftLimit(ctx context.Context, token string, _ *kabuspb.GetSo
 	}, nil
 }
 
-func (s *security) MarginPremium(ctx context.Context, token string, req *kabuspb.MarginPremiumRequest) (*kabuspb.MarginPremium, error) {
+func (s *security) MarginPremium(ctx context.Context, token string, req *kabuspb.GetMarginPremiumRequest) (*kabuspb.MarginPremium, error) {
 	res, err := s.restClient.MarginPremiumWithContext(ctx, token, kabus.MarginPremiumRequest{Symbol: req.SymbolCode})
 	if err != nil {
 		return nil, s.toRequestError(err)

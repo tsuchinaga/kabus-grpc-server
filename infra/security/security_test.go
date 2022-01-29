@@ -1676,7 +1676,7 @@ func Test_security_MarginPremium(t *testing.T) {
 			t.Parallel()
 			restClient := &testRESTClient{marginPremiumWithContext1: test.marginPremiumWithContext1, marginPremiumWithContext2: test.marginPremiumWithContext2}
 			security := &security{restClient: restClient}
-			got1, got2 := security.MarginPremium(context.Background(), "", &kabuspb.MarginPremiumRequest{SymbolCode: "9433"})
+			got1, got2 := security.MarginPremium(context.Background(), "", &kabuspb.GetMarginPremiumRequest{SymbolCode: "9433"})
 			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}

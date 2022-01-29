@@ -752,7 +752,7 @@ func (s *server) GetSoftLimit(ctx context.Context, req *kabuspb.GetSoftLimitRequ
 	return res, err
 }
 
-func (s *server) MarginPremium(ctx context.Context, req *kabuspb.MarginPremiumRequest) (*kabuspb.MarginPremium, error) {
+func (s *server) GetMarginPremium(ctx context.Context, req *kabuspb.GetMarginPremiumRequest) (*kabuspb.MarginPremium, error) {
 	s.infoMtx.Lock()
 	defer func() {
 		<-time.After(100 * time.Millisecond) // 0.1s
