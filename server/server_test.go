@@ -74,6 +74,8 @@ type testSecurity struct {
 	primaryExchange2        error
 	softLimit1              *kabuspb.SoftLimit
 	softLimit2              error
+	marginPremium1          *kabuspb.MarginPremium
+	marginPremium2          error
 	isMissMatchApiKeyError1 bool
 }
 
@@ -187,6 +189,10 @@ func (t *testSecurity) PrimaryExchange(context.Context, string, *kabuspb.GetPrim
 
 func (t *testSecurity) SoftLimit(context.Context, string, *kabuspb.GetSoftLimitRequest) (*kabuspb.SoftLimit, error) {
 	return t.softLimit1, t.softLimit2
+}
+
+func (t *testSecurity) MarginPremium(context.Context, string, *kabuspb.GetMarginPremiumRequest) (*kabuspb.MarginPremium, error) {
+	return t.marginPremium1, t.marginPremium2
 }
 
 func (t *testSecurity) IsMissMatchApiKeyError(error) bool {
@@ -2031,6 +2037,92 @@ func Test_server_GetBoardsStreaming(t *testing.T) {
 			got := server.GetBoardsStreaming(nil, nil)
 			if (got != nil) != test.hasError {
 				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.hasError, got)
+			}
+		})
+	}
+}
+
+func Test_server_MarginPremium(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                    string
+		getToken1               string
+		getToken2               error
+		refresh1                string
+		refresh2                error
+		isMissMatchApiKeyError1 bool
+		marginPremium1          *kabuspb.MarginPremium
+		marginPremium2          error
+		want                    *kabuspb.MarginPremium
+		hasError                bool
+	}{
+		{name: "token取得でエラーがあればエラーを返す",
+			getToken2: errors.New("get token error message"),
+			hasError:  true},
+		{name: "エラーがあればエラーを返す",
+			getToken1:      "TOKEN_STRING",
+			marginPremium2: errors.New("register error message"),
+			hasError:       true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき、再発行でエラーがあればエラーを返す",
+			getToken1:               "TOKEN_STRING",
+			refresh2:                errors.New("refresh error message"),
+			marginPremium2:          errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "エラーがAPIキー不一致なら再発行をたたき再発行に成功すれば再度リクエストを送る",
+			getToken1:               "TOKEN_STRING",
+			refresh1:                "REFRESHED_TOKEN_STRING",
+			marginPremium2:          errors.New("miss match api key error message"),
+			isMissMatchApiKeyError1: true,
+			hasError:                true},
+		{name: "エラーがなければ結果を返す",
+			getToken1: "TOKEN_STRING",
+			marginPremium1: &kabuspb.MarginPremium{
+				SymbolCode: "9433",
+				GeneralMargin: &kabuspb.MarginPremiumDetail{
+					MarginPremiumType:  kabuspb.MarginPremiumType_MARGIN_PREMIUM_TYPE_UNSPECIFIED,
+					MarginPremium:      0,
+					UpperMarginPremium: 0,
+					LowerMarginPremium: 0,
+					TickMarginPremium:  0,
+				},
+				DayTrade: &kabuspb.MarginPremiumDetail{
+					MarginPremiumType:  kabuspb.MarginPremiumType_MARGIN_PREMIUM_TYPE_AUCTION,
+					MarginPremium:      0.55,
+					UpperMarginPremium: 1,
+					LowerMarginPremium: 0.3,
+					TickMarginPremium:  0.01,
+				},
+			},
+			want: &kabuspb.MarginPremium{
+				SymbolCode: "9433",
+				GeneralMargin: &kabuspb.MarginPremiumDetail{
+					MarginPremiumType:  kabuspb.MarginPremiumType_MARGIN_PREMIUM_TYPE_UNSPECIFIED,
+					MarginPremium:      0,
+					UpperMarginPremium: 0,
+					LowerMarginPremium: 0,
+					TickMarginPremium:  0,
+				},
+				DayTrade: &kabuspb.MarginPremiumDetail{
+					MarginPremiumType:  kabuspb.MarginPremiumType_MARGIN_PREMIUM_TYPE_AUCTION,
+					MarginPremium:      0.55,
+					UpperMarginPremium: 1,
+					LowerMarginPremium: 0.3,
+					TickMarginPremium:  0.01,
+				},
+			}},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			server := &server{
+				security:     &testSecurity{marginPremium1: test.marginPremium1, marginPremium2: test.marginPremium2, isMissMatchApiKeyError1: test.isMissMatchApiKeyError1},
+				tokenService: &testTokenService{getToken1: test.getToken1, getToken2: test.getToken2, refresh1: test.refresh1, refresh2: test.refresh2}}
+			got1, got2 := server.GetMarginPremium(context.Background(), &kabuspb.GetMarginPremiumRequest{})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}
 		})
 	}

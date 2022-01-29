@@ -752,6 +752,30 @@ func (s *server) GetSoftLimit(ctx context.Context, req *kabuspb.GetSoftLimitRequ
 	return res, err
 }
 
+func (s *server) GetMarginPremium(ctx context.Context, req *kabuspb.GetMarginPremiumRequest) (*kabuspb.MarginPremium, error) {
+	s.infoMtx.Lock()
+	defer func() {
+		<-time.After(100 * time.Millisecond) // 0.1s
+		s.infoMtx.Unlock()
+	}()
+
+	token, err := s.tokenService.GetToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := s.security.MarginPremium(ctx, token, req)
+	if s.security.IsMissMatchApiKeyError(err) { // APIキー不一致なら再発行して再実行
+		token, err = s.tokenService.Refresh(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		res, err = s.security.MarginPremium(ctx, token, req)
+	}
+	return res, err
+}
+
 func (s *server) GetBoardsStreaming(_ *kabuspb.GetBoardsStreamingRequest, stream kabuspb.KabusService_GetBoardsStreamingServer) error {
 	return s.boardStreamService.Connect(stream)
 }

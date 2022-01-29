@@ -11,6 +11,7 @@ import (
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the grpc package it is being compiled against.
+// Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
 // KabusServiceClient is the client API for KabusService service.
@@ -46,6 +47,7 @@ type KabusServiceClient interface {
 	RegisterSymbols(ctx context.Context, in *RegisterSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
 	UnregisterSymbols(ctx context.Context, in *UnregisterSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
 	UnregisterAllSymbols(ctx context.Context, in *UnregisterAllSymbolsRequest, opts ...grpc.CallOption) (*RegisteredSymbols, error)
+	GetMarginPremium(ctx context.Context, in *GetMarginPremiumRequest, opts ...grpc.CallOption) (*MarginPremium, error)
 	GetBoardsStreaming(ctx context.Context, in *GetBoardsStreamingRequest, opts ...grpc.CallOption) (KabusService_GetBoardsStreamingClient, error)
 }
 
@@ -318,6 +320,15 @@ func (c *kabusServiceClient) UnregisterAllSymbols(ctx context.Context, in *Unreg
 	return out, nil
 }
 
+func (c *kabusServiceClient) GetMarginPremium(ctx context.Context, in *GetMarginPremiumRequest, opts ...grpc.CallOption) (*MarginPremium, error) {
+	out := new(MarginPremium)
+	err := c.cc.Invoke(ctx, "/kabuspb.KabusService/GetMarginPremium", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *kabusServiceClient) GetBoardsStreaming(ctx context.Context, in *GetBoardsStreamingRequest, opts ...grpc.CallOption) (KabusService_GetBoardsStreamingClient, error) {
 	stream, err := c.cc.NewStream(ctx, &KabusService_ServiceDesc.Streams[0], "/kabuspb.KabusService/GetBoardsStreaming", opts...)
 	if err != nil {
@@ -383,6 +394,7 @@ type KabusServiceServer interface {
 	RegisterSymbols(context.Context, *RegisterSymbolsRequest) (*RegisteredSymbols, error)
 	UnregisterSymbols(context.Context, *UnregisterSymbolsRequest) (*RegisteredSymbols, error)
 	UnregisterAllSymbols(context.Context, *UnregisterAllSymbolsRequest) (*RegisteredSymbols, error)
+	GetMarginPremium(context.Context, *GetMarginPremiumRequest) (*MarginPremium, error)
 	GetBoardsStreaming(*GetBoardsStreamingRequest, KabusService_GetBoardsStreamingServer) error
 	mustEmbedUnimplementedKabusServiceServer()
 }
@@ -477,6 +489,9 @@ func (UnimplementedKabusServiceServer) UnregisterSymbols(context.Context, *Unreg
 }
 func (UnimplementedKabusServiceServer) UnregisterAllSymbols(context.Context, *UnregisterAllSymbolsRequest) (*RegisteredSymbols, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UnregisterAllSymbols not implemented")
+}
+func (UnimplementedKabusServiceServer) GetMarginPremium(context.Context, *GetMarginPremiumRequest) (*MarginPremium, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMarginPremium not implemented")
 }
 func (UnimplementedKabusServiceServer) GetBoardsStreaming(*GetBoardsStreamingRequest, KabusService_GetBoardsStreamingServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetBoardsStreaming not implemented")
@@ -1016,6 +1031,24 @@ func _KabusService_UnregisterAllSymbols_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _KabusService_GetMarginPremium_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMarginPremiumRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KabusServiceServer).GetMarginPremium(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/kabuspb.KabusService/GetMarginPremium",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KabusServiceServer).GetMarginPremium(ctx, req.(*GetMarginPremiumRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _KabusService_GetBoardsStreaming_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(GetBoardsStreamingRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -1159,6 +1192,10 @@ var KabusService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UnregisterAllSymbols",
 			Handler:    _KabusService_UnregisterAllSymbols_Handler,
+		},
+		{
+			MethodName: "GetMarginPremium",
+			Handler:    _KabusService_GetMarginPremium_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

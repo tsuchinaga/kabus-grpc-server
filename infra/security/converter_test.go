@@ -2498,35 +2498,37 @@ func Test_toSendOrderStockRequestFromSendMarginOrderRequest(t *testing.T) {
 	}{
 		{name: "Exitなら指定したDelivTypeが設定される",
 			arg1: &kabuspb.SendMarginOrderRequest{
-				Password:        "PASSWORD",
-				SymbolCode:      "1320",
-				Exchange:        kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU,
-				Side:            kabuspb.Side_SIDE_BUY,
-				TradeType:       kabuspb.TradeType_TRADE_TYPE_EXIT,
-				MarginTradeType: kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_SYSTEM,
-				DeliveryType:    kabuspb.DeliveryType_DELIVERY_TYPE_CASH,
-				AccountType:     kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC,
-				Quantity:        3,
-				ClosePositions:  []*kabuspb.ClosePosition{{ExecutionId: "POSITION-ID", Quantity: 3}},
-				OrderType:       kabuspb.StockOrderType_STOCK_ORDER_TYPE_MO,
-				Price:           0,
-				ExpireDay:       nil,
+				Password:          "PASSWORD",
+				SymbolCode:        "1320",
+				Exchange:          kabuspb.StockExchange_STOCK_EXCHANGE_TOUSHOU,
+				Side:              kabuspb.Side_SIDE_BUY,
+				TradeType:         kabuspb.TradeType_TRADE_TYPE_EXIT,
+				MarginTradeType:   kabuspb.MarginTradeType_MARGIN_TRADE_TYPE_SYSTEM,
+				MarginPremiumUnit: 1.1,
+				DeliveryType:      kabuspb.DeliveryType_DELIVERY_TYPE_CASH,
+				AccountType:       kabuspb.AccountType_ACCOUNT_TYPE_SPECIFIC,
+				Quantity:          3,
+				ClosePositions:    []*kabuspb.ClosePosition{{ExecutionId: "POSITION-ID", Quantity: 3}},
+				OrderType:         kabuspb.StockOrderType_STOCK_ORDER_TYPE_MO,
+				Price:             0,
+				ExpireDay:         nil,
 			},
 			want: kabus.SendOrderStockRequest{
-				Password:        "PASSWORD",
-				Symbol:          "1320",
-				Exchange:        kabus.StockExchangeToushou,
-				SecurityType:    kabus.SecurityTypeStock,
-				Side:            kabus.SideBuy,
-				CashMargin:      kabus.CashMarginMarginExit,
-				MarginTradeType: kabus.MarginTradeTypeSystem,
-				DelivType:       kabus.DelivTypeCash,
-				AccountType:     kabus.AccountTypeSpecific,
-				Qty:             3,
-				ClosePositions:  []kabus.ClosePosition{{HoldID: "POSITION-ID", Qty: 3}},
-				Price:           0,
-				ExpireDay:       kabus.YmdNUMToday,
-				FrontOrderType:  kabus.StockFrontOrderTypeMarket,
+				Password:          "PASSWORD",
+				Symbol:            "1320",
+				Exchange:          kabus.StockExchangeToushou,
+				SecurityType:      kabus.SecurityTypeStock,
+				Side:              kabus.SideBuy,
+				CashMargin:        kabus.CashMarginMarginExit,
+				MarginTradeType:   kabus.MarginTradeTypeSystem,
+				MarginPremiumUnit: 1.1,
+				DelivType:         kabus.DelivTypeCash,
+				AccountType:       kabus.AccountTypeSpecific,
+				Qty:               3,
+				ClosePositions:    []kabus.ClosePosition{{HoldID: "POSITION-ID", Qty: 3}},
+				Price:             0,
+				ExpireDay:         kabus.YmdNUMToday,
+				FrontOrderType:    kabus.StockFrontOrderTypeMarket,
 			}},
 		{name: "EntryならDelivTypeに未指定が設定される",
 			arg1: &kabuspb.SendMarginOrderRequest{
@@ -3403,5 +3405,59 @@ func Test_toOptionReverseLimitOrder(t *testing.T) {
 				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want, got)
 			}
 		})
+	}
+}
+
+func Test_fromMarginPremiumType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name  string
+		arg1  kabus.MarginPremiumType
+		want1 kabuspb.MarginPremiumType
+	}{
+		{name: "未指定 を変換できる",
+			arg1:  kabus.MarginPremiumTypeUnspecified,
+			want1: kabuspb.MarginPremiumType_MARGIN_PREMIUM_TYPE_UNSPECIFIED},
+		{name: "未対応 を変換できる",
+			arg1:  kabus.MarginPremiumTypeNothing,
+			want1: kabuspb.MarginPremiumType_MARGIN_PREMIUM_TYPE_NOTHING},
+		{name: "固定 を変換できる",
+			arg1:  kabus.MarginPremiumTypeFixed,
+			want1: kabuspb.MarginPremiumType_MARGIN_PREMIUM_TYPE_FIXED},
+		{name: "オークション を変換できる",
+			arg1:  kabus.MarginPremiumTypeAuction,
+			want1: kabuspb.MarginPremiumType_MARGIN_PREMIUM_TYPE_AUCTION},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got1 := fromMarginPremiumType(test.arg1)
+			if !reflect.DeepEqual(test.want1, got1) {
+				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want1, got1)
+			}
+		})
+	}
+}
+
+func Test_fromMarginPremiumDetailDetail(t *testing.T) {
+	want1 := &kabuspb.MarginPremiumDetail{
+		MarginPremiumType:  kabuspb.MarginPremiumType_MARGIN_PREMIUM_TYPE_AUCTION,
+		MarginPremium:      0.55,
+		UpperMarginPremium: 1,
+		LowerMarginPremium: 0.3,
+		TickMarginPremium:  0.01,
+	}
+	got1 := fromMarginPremiumDetailDetail(kabus.MarginPremiumDetail{
+		MarginPremiumType:  kabus.MarginPremiumTypeAuction,
+		MarginPremium:      0.55,
+		UpperMarginPremium: 1,
+		LowerMarginPremium: 0.3,
+		TickMarginPremium:  0.01,
+	})
+	t.Parallel()
+	if !reflect.DeepEqual(want1, got1) {
+		t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), want1, got1)
 	}
 }
