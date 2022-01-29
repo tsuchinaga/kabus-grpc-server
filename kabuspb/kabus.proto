@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package kabuspb;
 
-option go_package = ".;kabuspb";
+option go_package = "./;kabuspb";
 
 import "google/protobuf/timestamp.proto";
 
@@ -36,6 +36,7 @@ service KabusService {
   rpc RegisterSymbols(RegisterSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録
   rpc UnregisterSymbols(UnregisterSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録解除
   rpc UnregisterAllSymbols(UnregisterAllSymbolsRequest) returns (RegisteredSymbols); // 銘柄登録全解除
+  rpc GetMarginPremium(MarginPremiumRequest) returns (MarginPremium); // プレミアム料取得
 
   rpc GetBoardsStreaming(GetBoardsStreamingRequest) returns (stream Board); // 時価情報・板情報ストリーミング
 }
@@ -129,6 +130,9 @@ message SendMarginOrderRequest {
 
   // 信用取引区分
   MarginTradeType margin_trade_type = 6;
+
+  // プレミアム料(円)
+  double margin_premium_unit = 15;
 
   // 受渡区分
   DeliveryType delivery_type = 7;
@@ -566,6 +570,12 @@ message GetPrimaryExchangeRequest {
 
 // ソフトリミットリクエスト
 message GetSoftLimitRequest {}
+
+// プレミアム料取得リクエスト
+message MarginPremiumRequest {
+  // 銘柄コード
+  string symbol_code = 1;
+}
 
 // 時価情報・板情報ストリーミング
 message GetBoardsStreamingRequest {}
@@ -1612,6 +1622,35 @@ message SoftLimit {
   string kabus_version = 6;
 }
 
+// プレミアム料取得
+message MarginPremium {
+  // 銘柄コード
+  string symbol_code = 1;
+
+  // 一般信用（長期）
+  MarginPremiumDetail general_margin = 2;
+
+  // 一般信用（デイトレ）
+  MarginPremiumDetail day_trade = 3;
+}
+
+message MarginPremiumDetail {
+  // プレミアム料入力区分
+  MarginPremiumType margin_premium_type = 1;
+
+  // 確定プレミアム料
+  double margin_premium = 2;
+
+  // 上限プレミアム料
+  double upper_margin_premium = 3;
+
+  // 下限プレミアム料
+  double lower_margin_premium = 4;
+
+  // プレミアム料刻値
+  double tick_margin_premium = 5;
+}
+
 message RequestError {
   int32 status_code = 1;
   string body = 2;
@@ -2016,4 +2055,12 @@ enum OptionAfterHitOrderType {
   OPTION_AFTER_HIT_ORDER_TYPE_UNSPECIFIED = 0; // 未指定
   OPTION_AFTER_HIT_ORDER_TYPE_MO = 1; // 成行
   OPTION_AFTER_HIT_ORDER_TYPE_LO = 2; // 指値
+}
+
+// プレミアム料入力区分
+enum MarginPremiumType {
+  MARGIN_PREMIUM_TYPE_UNSPECIFIED = 0; // 未指定
+  MARGIN_PREMIUM_TYPE_NOTHING = 1; // プレミアム料がない銘柄
+  MARGIN_PREMIUM_TYPE_FIXED = 2; // プレミアム料が固定の銘柄
+  MARGIN_PREMIUM_TYPE_AUCTION = 3; // プレミアム料が入札で決定する銘柄
 }

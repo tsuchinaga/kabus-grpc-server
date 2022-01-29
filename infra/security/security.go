@@ -469,6 +469,18 @@ func (s *security) SoftLimit(ctx context.Context, token string, _ *kabuspb.GetSo
 	}, nil
 }
 
+func (s *security) MarginPremium(ctx context.Context, token string, req *kabuspb.MarginPremiumRequest) (*kabuspb.MarginPremium, error) {
+	res, err := s.restClient.MarginPremiumWithContext(ctx, token, kabus.MarginPremiumRequest{Symbol: req.SymbolCode})
+	if err != nil {
+		return nil, s.toRequestError(err)
+	}
+	return &kabuspb.MarginPremium{
+		SymbolCode:    res.Symbol,
+		GeneralMargin: fromMarginPremiumDetailDetail(res.GeneralMargin),
+		DayTrade:      fromMarginPremiumDetailDetail(res.DayTrade),
+	}, nil
+}
+
 // toRequestError - エラーコードをprotobuf定義のエラーに変えれるなら変えて返す、変えれないならそのまま返す
 func (s *security) toRequestError(err error) error {
 	switch e := err.(type) {

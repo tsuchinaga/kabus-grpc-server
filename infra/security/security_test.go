@@ -75,6 +75,8 @@ type testRESTClient struct {
 	primaryExchangeWithContext2    error
 	softLimitWithContext1          *kabus.SoftLimitResponse
 	softLimitWithContext2          error
+	marginPremiumWithContext1      *kabus.MarginPremiumResponse
+	marginPremiumWithContext2      error
 }
 
 func (t *testRESTClient) TokenWithContext(context.Context, kabus.TokenRequest) (*kabus.TokenResponse, error) {
@@ -185,6 +187,10 @@ func (t *testRESTClient) PrimaryExchangeWithContext(context.Context, string, kab
 
 func (t *testRESTClient) SoftLimitWithContext(context.Context, string, kabus.SoftLimitRequest) (*kabus.SoftLimitResponse, error) {
 	return t.softLimitWithContext1, t.softLimitWithContext2
+}
+
+func (t *testRESTClient) MarginPremiumWithContext(context.Context, string, kabus.MarginPremiumRequest) (*kabus.MarginPremiumResponse, error) {
+	return t.marginPremiumWithContext1, t.marginPremiumWithContext2
 }
 
 func Test_NewSecurity(t *testing.T) {
@@ -1611,6 +1617,68 @@ func Test_security_IsMissMatchApiKeyError(t *testing.T) {
 			got1 := security.IsMissMatchApiKeyError(test.arg1)
 			if !reflect.DeepEqual(test.want1, got1) {
 				t.Errorf("%s error\nwant: %+v\ngot: %+v\n", t.Name(), test.want1, got1)
+			}
+		})
+	}
+}
+
+func Test_security_MarginPremium(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name                      string
+		marginPremiumWithContext1 *kabus.MarginPremiumResponse
+		marginPremiumWithContext2 error
+		want                      *kabuspb.MarginPremium
+		hasError                  bool
+	}{
+		{name: "errorを返されたらerrorを返す", marginPremiumWithContext2: errors.New("error message"), hasError: true},
+		{name: "responseが返されたらresponseを変換して返す",
+			marginPremiumWithContext1: &kabus.MarginPremiumResponse{
+				Symbol: "9433",
+				GeneralMargin: kabus.MarginPremiumDetail{
+					MarginPremiumType:  kabus.MarginPremiumTypeUnspecified,
+					MarginPremium:      0,
+					UpperMarginPremium: 0,
+					LowerMarginPremium: 0,
+					TickMarginPremium:  0,
+				},
+				DayTrade: kabus.MarginPremiumDetail{
+					MarginPremiumType:  kabus.MarginPremiumTypeAuction,
+					MarginPremium:      0.55,
+					UpperMarginPremium: 1,
+					LowerMarginPremium: 0.3,
+					TickMarginPremium:  0.01,
+				},
+			},
+			want: &kabuspb.MarginPremium{
+				SymbolCode: "9433",
+				GeneralMargin: &kabuspb.MarginPremiumDetail{
+					MarginPremiumType:  kabuspb.MarginPremiumType_MARGIN_PREMIUM_TYPE_UNSPECIFIED,
+					MarginPremium:      0,
+					UpperMarginPremium: 0,
+					LowerMarginPremium: 0,
+					TickMarginPremium:  0,
+				},
+				DayTrade: &kabuspb.MarginPremiumDetail{
+					MarginPremiumType:  kabuspb.MarginPremiumType_MARGIN_PREMIUM_TYPE_AUCTION,
+					MarginPremium:      0.55,
+					UpperMarginPremium: 1,
+					LowerMarginPremium: 0.3,
+					TickMarginPremium:  0.01,
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			restClient := &testRESTClient{marginPremiumWithContext1: test.marginPremiumWithContext1, marginPremiumWithContext2: test.marginPremiumWithContext2}
+			security := &security{restClient: restClient}
+			got1, got2 := security.MarginPremium(context.Background(), "", &kabuspb.MarginPremiumRequest{SymbolCode: "9433"})
+			if !reflect.DeepEqual(test.want, got1) || (got2 != nil) != test.hasError {
+				t.Errorf("%s error\nwant: %+v, %+v\ngot: %+v, %+v\n", t.Name(), test.want, test.hasError, got1, got2)
 			}
 		})
 	}

@@ -1037,6 +1037,7 @@ func toSendOrderStockRequestFromSendMarginOrderRequest(req *kabuspb.SendMarginOr
 		Side:              toSide(req.Side),
 		CashMargin:        toCashMargin(req.TradeType),
 		MarginTradeType:   toMarginTradeType(req.MarginTradeType),
+		MarginPremiumUnit: req.MarginPremiumUnit,
 		DelivType:         delivType,
 		AccountType:       toAccountType(req.AccountType),
 		Qty:               int(req.Quantity),
@@ -1651,4 +1652,26 @@ func toOptionAfterHitOrderType(afterHitOrderType kabuspb.OptionAfterHitOrderType
 		return kabus.OptionAfterHitOrderTypeLimit
 	}
 	return kabus.OptionAfterHitOrderTypeUnspecified
+}
+
+func fromMarginPremiumDetailDetail(marginPremiumDetail kabus.MarginPremiumDetail) *kabuspb.MarginPremiumDetail {
+	return &kabuspb.MarginPremiumDetail{
+		MarginPremiumType:  fromMarginPremiumType(marginPremiumDetail.MarginPremiumType),
+		MarginPremium:      marginPremiumDetail.MarginPremium,
+		UpperMarginPremium: marginPremiumDetail.UpperMarginPremium,
+		LowerMarginPremium: marginPremiumDetail.LowerMarginPremium,
+		TickMarginPremium:  marginPremiumDetail.TickMarginPremium,
+	}
+}
+
+func fromMarginPremiumType(marginPremiumType kabus.MarginPremiumType) kabuspb.MarginPremiumType {
+	switch marginPremiumType {
+	case kabus.MarginPremiumTypeNothing:
+		return kabuspb.MarginPremiumType_MARGIN_PREMIUM_TYPE_NOTHING
+	case kabus.MarginPremiumTypeFixed:
+		return kabuspb.MarginPremiumType_MARGIN_PREMIUM_TYPE_FIXED
+	case kabus.MarginPremiumTypeAuction:
+		return kabuspb.MarginPremiumType_MARGIN_PREMIUM_TYPE_AUCTION
+	}
+	return kabuspb.MarginPremiumType_MARGIN_PREMIUM_TYPE_UNSPECIFIED
 }

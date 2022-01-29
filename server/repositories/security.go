@@ -36,5 +36,6 @@ type Security interface {
 	Regulation(ctx context.Context, token string, req *kabuspb.GetRegulationRequest) (*kabuspb.Regulation, error)
 	PrimaryExchange(ctx context.Context, token string, req *kabuspb.GetPrimaryExchangeRequest) (*kabuspb.PrimaryExchange, error)
 	SoftLimit(ctx context.Context, token string, req *kabuspb.GetSoftLimitRequest) (*kabuspb.SoftLimit, error)
+	MarginPremium(ctx context.Context, token string, req *kabuspb.MarginPremiumRequest) (*kabuspb.MarginPremium, error)
 	IsMissMatchApiKeyError(err error) bool
 }
