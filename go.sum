@@ -54,6 +54,8 @@ github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 gitlab.com/tsuchinaga/go-kabusapi v1.5.0 h1:4xDNqw2z+T5JZmg0Grce7oO5kb9m5u5UrrNTdkWBfgo=
 gitlab.com/tsuchinaga/go-kabusapi v1.5.0/go.mod h1:yrhgbJRW5L/SaQorC/9Eo8o6KpCimnUf6DcVOukDzJk=
+gitlab.com/tsuchinaga/go-kabusapi v1.5.1 h1:tRRlntrG045KSZL7x3G2BNaWWdzoOxXUy9PfEDhE2+w=
+gitlab.com/tsuchinaga/go-kabusapi v1.5.1/go.mod h1:yrhgbJRW5L/SaQorC/9Eo8o6KpCimnUf6DcVOukDzJk=
 gitlab.com/tsuchinaga/kabus-virtual-security v0.0.6 h1:x9MzYswNzYLKHwJRjt6rqv39xhgsRWmgrpc1WuciOJo=
 gitlab.com/tsuchinaga/kabus-virtual-security v0.0.6/go.mod h1:VEGdjtnIFeHZlPMyDj/9JbacELv1ScpnzxqR2mPpYEk=
 go.opentelemetry.io/proto/otlp v0.7.0/go.mod h1:PqfVotwruBrMGOCsRd/89rSnXhoiJIqeYNgFYFoEGnI=
