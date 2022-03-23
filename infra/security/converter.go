@@ -731,6 +731,12 @@ func toExchangeDivision(exchangeDivision kabuspb.ExchangeDivision) kabus.Exchang
 		return kabus.ExchangeDivisionALL
 	case kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_ALL:
 		return kabus.ExchangeDivisionToushou
+	case kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_PRIME:
+		return kabus.ExchangeDivisionToushouPrime
+	case kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_STANDARD:
+		return kabus.ExchangeDivisionToushouStandard
+	case kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_GROWTH:
+		return kabus.ExchangeDivisionToushouGrowth
 	case kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_1:
 		return kabus.ExchangeDivisionToushou1
 	case kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_2:
@@ -755,6 +761,12 @@ func fromExchangeDivision(exchangeDivision kabus.ExchangeDivision) kabuspb.Excha
 		return kabuspb.ExchangeDivision_EXCHANGE_DIVISION_ALL
 	case kabus.ExchangeDivisionToushou:
 		return kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_ALL
+	case kabus.ExchangeDivisionToushouPrime:
+		return kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_PRIME
+	case kabus.ExchangeDivisionToushouStandard:
+		return kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_STANDARD
+	case kabus.ExchangeDivisionToushouGrowth:
+		return kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_GROWTH
 	case kabus.ExchangeDivisionToushou1:
 		return kabuspb.ExchangeDivision_EXCHANGE_DIVISION_TOUSHOU_1
 	case kabus.ExchangeDivisionToushou2:
